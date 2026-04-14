@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+/* ── Pixel-perfect canvas scaling ─────────────────────────────────────────── */
+canvas {
+  image-rendering: pixelated;   /* Chrome, Safari, Edge  */
+  image-rendering: crisp-edges; /* Firefox fallback       */
+  display: block;
+}
+
+/* ── Kill default margin/scroll for the game shell ───────────────────────── */
+html, body {
+  margin: 0;
+  padding: 0;
+  background: #000;
+  overflow: hidden;
+}
+
+/* ── Press Start 2P available to all HTML/CSS ─────────────────────────────── */
+:root {
+  --font-pixel: var(--font-press-start, monospace);
+}
+
+/* ── Overlay text classes ─────────────────────────────────────────────────── */
+/* clamp() ensures text stays readable from phone to 4K without media queries */
+.pixel-title {
+  font-family: var(--font-pixel);
+  font-size: clamp(80px, 16vw, 160px);
+  line-height: 1.4;
+  letter-spacing: 0.05em;
+  text-shadow: 8px 8px 0 #000;
+  margin: 0;
+}
+
+.pixel-sub {
+  font-family: var(--font-pixel);
+  font-size: clamp(10px, 1.8vw, 22px);
+  line-height: 1.6;
+  text-shadow: 2px 2px 0 #000;
+  margin: 0;
+}
+
+.pixel-hint {
+  font-family: var(--font-pixel);
+  font-size: clamp(8px, 1.3vw, 16px);
+  line-height: 1.6;
+  text-shadow: 1px 1px 0 #000;
+  margin: 0;
+}
+
+.pixel-btn {
+  font-family: var(--font-pixel);
+  font-size: clamp(10px, 1.8vw, 20px);
+  color: #fff1e8;
+  background: rgba(0, 0, 0, 0.6);
+  border: 2px solid #fff1e8;
+  padding: 0.6em 1.4em;
+  cursor: pointer;
+  letter-spacing: 0.05em;
+  text-shadow: 2px 2px 0 #000;
+  transition: background 0.1s;
+}
+
+.pixel-btn:hover,
+.pixel-btn:focus-visible {
+  background: rgba(255, 241, 232, 0.15);
+  outline: none;
+}
