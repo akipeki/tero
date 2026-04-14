@@ -298,8 +298,27 @@ export class Player extends creaturesAndObjects {
     return;
   }
 
-  // Blink during invincibility
-  if (this.invincible > 0 && Math.floor(this.invincible / 4) % 2 === 0) return;
+ctx.save();
+
+if (this.invincible > 0 && Math.floor(this.invincible / 4) % 2 === 0) {
+  ctx.globalAlpha = 0.65;
+}
+
+drawPlayerSprite(ctx, {
+  x: this.x,
+  y: this.y,
+  w: this.w,
+  h: this.h,
+  camX,
+  facingRight: this.facingRight,
+  state: this.state,
+  scaleX: this.scaleX,
+  scaleY: this.scaleY,
+  animFrame: this.animFrame,
+  isBig: this.isBig,
+});
+
+ctx.restore();
 
   drawPlayerSprite(ctx, {
     x: this.x,
@@ -315,4 +334,49 @@ export class Player extends creaturesAndObjects {
     isBig: this.isBig,
   });
 }
+  private drawShape(ctx: CanvasRenderingContext2D, camX: number, withDetail: boolean): void {
+    const sx = Math.floor(this.x - camX + this.w / 2);
+    const sy = Math.floor(this.y + this.h / 2);
+
+    ctx.save();
+    ctx.translate(sx, sy);
+    if (!this.facingRight) ctx.scale(-1, 1);
+    ctx.scale(this.scaleX, this.scaleY);
+
+    const hw = this.w / 2;
+    const hh = this.h / 2;
+
+    // Body
+    ctx.fillStyle = this.isBig ? P.PLAYER_BLUE : P.PLAYER_BLUE;
+    ctx.fillRect(-hw, -hh, this.w, this.h);
+
+    // Head (slightly darker top)
+    ctx.fillStyle = P.PLAYER_DARK;
+    ctx.fillRect(-hw, -hh, this.w, Math.round(this.h * 0.35));
+
+    if (withDetail) {
+      // Eyes
+      ctx.fillStyle = P.STAR_WHITE;
+      ctx.fillRect(hw - 8, -hh + 4, 5, 5);
+      // Feet / walk animation
+      const isWalk = this.state === PlayerState.WALK || this.state === PlayerState.BIG_WALK;
+      if (isWalk) {
+        const legOffset = Math.sin(this.animFrame * Math.PI / 2) * 4;
+        ctx.fillStyle = P.PLAYER_DARK;
+        ctx.fillRect(-hw,     hh - 7 + legOffset, hw - 1, 7);
+        ctx.fillRect(1,       hh - 7 - legOffset, hw - 1, 7);
+      } else {
+        ctx.fillStyle = P.PLAYER_DARK;
+        ctx.fillRect(-hw, hh - 7, this.w, 7);
+      }
+
+      // Jump stretch arm
+      if (this.state === PlayerState.JUMP || this.state === PlayerState.BIG_JUMP) {
+        ctx.fillStyle = P.STAR_WHITE;
+        ctx.fillRect(hw - 2, -hh + 12, 6, 4);
+      }
+    }
+
+    ctx.restore();
+  }
 }

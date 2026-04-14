@@ -1,7 +1,5 @@
 // file: game/render/Renderer.ts
 
-import { VIEWPORT_W, VIEWPORT_H } from '../constants';
-import { P } from '../palette';
 import { drawBackground, updateBackground } from './Background';
 import type { Tilemap } from '../level/Tilemap';
 import type { creaturesAndObjects } from '../creaturesAndObjects/creaturesAndObjects';
@@ -32,14 +30,14 @@ export class Renderer {
     // Screen shake offset
     shake.apply(ctx);
 
-    // Background (fixed to viewport)
+    // Background
     updateBackground(camX);
     drawBackground(ctx);
 
     // Tiles
     map.draw(ctx, camX);
 
-    // Entities (sorted by draw order — background first)
+    // Entities
     for (const e of entities) {
       if (e.active) e.draw(ctx, camX);
     }
@@ -50,10 +48,11 @@ export class Renderer {
     ctx.restore();
   }
 
-  /** Draw the animated background only (used for title screen canvas layer) */
   drawTitleBackground(): void {
     drawBackground(this.ctx);
   }
 
-  get context() { return this.ctx; }
+  get context() {
+    return this.ctx;
+  }
 }

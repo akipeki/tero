@@ -47,14 +47,15 @@ export class Game {
   // React HUD sync
   onHudUpdate?: (data: HudData) => void;
 
-  constructor(canvas: HTMLCanvasElement) {
-    this.canvas = canvas;
-    this.renderer = new Renderer(canvas);
-    this.input    = new InputHandler();
-    this.audio    = new AudioManager();
-    this.particles = new ParticleSystem();
-    this.shake    = new ScreenShake();
-  }
+constructor(canvas: HTMLCanvasElement) {
+  this.canvas = canvas;
+  this.renderer = new Renderer(canvas);
+  this.input = new InputHandler();
+  this.audio = new AudioManager();
+  this.particles = new ParticleSystem();
+  this.shake = new ScreenShake();
+
+}
 
   start(): void {
     this.lastTime = performance.now();
