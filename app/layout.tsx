@@ -14,6 +14,14 @@ export const metadata: Metadata = {
   description: "Retro pixel platformer",
 };
 
+// Critical player frames — preload so the very first PLAY tap doesn't pop in.
+const PRELOAD = [
+  "/images/tero/Tero_Idle.png",
+  "/images/tero/Tero_Walk.png",
+  "/images/tero/Tero_Jump.png",
+  "/images/tero/Tero_Fall.png",
+];
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -21,7 +29,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${pressStart.variable} h-full antialiased`}>
-      {/* h-full on body ensures h-full children get a concrete reference height */}
+      <head>
+        {PRELOAD.map((href) => (
+          <link key={href} rel="preload" as="image" href={href} />
+        ))}
+      </head>
       <body className="h-full overflow-hidden">{children}</body>
     </html>
   );

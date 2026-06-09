@@ -1,9 +1,11 @@
 'use client';
 
-// AudioManager — Tier 1: Web Audio API tones (works with zero audio files)
-// Tier 2: Howler.js (add real MP3s to /public/audio/ and wire up here)
+// AudioManager — Web Audio API tones. No audio files required.
+// (Tier 2 swap to Howler.js: drop MP3s in /public/audio/ and replace `play()`.)
 
-type SfxName = 'jump' | 'stomp' | 'powerup' | 'hurt' | 'death' | 'goal' | 'block';
+type SfxName =
+  | 'jump' | 'stomp' | 'powerup' | 'hurt' | 'death'
+  | 'goal' | 'block' | 'coin' | 'checkpoint';
 
 interface ToneSpec {
   freq: number;
@@ -13,28 +15,40 @@ interface ToneSpec {
 }
 
 const SFX_TONES: Record<SfxName, ToneSpec> = {
-  jump:    { freq: 520,  duration: 0.10, type: 'square' },
-  stomp:   { freq: 160,  duration: 0.18, type: 'sawtooth' },
-  powerup: { freq: 260,  duration: 0.08, type: 'square', freqs: [260, 330, 392, 523] },
-  hurt:    { freq: 180,  duration: 0.25, type: 'sawtooth' },
-  death:   { freq: 440,  duration: 0.08, type: 'square', freqs: [440, 330, 220, 110] },
-  goal:    { freq: 523,  duration: 0.12, type: 'square', freqs: [392, 440, 523, 659, 784] },
-  block:   { freq: 300,  duration: 0.12, type: 'square' },
+  jump:       { freq: 520, duration: 0.10, type: 'square' },
+  stomp:      { freq: 160, duration: 0.18, type: 'sawtooth' },
+  powerup:    { freq: 260, duration: 0.08, type: 'square', freqs: [260, 330, 392, 523] },
+  hurt:       { freq: 180, duration: 0.25, type: 'sawtooth' },
+  death:      { freq: 440, duration: 0.08, type: 'square', freqs: [440, 330, 220, 110] },
+  goal:       { freq: 523, duration: 0.12, type: 'square', freqs: [392, 440, 523, 659, 784] },
+  block:      { freq: 300, duration: 0.12, type: 'square' },
+  coin:       { freq: 988, duration: 0.07, type: 'square', freqs: [988, 1319] },
+  checkpoint: { freq: 660, duration: 0.10, type: 'square', freqs: [660, 880, 990] },
 };
 
 export class AudioManager {
   private ac: AudioContext | null = null;
   private muted = false;
   private musicGain: GainNode | null = null;
-  private musicOscs: OscillatorNode[] = [];
+  private musicOscs = new Set<OscillatorNode>();
   private musicStarted = false;
   private loopTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
   /** Must be called after the first user gesture (browser autoplay policy) */
   init(): void {
     if (this.ac) return;
-    this.ac = new AudioContext();
-    this.startMusic();
+    try {
+      const Ctor: typeof AudioContext =
+        window.AudioContext ||
+        // legacy webkit
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      if (!Ctor) return;
+      this.ac = new Ctor();
+      this.startMusic();
+    } catch {
+      // Some locked-down browsers throw; degrade gracefully to silent.
+      this.ac = null;
+    }
   }
 
   play(name: SfxName): void {
@@ -58,18 +72,33 @@ export class AudioManager {
     }
   }
 
+  setMuted(muted: boolean): void {
+    this.muted = muted;
+    if (this.musicGain) {
+      this.musicGain.gain.value = muted ? 0 : 0.06 * this.masterScale;
+    }
+  }
+
+  private masterScale = 1;
+  /** 0..1, multiplies the music gain. (SFX uses fixed per-tone gains.) */
+  setMasterVolume(scale: number): void {
+    this.masterScale = Math.max(0, Math.min(1, scale));
+    if (this.musicGain && !this.muted) {
+      this.musicGain.gain.value = 0.06 * this.masterScale;
+    }
+  }
+
   get isMuted(): boolean { return this.muted; }
 
   stopMusic(): void {
-    // Cancel any pending loop reschedule
     if (this.loopTimeoutId !== null) {
       clearTimeout(this.loopTimeoutId);
       this.loopTimeoutId = null;
     }
     for (const o of this.musicOscs) {
-      try { o.stop(); o.disconnect(); } catch {}
+      try { o.stop(); o.disconnect(); } catch { /* ignore */ }
     }
-    this.musicOscs = [];
+    this.musicOscs.clear();
     this.musicStarted = false;
     this.musicGain = null;
   }
@@ -77,7 +106,7 @@ export class AudioManager {
   /** Start (or restart) the background music */
   startMusic(): void {
     if (!this.ac) return;
-    this.stopMusic();           // clean up any previous session first
+    this.stopMusic();
     this.scheduleChiptune();
   }
 
@@ -101,6 +130,8 @@ export class AudioManager {
     o.connect(g);
     o.start(t0);
     o.stop(t0 + dur + 0.01);
+    // Tidy up after the tone ends.
+    o.onended = () => { try { g.disconnect(); } catch { /* ignore */ } };
   }
 
   // ─── Chiptune background music ──────────────────────────────────────────────
@@ -143,7 +174,13 @@ export class AudioManager {
         g.connect(master);
         o.start(t);
         o.stop(t + durations[i] + 0.02);
-        this.musicOscs.push(o);
+        this.musicOscs.add(o);
+
+        // Free the node references once they finish — avoid unbounded growth.
+        o.onended = () => {
+          this.musicOscs.delete(o);
+          try { o.disconnect(); g.disconnect(); } catch { /* ignore */ }
+        };
 
         t += durations[i];
       }
@@ -151,7 +188,6 @@ export class AudioManager {
       const nextStart = startTime + loopDur;
       const delay     = Math.max(0, (nextStart - this.ac.currentTime - 0.1) * 1000);
 
-      // Store timeout ID so stopMusic() can cancel it
       this.loopTimeoutId = setTimeout(() => {
         this.loopTimeoutId = null;
         if (this.musicStarted) scheduleLoop(nextStart);

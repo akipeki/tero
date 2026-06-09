@@ -42,16 +42,23 @@ export class ParticleSystem {
     }
   }
 
+  /** Update all particles in-place using swap-and-pop (O(n), no array shifts). */
   update(): void {
-    for (let i = this.pool.length - 1; i >= 0; i--) {
-      const p = this.pool[i];
+    const pool = this.pool;
+    let write = 0;
+    for (let read = 0; read < pool.length; read++) {
+      const p = pool[read];
       p.x  += p.vx;
       p.y  += p.vy;
       p.vy += PARTICLE_GRAVITY;
       p.vx *= 0.96;
       p.life--;
-      if (p.life <= 0) this.pool.splice(i, 1);
+      if (p.life > 0) {
+        if (write !== read) pool[write] = p;
+        write++;
+      }
     }
+    pool.length = write;
   }
 
   draw(ctx: CanvasRenderingContext2D, camX: number): void {

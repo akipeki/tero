@@ -8,10 +8,8 @@ import type { ScreenShake } from '../ScreenShake';
 
 export class Renderer {
   private ctx: CanvasRenderingContext2D;
-  private canvas: HTMLCanvasElement;
 
   constructor(canvas: HTMLCanvasElement) {
-    this.canvas = canvas;
     this.ctx = canvas.getContext('2d')!;
     this.ctx.imageSmoothingEnabled = false;
   }
@@ -26,23 +24,16 @@ export class Renderer {
     const ctx = this.ctx;
 
     ctx.save();
-
-    // Screen shake offset
     shake.apply(ctx);
 
-    // Background
     updateBackground(camX);
     drawBackground(ctx);
-
-    // Tiles
     map.draw(ctx, camX);
 
-    // Entities
     for (const e of entities) {
       if (e.active) e.draw(ctx, camX);
     }
 
-    // Particles
     particles.draw(ctx, camX);
 
     ctx.restore();
