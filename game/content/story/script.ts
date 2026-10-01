@@ -31,6 +31,8 @@ export const STORY = defineStory({
     doris: { name: 'DORIS, ACCOUNTING' },
     it:    { name: 'GARY FROM IT' },
     board: { name: 'THE BOARD' },
+    guard: { name: 'SECURITY' },
+    pig:   { name: 'VP OF SYNERGY' },
   },
 
   chapters: [
@@ -49,7 +51,7 @@ export const STORY = defineStory({
     {
       id: 'tuesday',
       name: 'The ascent',
-      levels: ['4', '5', '6'],
+      levels: ['4', '5', '7', '8', '6'],
       intro: [
         { text: 'THE OFFICE KEEPS GOING UP.\nSO DOES TERO.' },
         { who: 'it', text: 'Your dad got promoted to floor 33.\nThe Board took him.' },
@@ -61,6 +63,7 @@ export const STORY = defineStory({
 
   levels: {
     '1': {
+      density: 'sparse',
       goalWriting: 'crayon_power',
       intro: [
         { text: 'FLOOR 1 — THE MAILROOM.' },
@@ -93,7 +96,6 @@ export const STORY = defineStory({
         { atTile: 15, gag: 'banner_mondays' },
         { atTile: 17, gag: 'dad_photo' },
         { atTile: 34, gag: 'copier_slain' },
-        { atTile: 52, gag: 'supply_closet' },
       ],
       outro: [
         { who: 'tero', text: 'Up! UP!' },
@@ -101,6 +103,7 @@ export const STORY = defineStory({
     },
 
     '2': {
+      density: 'sparse',
       goalWriting: 'crayon_want',
       intro: [
         { text: 'FLOOR 6 — THE CUBICLE FARM.' },
@@ -130,7 +133,6 @@ export const STORY = defineStory({
       scenery: [
         { atTile: 11, gag: 'fridge_notes' },
         { atTile: 14, gag: 'dad_mug' },
-        { atTile: 30, gag: 'copier_butt' },
         { atTile: 46, gag: 'money_shrine' },
       ],
       outro: [
@@ -139,6 +141,7 @@ export const STORY = defineStory({
     },
 
     '3': {
+      density: 'sparse',
       goalWriting: 'crayon_resource',
       intro: [
         { text: 'FLOOR 12 — THE BOARDROOM.' },
@@ -171,7 +174,6 @@ export const STORY = defineStory({
         { atTile: 10, gag: 'dad_calendar' },
         { atTile: 20, gag: 'banner_q4' },
         { atTile: 45, gag: 'whiteboard' },
-        { atTile: 60, gag: 'sign_hr' },
       ],
       outro: [
         { who: 'tero', text: 'Dada. Floor. Thirty. Free.' },
@@ -259,7 +261,86 @@ export const STORY = defineStory({
         { atTile: 58, gag: 'poodle_desk' },
       ],
       outro: [
-        { who: 'it', text: 'Top floor\'s next. Go get him, kid.' },
+        { who: 'it', text: 'Security\'s next. Then the executives.\nThen your dad. Go get him, kid.' },
+      ],
+    },
+
+    '7': {
+      mood: 'unhinged',
+      goalWriting: 'crayon_whose',
+      intro: [
+        { text: 'FLOOR 27 — SECURITY.\nTHEY GUARD THE PROFITS. NOT THE PEOPLE.' },
+        { who: 'guard', text: 'Badge, please.\n...Is that a pacifier?' },
+      ],
+      triggers: [
+        {
+          atTile: 6,
+          lines: [
+            { who: 'tero', text: 'Harder. Better. Stronger.\n...Sadder.' },
+          ],
+        },
+        {
+          atTile: 30,
+          lines: [
+            { who: 'tero', text: 'Sky. Net.' },
+            { who: 'tero', text: '...Uh oh.' },
+          ],
+        },
+        {
+          atTile: 40,
+          lines: [
+            { text: '"WORK HARD FOR 30 YEARS AND YOU MIGHT\nPAY OFF YOUR STUDENT LOAN."' },
+            { who: 'tero', text: 'Dada still paying?' },
+          ],
+        },
+      ],
+      scenery: [
+        { atTile: 4,  gag: 'poster_harder' },
+        { atTile: 19, gag: 'bonus_jars' },
+        { atTile: 27, gag: 'poster_skynet' },
+        { atTile: 38, gag: 'banner_loan' },
+        { atTile: 60, gag: 'sign_hr' },
+      ],
+      outro: [
+        { who: 'guard', text: 'He... got past us?\nWe need a meeting about this.' },
+      ],
+    },
+
+    '8': {
+      mood: 'unhinged',
+      goalWriting: 'crayon_no_peace',
+      intro: [
+        { text: 'FLOOR 30 — THE EXECUTIVE WING.\nNO HUMANS ALLOWED. ONLY EXECUTIVES.' },
+        { who: 'pig', text: 'Oink. I mean — leverage.\nWho let the toddler in?' },
+      ],
+      triggers: [
+        {
+          atTile: 6,
+          lines: [
+            { text: '"I WORKED 18 HOURS A DAY FOR 10 YEARS.\nNOW I\'M SENIOR JUNIOR LEVEL\nPRODUCT MANAGER ASSISTANT."' },
+            { who: 'tero', text: 'Ten years.\n...For THAT?' },
+          ],
+        },
+        {
+          atTile: 60,
+          lines: [
+            { who: 'tero', text: 'Drip. ...Drip.\n...Nothing.' },
+          ],
+        },
+      ],
+      scenery: [
+        { atTile: 3,  gag: 'portrait_senior' },
+        { atTile: 18, gag: 'golden_parachute' },
+        { atTile: 26, gag: 'sign_results' },
+        { atTile: 34, gag: 'copier_butt' },
+        { atTile: 44, gag: 'banner_ceo' },
+        { atTile: 51, gag: 'supply_closet' },
+        { atTile: 58, gag: 'trickle_down' },
+        { atTile: 66, gag: 'pension_grave' },
+      ],
+      outro: [
+        { who: 'pig', text: 'The Board will not be pleased.' },
+        { who: 'tero', text: 'Good.' },
       ],
     },
 

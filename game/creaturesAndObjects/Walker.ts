@@ -4,9 +4,9 @@ import { drawWalkerSprite } from '../render/sprites/WalkerSprite';
 import { creaturesAndObjects, type UpdateCtx } from './creaturesAndObjects';
 import { stepBody } from '../physics/Physics';
 import { overlaps, stompOverlap } from '../physics/AABB';
-import { P } from '../palette';
-import { TILE_SIZE, ENEMY_SPEED } from '../constants';
+import { TILE_SIZE } from '../constants';
 import type { Player } from './Player';
+import { WALKERS, type WalkerSpec, type WalkerVariant } from './enemyKinds';
 
 export class Walker extends creaturesAndObjects {
   facingRight = false;
@@ -16,9 +16,14 @@ export class Walker extends creaturesAndObjects {
   private dying = false;
   private dyingTimer = 0;
   scaleY = 1;
+  readonly variant: WalkerVariant;
+  private spec: WalkerSpec;
 
-  constructor(tx: number, ty: number) {
-    super(tx * TILE_SIZE + 4, ty * TILE_SIZE - 24, 24, 24);
+  constructor(tx: number, ty: number, variant: WalkerVariant = 'clerk') {
+    const spec = WALKERS[variant];
+    super(tx * TILE_SIZE + (TILE_SIZE - spec.w) / 2, ty * TILE_SIZE - spec.h, spec.w, spec.h);
+    this.variant = variant;
+    this.spec = spec;
   }
 
   update(ctx: UpdateCtx): void {
@@ -29,7 +34,14 @@ export class Walker extends creaturesAndObjects {
       return;
     }
 
-    this.vx = this.facingRight ? ENEMY_SPEED : -ENEMY_SPEED;
+    if (this.spec.speed === 0) {
+      // Rooted in place (the plant): gravity only, chomp animation.
+      this.vx = 0;
+      stepBody(this, ctx.map);
+      this.animTimer++;
+      return;
+    }
+    this.vx = this.facingRight ? this.spec.speed : -this.spec.speed;
 
     // Wall check
     const probeX = this.facingRight ? this.right + 1 : this.left - 1;
@@ -55,8 +67,8 @@ export class Walker extends creaturesAndObjects {
   checkPlayerInteraction(player: Player, ctx: UpdateCtx): boolean {
     if (this.dying || !this.active) return false;
 
-    // Stomp
-    if (player.vy > 0 && stompOverlap(
+    // Stomp (unstompable enemies fall through to the hurt check)
+    if (this.spec.stompable && player.vy > 0 && stompOverlap(
       { x: player.x, y: player.y, w: player.w, h: player.h },
       player.prevBottom,
       { x: this.x, y: this.y, w: this.w, h: this.h },
@@ -81,7 +93,7 @@ export class Walker extends creaturesAndObjects {
     this.dyingTimer = 20;
     this.scaleY = 0.3;
     player.bounce();
-    ctx.particles.burst(this.cx, this.cy, 8, P.ENEMY_RED, P.ENEMY_DARK);
+    ctx.particles.burst(this.cx, this.cy, 8, this.spec.burst[0], this.spec.burst[1]);
     ctx.shake.trigger(3);
     ctx.audio.play('stomp');
   }
@@ -97,6 +109,8 @@ export class Walker extends creaturesAndObjects {
     animFrame: this.animFrame,
     dying: this.dying,
     scaleY: this.scaleY,
+    variant: this.variant,
+    animTick: this.animTimer,
   });
 }
 }

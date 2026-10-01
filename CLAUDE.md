@@ -15,6 +15,8 @@
   cards/chapters; played by `StoryPlayer` via the `STORY` game state and
   shown by `components/StoryBox.tsx`
 - Game name → `game/title.ts`
+- Enemy variants (guard, rat, pig, robot, plant, gorilla, vampire) →
+  `creaturesAndObjects/enemyKinds.ts` + art in `render/characters/creatures.ts`
 - Characters are pixel rigs → `game/render/characters/` (baby Tero + Dad, humans) on
   `render/pixel/Raster.ts`; `npm run sprites` regenerates the dragon PNGs
 - Office theme (default for built-in levels) → `game/render/office/`; each

@@ -99,6 +99,9 @@ export function validatePack(raw: unknown): ContentPack {
       });
     }
     if (L.goalWriting !== undefined) ensureString(L.goalWriting, `levels.${k}.goalWriting`);
+    if (L.gagDensity !== undefined && L.gagDensity !== 'sparse' && L.gagDensity !== 'normal') {
+      throw new PackValidationError("gagDensity must be 'sparse' or 'normal'", `levels.${k}.gagDensity`);
+    }
     if (L.gagMood !== undefined && L.gagMood !== 'tame' && L.gagMood !== 'unhinged') {
       throw new PackValidationError("gagMood must be 'tame' or 'unhinged'", `levels.${k}.gagMood`);
     }

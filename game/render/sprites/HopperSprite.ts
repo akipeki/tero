@@ -1,6 +1,7 @@
 // file: game/render/sprites/HopperSprite.ts
 
 import { getTheme, isOffice } from '../Theme';
+import type { HopperVariant } from '../../creaturesAndObjects/enemyKinds';
 import { drawOfficeHopper } from '../office/OfficeSprites';
 
 export interface HopperSpriteProps {
@@ -13,6 +14,7 @@ export interface HopperSpriteProps {
   airborne: boolean;
   dying: boolean;
   scaleY: number;
+  variant?: HopperVariant;
 }
 
 export function drawHopperSprite(

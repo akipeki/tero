@@ -39,8 +39,8 @@ export const level3Spawns: LevelSpawns = {
   player: { tx: 2, ty: 7 },
   enemies: [
     { type: 'walker', tx: 18, ty: 6 },
-    { type: 'hopper', tx: 30, ty: 6 },
-    { type: 'walker', tx: 42, ty: 6 },
+    { type: 'hopper', tx: 32, ty: 6 },
+    { type: 'walker', tx: 40, ty: 6 },
     { type: 'hopper', tx: 55, ty: 6 },
     { type: 'walker', tx: 68, ty: 6 },
   ],

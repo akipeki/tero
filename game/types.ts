@@ -1,3 +1,5 @@
+import type { EnemyType } from './creaturesAndObjects/enemyKinds';
+
 // ─── Game State ──────────────────────────────────────────────────────────────
 export const enum GameState {
   TITLE     = 'TITLE',
@@ -57,7 +59,7 @@ export const enum creaturesAndObjectsType {
 }
 
 // ─── Spawn definitions (in level data) ───────────────────────────────────────
-export interface EnemySpawn { type: 'walker' | 'hopper'; tx: number; ty: number }
+export interface EnemySpawn { type: EnemyType; tx: number; ty: number }
 export interface BlockSpawn  { type: 'question'; tx: number; ty: number }
 export interface GoalSpawn   { tx: number; ty: number }
 export interface PlayerSpawn { tx: number; ty: number }

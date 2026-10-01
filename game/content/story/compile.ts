@@ -4,7 +4,7 @@
 // StoryCard / Chapter / per-level fields. Card ids are generated from where
 // the line sits, e.g. `b_card_level_2_trigger_0_1`.
 
-import type { Chapter, StoryCard, StoryTrigger, SpriteId, SceneryPlacement, GagMood } from '../types';
+import type { Chapter, StoryCard, StoryTrigger, SpriteId, SceneryPlacement, GagMood, GagDensity } from '../types';
 import type { GagId } from '../../render/office/gags';
 
 export interface CastMember {
@@ -37,6 +37,8 @@ export interface StoryScript<C extends string> {
     mood?: GagMood;
     /** Tero's crayon slogan above the elevator at the end of the floor. */
     goalWriting?: GagId;
+    /** 'sparse' spaces the random gags out more. Default 'normal'. */
+    density?: GagDensity;
   }>;
 }
 
@@ -52,6 +54,7 @@ export interface LevelStory {
   scenery?: SceneryPlacement[];
   gagMood?: GagMood;
   goalWriting?: string;
+  gagDensity?: GagDensity;
 }
 
 export interface CompiledStory {
@@ -100,6 +103,7 @@ export function compileStory<C extends string>(script: StoryScript<C>): Compiled
       scenery: L.scenery?.map((g) => ({ tx: g.atTile, gag: g.gag })),
       gagMood: L.mood,
       goalWriting: L.goalWriting,
+      gagDensity: L.density,
     };
   }
 

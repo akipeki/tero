@@ -40,9 +40,9 @@ export const level2Spawns: LevelSpawns = {
   player: { tx: 2, ty: 7 },
   enemies: [
     { type: 'hopper', tx: 12, ty: 7 },
-    { type: 'walker', tx: 26, ty: 7 },
+    { type: 'walker', tx: 23, ty: 7 },
     { type: 'walker', tx: 40, ty: 7 },
-    { type: 'hopper', tx: 55, ty: 7 },
+    { type: 'hopper', tx: 57, ty: 7 },
   ],
   blocks: [
     { type: 'question', tx: 8,  ty: 4 },

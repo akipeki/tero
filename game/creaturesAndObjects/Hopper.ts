@@ -7,13 +7,9 @@ import { creaturesAndObjects, type UpdateCtx } from './creaturesAndObjects';
 import { stepBody } from '../physics/Physics';
 import { overlaps, stompOverlap } from '../physics/AABB';
 import { TILE_SIZE } from '../constants';
-import { P } from '../palette';
 import { drawHopperSprite } from '../render/sprites/HopperSprite';
 import type { Player } from './Player';
-
-const HOP_INTERVAL_FRAMES = 70;  // ~1.16s at 60fps
-const HOP_VY = -8.5;
-const HOP_VX = 1.8;
+import { HOPPERS, type HopperSpec, type HopperVariant } from './enemyKinds';
 
 export class Hopper extends creaturesAndObjects {
   facingRight = false;
@@ -21,9 +17,14 @@ export class Hopper extends creaturesAndObjects {
   private dying = false;
   private dyingTimer = 0;
   scaleY = 1;
+  readonly variant: HopperVariant;
+  private spec: HopperSpec;
 
-  constructor(tx: number, ty: number) {
-    super(tx * TILE_SIZE + 4, ty * TILE_SIZE - 24, 24, 24);
+  constructor(tx: number, ty: number, variant: HopperVariant = 'manager') {
+    const spec = HOPPERS[variant];
+    super(tx * TILE_SIZE + (TILE_SIZE - spec.w) / 2, ty * TILE_SIZE - spec.h, spec.w, spec.h);
+    this.variant = variant;
+    this.spec = spec;
     this.cooldown = 30 + Math.floor(Math.random() * 40);
   }
 
@@ -41,14 +42,14 @@ export class Hopper extends creaturesAndObjects {
 
       this.cooldown--;
       if (this.cooldown <= 0) {
-        this.vy = HOP_VY;
-        this.vx = this.facingRight ? HOP_VX : -HOP_VX;
-        this.cooldown = HOP_INTERVAL_FRAMES;
+        this.vy = this.spec.vy;
+        this.vx = this.facingRight ? this.spec.vx : -this.spec.vx;
+        this.cooldown = this.spec.interval;
       }
     }
 
     // Pre-emptively turn around if about to hop into a wall
-    if (this.onGround && this.cooldown > HOP_INTERVAL_FRAMES - 4) {
+    if (this.onGround && this.cooldown > this.spec.interval - 4) {
       const probeX = this.facingRight ? this.right + 4 : this.left - 4;
       if (ctx.map.solidAt(probeX, this.cy)) this.facingRight = !this.facingRight;
     }
@@ -82,7 +83,7 @@ export class Hopper extends creaturesAndObjects {
     this.dyingTimer = 20;
     this.scaleY = 0.3;
     player.bounce();
-    ctx.particles.burst(this.cx, this.cy, 8, P.MUSHROOM, P.ENEMY_DARK);
+    ctx.particles.burst(this.cx, this.cy, 8, this.spec.burst[0], this.spec.burst[1]);
     ctx.shake.trigger(3);
     ctx.audio.play('stomp');
   }
@@ -94,6 +95,7 @@ export class Hopper extends creaturesAndObjects {
       airborne: !this.onGround,
       dying: this.dying,
       scaleY: this.scaleY,
+      variant: this.variant,
     });
   }
 }

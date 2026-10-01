@@ -4,6 +4,8 @@ import { join } from 'node:path';
 import { Raster } from '../pixel/Raster';
 import { DRAGON_ANIMS, DRAGON_FRAME, drawBaby, drawDad, renderDragonStrip, type DragonAnimName } from './dragon';
 import { drawClerk, drawManager, HUMAN_FRAME } from './humans';
+import { drawGuard, drawRat, drawPig, drawRobot, drawPlant, drawGorilla, drawVampire } from './creatures';
+import { WALKERS, HOPPERS, ENEMY_TYPES, enemyClass } from '../../creaturesAndObjects/enemyKinds';
 import { framePaths } from '../sprites/PlayerSpriteAssets';
 
 function bottomRowOpaque(r: Raster): boolean {
@@ -56,5 +58,24 @@ describe('human rigs', () => {
     for (let f = 0; f < 4; f++) expect(bottomRowOpaque(drawClerk(f))).toBe(true);
     expect(drawManager(false).h).toBe(HUMAN_FRAME);
     expect(bottomRowOpaque(drawManager(false))).toBe(true);
+  });
+});
+
+describe('creature rigs', () => {
+  it('every walker frame and hopper pose stands on the bottom row', () => {
+    for (const draw of [drawGuard, drawRat, drawPig, drawRobot]) {
+      for (let f = 0; f < 4; f++) expect(bottomRowOpaque(draw(f))).toBe(true);
+    }
+    for (const open of [false, true]) expect(bottomRowOpaque(drawPlant(open))).toBe(true);
+    expect(bottomRowOpaque(drawGorilla(false))).toBe(true);
+    expect(bottomRowOpaque(drawVampire(false))).toBe(true);
+  });
+
+  it('every enemy type maps to a variant with a spec', () => {
+    for (const t of ENEMY_TYPES) {
+      const e = enemyClass(t);
+      expect(e.cls === 'walker' ? WALKERS[e.variant] : HOPPERS[e.variant], t).toBeTruthy();
+    }
+    expect(WALKERS.plant.stompable).toBe(false);
   });
 });

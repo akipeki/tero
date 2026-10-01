@@ -12,6 +12,8 @@ import { level3Tiles, level3Spawns, LEVEL3_WIDTH, LEVEL3_HEIGHT } from './level3
 import { level4Tiles, level4Spawns, LEVEL4_WIDTH, LEVEL4_HEIGHT } from './level4';
 import { level5Tiles, level5Spawns, LEVEL5_WIDTH, LEVEL5_HEIGHT } from './level5';
 import { level6Tiles, level6Spawns, LEVEL6_WIDTH, LEVEL6_HEIGHT } from './level6';
+import { level7Tiles, level7Spawns, LEVEL7_WIDTH, LEVEL7_HEIGHT } from './level7';
+import { level8Tiles, level8Spawns, LEVEL8_WIDTH, LEVEL8_HEIGHT } from './level8';
 
 export interface LevelDef {
   id:     string;
@@ -29,6 +31,9 @@ export const LEVELS: readonly LevelDef[] = [
   { id: '3', name: 'The Boardroom', theme: 'office', tiles: level3Tiles, spawns: level3Spawns, width: LEVEL3_WIDTH, height: LEVEL3_HEIGHT },
   { id: '4', name: 'Legal',         theme: 'office', tiles: level4Tiles, spawns: level4Spawns, width: LEVEL4_WIDTH, height: LEVEL4_HEIGHT },
   { id: '5', name: 'R&D',           theme: 'office', tiles: level5Tiles, spawns: level5Spawns, width: LEVEL5_WIDTH, height: LEVEL5_HEIGHT },
+  // Floors 27 and 30 sit between R&D and the finale; ids stay stable, order is play order.
+  { id: '7', name: 'Security',      theme: 'office', tiles: level7Tiles, spawns: level7Spawns, width: LEVEL7_WIDTH, height: LEVEL7_HEIGHT },
+  { id: '8', name: 'Executive Wing', theme: 'office', tiles: level8Tiles, spawns: level8Spawns, width: LEVEL8_WIDTH, height: LEVEL8_HEIGHT },
   { id: '6', name: 'The Sanctum',   theme: 'office', tiles: level6Tiles, spawns: level6Spawns, width: LEVEL6_WIDTH, height: LEVEL6_HEIGHT },
 ] as const;
 

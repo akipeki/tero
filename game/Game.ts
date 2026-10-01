@@ -11,6 +11,7 @@ import { StoryPlayer } from './StoryPlayer';
 import { Player } from './creaturesAndObjects/Player';
 import { Walker } from './creaturesAndObjects/Walker';
 import { Hopper } from './creaturesAndObjects/Hopper';
+import { enemyClass } from './creaturesAndObjects/enemyKinds';
 import { Mushroom } from './creaturesAndObjects/Mushroom';
 import { QuestionBlock } from './creaturesAndObjects/QuestionBlock';
 import { Goal } from './creaturesAndObjects/Goal';
@@ -588,8 +589,9 @@ export class Game {
     this.walkers = [];
     this.hoppers = [];
     for (const s of L.spawns.enemies) {
-      if (s.type === 'walker') this.walkers.push(new Walker(s.tx, s.ty));
-      else if (s.type === 'hopper') this.hoppers.push(new Hopper(s.tx, s.ty));
+      const e = enemyClass(s.type);
+      if (e.cls === 'walker') this.walkers.push(new Walker(s.tx, s.ty, e.variant));
+      else this.hoppers.push(new Hopper(s.tx, s.ty, e.variant));
     }
 
     this.qblocks = L.spawns.blocks.map(s => new QuestionBlock(s.tx, s.ty));
@@ -608,6 +610,7 @@ export class Game {
           levelId: L.id,
           authored: this.levelPack?.scenery,
           mood: this.levelPack?.gagMood,
+          density: this.levelPack?.gagDensity,
           goalWriting: this.levelPack?.goalWriting
             ? { gag: this.levelPack.goalWriting, centerX: this.goal.x + this.goal.w / 2 }
             : undefined,

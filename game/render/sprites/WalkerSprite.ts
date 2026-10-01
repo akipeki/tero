@@ -1,6 +1,7 @@
 // file: game/render/sprites/WalkerSprite.ts
 
 import { getTheme, isOffice } from '../Theme';
+import type { WalkerVariant } from '../../creaturesAndObjects/enemyKinds';
 import { drawOfficeWalker } from '../office/OfficeSprites';
 
 export interface WalkerSpriteProps {
@@ -13,6 +14,9 @@ export interface WalkerSpriteProps {
   animFrame: number;
   dying: boolean;
   scaleY: number;
+  variant?: WalkerVariant;
+  /** Ticks since spawn — drives animations that don't follow movement. */
+  animTick?: number;
 }
 
 export function drawWalkerSprite(

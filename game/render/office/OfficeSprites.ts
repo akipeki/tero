@@ -5,6 +5,10 @@
 
 import { TILE_SIZE } from '../../constants';
 import { drawClerk, drawManager, HUMAN_FRAME } from '../characters/humans';
+import {
+  drawGuard, drawRat, drawPig, drawRobot, drawPlant, drawGorilla, drawVampire,
+} from '../characters/creatures';
+import type { WalkerVariant, HopperVariant } from '../../creaturesAndObjects/enemyKinds';
 import type { Raster } from '../pixel/Raster';
 import type { WalkerSpriteProps } from '../sprites/WalkerSprite';
 import type { HopperSpriteProps } from '../sprites/HopperSprite';
@@ -41,15 +45,35 @@ function blitHuman(
   ctx.restore();
 }
 
+const WALKER_ART: Record<WalkerVariant, (f: number) => Raster> = {
+  clerk: drawClerk,
+  guard: drawGuard,
+  rat:   drawRat,
+  pig:   drawPig,
+  robot: drawRobot,
+  plant: (f) => drawPlant(f % 2 === 1),
+};
+
+const HOPPER_ART: Record<HopperVariant, (air: boolean) => Raster> = {
+  manager: drawManager,
+  gorilla: drawGorilla,
+  vampire: drawVampire,
+};
+
 export function drawOfficeWalker(ctx: CanvasRenderingContext2D, p: WalkerSpriteProps): void {
-  // Shamble frames follow distance walked, so the feet never skate.
-  const f = p.dying ? 0 : Math.floor(Math.abs(p.x) / 6) % 4;
-  blitHuman(ctx, facings(`clerk${f}`, () => drawClerk(f)), p);
+  const variant = p.variant ?? 'clerk';
+  // Walk frames follow distance walked, so the feet never skate; the plant
+  // stays put and chomps on a timer instead.
+  const f = p.dying ? 0
+    : variant === 'plant' ? Math.floor((p.animTick ?? 0) / 20) % 2
+    : Math.floor(Math.abs(p.x) / 6) % 4;
+  blitHuman(ctx, facings(`${variant}${f}`, () => WALKER_ART[variant](f)), p);
 }
 
 export function drawOfficeHopper(ctx: CanvasRenderingContext2D, p: HopperSpriteProps): void {
+  const variant = p.variant ?? 'manager';
   const air = p.airborne && !p.dying;
-  blitHuman(ctx, facings(`manager${air ? 1 : 0}`, () => drawManager(air)), p);
+  blitHuman(ctx, facings(`${variant}${air ? 1 : 0}`, () => HOPPER_ART[variant](air)), p);
 }
 
 // ─── Floppy disk (coin) ──────────────────────────────────────────────────────

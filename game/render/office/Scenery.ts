@@ -11,7 +11,7 @@
 import { TILE_SIZE } from '../../constants';
 import { TileType } from '../../types';
 import type { Tilemap } from '../../level/Tilemap';
-import type { SceneryPlacement, GagMood } from '../../content/types';
+import type { SceneryPlacement, GagMood, GagDensity } from '../../content/types';
 import type { Raster } from '../pixel/Raster';
 import { GAGS, GAG_IDS, isGagId, type Gag, type GagId } from './gags';
 
@@ -22,9 +22,11 @@ export interface PlacedGag {
   y: number;
 }
 
-/** Average spacing of auto-placed gags, in world px. */
-const FILL_MIN = 150;
-const FILL_MAX = 230;
+/** Spacing between auto-placed gags, in world px, per density. */
+const FILL: Record<GagDensity, [number, number]> = {
+  normal: [150, 230],
+  sparse: [300, 420],
+};
 /** Gap auto gags keep from authored gags of the same kind (world px). */
 const AUTHORED_GAP = 24;
 /** Rows the floor props may stand on (the visible ground band). */
@@ -109,6 +111,7 @@ export interface LayoutOptions {
   /** A hanging gag centred over world-x `centerX` — Tero's slogan above the
    *  elevator, where Mario would have his flagpole. */
   goalWriting?: { gag: string; centerX: number };
+  density?: GagDensity;
 }
 
 export function layoutScenery(map: Tilemap, opts: LayoutOptions): PlacedGag[] {
@@ -159,7 +162,8 @@ export function layoutScenery(map: Tilemap, opts: LayoutOptions): PlacedGag[] {
     authored.some((a) => a.kind === kind && x < a.x1 + AUTHORED_GAP && x + w > a.x0 - AUTHORED_GAP) ||
     (opts.keepClear ?? []).some(([a, b]) => x < b && x + w > a);
 
-  for (let x = 128 + rand() * 64; x < map.pixelWidth - 160; x += FILL_MIN + rand() * (FILL_MAX - FILL_MIN)) {
+  const [fillMin, fillMax] = FILL[opts.density ?? 'normal'];
+  for (let x = 128 + rand() * 64; x < map.pixelWidth - 160; x += fillMin + rand() * (fillMax - fillMin)) {
     const wantFloor = rand() < 0.55;
     const tryOrder: ('floor' | 'hang')[] = wantFloor ? ['floor', 'hang'] : ['hang', 'floor'];
     for (const kind of tryOrder) {

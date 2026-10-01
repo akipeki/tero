@@ -116,7 +116,11 @@ export interface LevelDef {
   gagMood?: GagMood;
   /** Tero's crayon slogan, centred above the elevator — his flagpole. */
   goalWriting?: string;
+  /** How often the auto-fill drops a gag. Default 'normal'. */
+  gagDensity?: GagDensity;
 }
+
+export type GagDensity = 'sparse' | 'normal';
 
 export type GagMood = 'tame' | 'unhinged';
 

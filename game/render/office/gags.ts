@@ -713,6 +713,179 @@ export const GAGS = {
     return r;
   }),
 
+  // ═══ Floors 27 & 30 — late-stage capitalism ═══════════════════════════════
+
+  /** HARDER, BETTER, STRONGER — over a graph that only goes down. */
+  poster_harder: hang2(() => {
+    const w = 100, h = 64;
+    const r = new Raster(w + 2, h + 8);
+    r.line(20, 0, 20, 6, C.greyDark); r.line(w - 18, 0, w - 18, 6, C.greyDark);
+    box(r, 1, 6, w, h, C.white);
+    r.rect(1, 6, w, 10, C.navy);
+    drawTextCentered(r, 'HARDER, BETTER,', 1, w, 8, C.yellow);
+    drawTextCentered(r, 'STRONGER', 1, w, 18, C.navy, 2);
+    // axes + the graph sliding diagonally down
+    r.line(10, 32, 10, 64, C.ink); r.line(10, 64, 92, 64, C.ink);
+    for (let x = 12; x < 88; x++) {
+      const y = 34 + Math.round((x - 12) * 0.36 + Math.sin(x * 0.8) * 1.5);
+      r.px(x, y, C.red); r.px(x, y + 1, C.red);
+    }
+    r.tri(84, 63, 92, 63, 90, 56, C.red);
+    drawText(r, 'YOU', 72, 40, C.greyDark);
+    return r;
+  }),
+
+  banner_loan: hang2(() => banner(
+    ['WORK HARD FOR 30 YEARS', 'AND YOU MIGHT PAY OFF', 'YOUR STUDENT LOAN'], C.teal, C.paper)),
+
+  /** A cheerful IT poster. Read the two big words together. */
+  poster_skynet: hang2(() => {
+    const w = 84, h = 54;
+    const r = new Raster(w + 2, h + 8);
+    r.line(Math.floor(w / 2), 0, Math.floor(w / 2), 6, C.greyDark);
+    box(r, 1, 6, w, h, '#dff0ff');
+    // network: nodes + links around a little cloud
+    const nodes = [[10, 14], [24, 11], [62, 12], [76, 15], [8, 27], [78, 27]];
+    for (const [x0, y0] of nodes) r.line(x0, y0, 43, 30, '#9fc4ea');
+    r.part('#7fa8d8', (t) => { t.ellipse(38, 30, 6, 4, C.white); t.ellipse(46, 28, 7, 5, C.white); });
+    for (const [x, y] of nodes) r.part(C.navy, (t) => t.ellipse(x, y, 2, 2, '#3f7fd8'));
+    // SKY NET, close together, big and blue
+    drawText(r, 'SKY', 10, 36, '#1f5fd0', 3);
+    drawText(r, 'NET', 46, 36, '#1f5fd0', 3);
+    drawTextCentered(r, 'IS WORKING', 1, w, 53, C.navy);
+    return r;
+  }),
+
+  /** The huge portrait in the lobby of floor 30. */
+  portrait_senior: hang2(() => {
+    const lines = ["I WORKED 18 HOURS A DAY FOR 10 YEARS.", "NOW I'M SENIOR JUNIOR LEVEL", 'PRODUCT MANAGER ASSISTANT.'];
+    const pw = Math.max(...lines.map((l) => textWidth(l))) + 10;
+    const r = new Raster(pw + 2, 96);
+    const fx = Math.floor((pw - 44) / 2);
+    r.line(fx + 22, 0, fx + 22, 5, C.greyDark);
+    // gold frame + portrait of a hollow-eyed employee
+    box(r, fx, 5, 44, 52, C.gold);
+    r.rect(fx, 5, 44, 2, C.goldLight);
+    box(r, fx + 4, 9, 36, 44, '#3d4a63');
+    r.part(C.ink, (t) => t.shadedEllipse(fx + 22, 52, 14, 9, C.suit, '#566179', '#272d3b'));
+    r.tri(fx + 19, 44, fx + 25, 44, fx + 22, 52, C.paper);
+    r.rect(fx + 21, 45, 2, 6, C.red);
+    r.part(C.ink, (t) => t.shadedEllipse(fx + 22, 31, 9, 10, C.skin, '#c9d1b4', C.skinDark));
+    r.rect(fx + 13, 21, 18, 3, '#3d3330');
+    for (const ex of [fx + 18, fx + 26]) {
+      r.rect(ex - 2, 29, 4, 3, '#3b2a3f');
+      r.px(ex - 1, 30, C.white);
+      r.line(ex - 2, 33, ex + 1, 33, C.skinDark);      // eye bags
+      r.line(ex - 2, 34, ex + 1, 34, C.skinDark);
+    }
+    r.rect(fx + 19, 37, 6, 1, C.ink);                    // forced smile
+    r.px(fx + 18, 36, C.ink); r.px(fx + 25, 36, C.ink);
+    // brass plaque
+    box(r, 1, 62, pw, 30, C.goldDark);
+    r.rect(2, 63, pw - 2, 28, C.gold);
+    lines.forEach((l, i) => drawTextCentered(r, l, 1, pw, 66 + i * 8, C.ink));
+    return r;
+  }),
+
+  sign_results: hang2(() => {
+    const w = 78, h = 50;
+    const r = new Raster(w + 2, h + 8);
+    r.line(Math.floor(w / 2), 0, 6, 6, C.greyDark); r.line(Math.floor(w / 2), 0, w - 5, 6, C.greyDark);
+    box(r, 1, 6, w, h, C.paper);
+    r.rect(1, 6, w, 9, C.ink);
+    drawTextCentered(r, 'Q4 RESULTS', 1, w, 8, C.yellow);
+    // profits: rocket; wages: flatline
+    drawText(r, 'PROFITS', 4, 18, C.green);
+    r.line(6, 50, 34, 26, C.green); r.line(7, 50, 35, 26, C.green);
+    r.tri(31, 25, 37, 25, 36, 31, C.green);
+    drawText(r, 'WAGES', 46, 18, C.red);
+    r.line(44, 46, 74, 46, C.red); r.line(44, 47, 74, 47, C.red);
+    r.line(40, 52, 40, 22, C.greyDark);
+    return r;
+  }),
+
+  banner_pto:         hang2(() => banner(['UNLIMITED PTO*', '*NEVER APPROVED'], C.yellow, C.ink)),
+  banner_ceo:         hang2(() => banner(['THE CEO EARNS 400X YOU.', 'BE GRATEFUL.'], C.navy, C.paper)),
+  banner_replaceable: hang2(() => banner(['YOU ARE REPLACEABLE ♥'], C.pink, C.navy)),
+  banner_grind:       hang2(() => banner(['RISE AND GRIND.', 'GRIND. GRIND. GRIND.'], C.ink, C.yellow)),
+  banner_pizza:       hang2(() => banner(['PIZZA FRIDAY', 'IS YOUR RAISE'], C.red, C.yellow)),
+  banner_overtime:    hang2(() => banner(['OVERTIME IS ITS', 'OWN REWARD'], C.purple, C.paper)),
+
+  /** Here lies the pension. */
+  pension_grave: floor2(() => {
+    const r = new Raster(44, 50);
+    const fl = 49;
+    r.part(C.ink, (t) => { t.rect(8, fl - 34, 28, 34, C.greyLight); t.ellipse(22, fl - 34, 14, 8, C.greyLight); });
+    r.rect(8, fl - 30, 2, 30, C.grey);
+    drawTextCentered(r, 'R.I.P.', 8, 28, fl - 36, C.greyDark);
+    drawTextCentered(r, 'PENSION', 8, 28, fl - 28, C.ink);
+    drawTextCentered(r, '1950-', 8, 28, fl - 20, C.greyDark);
+    drawTextCentered(r, '1993', 8, 28, fl - 13, C.greyDark);
+    // wilted flowers + grass
+    r.line(38, fl, 41, fl - 7, C.greenDark); r.px(41, fl - 8, C.brown); r.px(42, fl - 7, C.brown);
+    for (let x = 2; x < 44; x += 3) r.px(x, fl, C.green);
+    return r;
+  }),
+
+  /** One jar is doing great. */
+  bonus_jars: floor2(() => {
+    const r = new Raster(60, 44);
+    const fl = 43;
+    box(r, 2, fl - 14, 56, 3, C.woodLight);
+    r.rect(5, fl - 11, 3, 11, C.woodDark); r.rect(52, fl - 11, 3, 11, C.woodDark);
+    // CEO jar: overflowing gold
+    r.part(C.ink, (t) => t.rect(6, fl - 36, 20, 22, '#d8eef7'));
+    for (let y = fl - 32; y < fl - 14; y += 3) for (let x = 7; x < 25; x += 4) r.ellipse(x + ((y >> 1) % 2), y, 1.6, 1.2, C.gold);
+    for (const [x, y] of [[8, fl - 38], [14, fl - 40], [21, fl - 38], [27, fl - 16]]) r.ellipse(x, y, 1.6, 1.2, C.gold);
+    box(r, 6, fl - 28, 20, 6, C.paper);
+    drawTextCentered(r, 'CEO', 6, 20, fl - 27, C.ink);
+    // your raise: empty, one moth
+    r.part(C.ink, (t) => t.rect(34, fl - 30, 16, 16, '#d8eef7'));
+    box(r, 30, fl - 24, 24, 6, C.paper);
+    drawTextCentered(r, 'RAISE', 30, 24, fl - 23, C.ink);
+    r.px(41, fl - 34, C.greyDark); r.px(40, fl - 35, C.grey); r.px(42, fl - 35, C.grey);
+    return r;
+  }),
+
+  /** Displayed with pride. */
+  golden_parachute: floor2(() => {
+    const r = new Raster(48, 62);
+    const fl = 61;
+    // plinth + glass case
+    box(r, 6, fl - 16, 36, 16, C.greyLight);
+    drawTextCentered(r, 'CEO EXIT', 6, 36, fl - 13, C.ink);
+    drawTextCentered(r, 'PACKAGE', 6, 36, fl - 7, C.ink);
+    r.part(C.ink, (t) => t.rect(8, fl - 58, 32, 41, '#e6f4fa'));
+    // the parachute
+    r.part(C.goldDark, (t) => t.shadedEllipse(24, fl - 44, 12, 8, C.gold, C.goldLight, C.goldDark));
+    r.rect(12, fl - 44, 25, 4, '#e6f4fa');
+    for (const x of [13, 24, 35]) r.line(x, fl - 44, 24, fl - 28, C.goldDark);
+    r.rect(22, fl - 28, 5, 5, C.goldDark);
+    r.px(11, fl - 55, C.white); r.px(12, fl - 54, C.white);   // glass glint
+    return r;
+  }),
+
+  /** Trickle-down economics, as installed. */
+  trickle_down: floor2(() => {
+    const r = new Raster(80, 66);
+    const fl = 65;
+    // giant golden tap on a pipe
+    r.part(C.ink, (t) => {
+      t.rect(4, fl - 62, 6, 40, C.goldDark);
+      t.rect(4, fl - 62, 36, 7, C.gold);
+      t.rect(34, fl - 58, 7, 8, C.gold);
+      t.rect(18, fl - 68 + 4, 10, 3, C.gold);
+    });
+    // one drop, falling toward a tiny cup
+    r.ellipse(37, fl - 40, 1, 1.5, '#7fc8f0');
+    r.part(C.ink, (t) => t.rect(33, fl - 8, 8, 8, C.paper));
+    box(r, 2, fl - 20, 28, 12, C.paper);
+    drawTextCentered(r, 'TRICKLE', 2, 28, fl - 19, C.ink);
+    drawTextCentered(r, 'DOWN', 2, 28, fl - 13, C.ink);
+    stickyNote(r, 30, fl - 30, 'ANY DAY NOW', C.sticky);
+    return r;
+  }),
+
   // ═══ Tero's crayon on the walls — story-only ══════════════════════════════
 
   crayon_power:    clueHang(() => crayonWall(['POWER TO', 'THE DADAS!'], [CRAYON.red, CRAYON.purple])),
@@ -720,6 +893,8 @@ export const GAGS = {
   crayon_want:     clueHang(() => crayonWall(['WHAT DO WE WANT? DADA!', 'WHEN DO WE WANT HIM?', 'AFTER NAP!'], [CRAYON.blue, CRAYON.orange, CRAYON.red])),
   crayon_go_home:  clueHang(() => crayonWall(['WORKERS OF THE WORLD —', 'GO HOME'], [CRAYON.green, CRAYON.red])),
   crayon_resource: clueHang(() => crayonWall(['DADA IS NOT A', 'HUMAN RESOURCE'], [CRAYON.orange, CRAYON.purple])),
+  crayon_whose:    clueHang(() => crayonWall(['WHOSE DADA?', 'OUR DADA!'], [CRAYON.blue, CRAYON.red])),
+  crayon_no_peace: clueHang(() => crayonWall(['NO DADA,', 'NO PEACE!'], [CRAYON.green, CRAYON.purple])),
 
   // ═══ Dad's trail — story-only clues ═══════════════════════════════════════
 

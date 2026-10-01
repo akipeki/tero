@@ -51,7 +51,8 @@ game/
     level1.ts          — The Mailroom
     level2.ts          — Cubicle Farm (more vertical)
     level3.ts          — The Boardroom (hazard-dense)
-    level4–6.ts        — Chapter 2: Legal, R&D, The Sanctum (unhinged gags)
+    level4–8.ts        — Chapter 2 in play order: Legal (4), R&D (5),
+                         Security (7), Executive Wing (8), The Sanctum (6)
     levels.ts          — Registry + per-level validator
     Tilemap.ts         — Stored 1D, queried 2D
   physics/
@@ -86,6 +87,12 @@ poses (`DRAGON_ANIMS`).
   fails if `framePaths` and the PNGs drift apart. You can also repaint the
   PNGs by hand — keep the 64×64 frame size and frame counts.
 - The humans are rendered to canvases at runtime (`office/OfficeSprites.ts`).
+- The rest of the company lives in `characters/creatures.ts`: security
+  guards, corporate rats, pigs and gorillas, vampires, walking robots and
+  flesh-eating plants. Each is a Walker or Hopper variant
+  (`creaturesAndObjects/enemyKinds.ts` sets size, speed and jump); levels
+  spawn them by name, e.g. `{ type: 'pig', tx: 12, ty: 6 }`. Plants don't
+  move and can't be stomped.
 
 ### The office theme
 
@@ -110,7 +117,8 @@ the handle, a fridge full of passive-aggressive notes…).
 - Gags have a tier: 1 = everyday absurdity, 2 = the unhinged stuff (Project
   Orphanage, an axe in a PC, the VP-of-Sales poodle…). A level's `mood:
   'unhinged'` lets the auto-fill use tier 2, and use it first; levels are
-  'tame' by default.
+  'tame' by default. `density: 'sparse'` spaces the random gags out (the
+  first chapter uses it).
 - Dad's trail (`dad_photo`, `dad_mug`, `dad_calendar`, `dad_cot`,
   `dad_desk`) is `storyOnly`: it appears only where the script places it.
   So is Tero's crayon wall writing (`crayon_power`, `crayon_unite`,

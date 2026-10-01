@@ -44,7 +44,7 @@ export const level1Spawns: LevelSpawns = {
     { type: 'walker', tx: 25, ty: 6 },
     { type: 'hopper', tx: 35, ty: 6 },
     { type: 'walker', tx: 52, ty: 6 },
-    { type: 'hopper', tx: 60, ty: 6 },
+    { type: 'hopper', tx: 58, ty: 6 },
     { type: 'walker', tx: 70, ty: 6 },
   ],
 
