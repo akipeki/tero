@@ -15,6 +15,7 @@
 //                 scenery   background gags at fixed tile columns — use them to hint
 //                           at what happened here (ids: game/render/office/gags.ts).
 //                           The rest of each level is filled with random gags.
+//                 goalWriting  Tero's crayon slogan above the elevator (his flagpole)
 //                 mood      'unhinged' lets the auto-fill use the weird tier-2 gags
 //                           (and use them first). Default is 'tame'.
 //
@@ -60,6 +61,7 @@ export const STORY = defineStory({
 
   levels: {
     '1': {
+      goalWriting: 'crayon_power',
       intro: [
         { text: 'FLOOR 1 — THE MAILROOM.' },
         { who: 'tero', text: 'Dada? Dada!' },
@@ -99,6 +101,7 @@ export const STORY = defineStory({
     },
 
     '2': {
+      goalWriting: 'crayon_want',
       intro: [
         { text: 'FLOOR 6 — THE CUBICLE FARM.' },
         { who: 'doris', text: 'Brrrains... I mean, BUDGETS.\nIs that a BABY? On a WEEKDAY?' },
@@ -117,6 +120,12 @@ export const STORY = defineStory({
             { who: 'doris', text: 'Your father? Boardroom, sweetie.\nHave a bottle of coffee. Grow up fast.' },
           ],
         },
+        {
+          atTile: 47,
+          lines: [
+            { who: 'tero', text: 'Das Kapital for Toddlers:\nWho owns our dadas?' },
+          ],
+        },
       ],
       scenery: [
         { atTile: 11, gag: 'fridge_notes' },
@@ -130,6 +139,7 @@ export const STORY = defineStory({
     },
 
     '3': {
+      goalWriting: 'crayon_resource',
       intro: [
         { text: 'FLOOR 12 — THE BOARDROOM.' },
         { who: 'boss', text: 'Your father is in a meeting.\nHe has been in a meeting since March.' },
@@ -152,6 +162,7 @@ export const STORY = defineStory({
           atTile: 58,
           lines: [
             { who: 'boss', text: 'He\'s been promoted. Floor 33.\nYou\'ll never get past Legal.' },
+            { who: 'tero', text: 'DADA IS NOT A RESOURCE.' },
           ],
         },
       ],
@@ -172,6 +183,7 @@ export const STORY = defineStory({
     // ── Chapter 2: the floors where things got weird ────────────────────────
 
     '4': {
+      goalWriting: 'crayon_unite',
       mood: 'unhinged',
       intro: [
         { text: 'FLOOR 13 — LEGAL.\nABANDON HOPE. BILLED HOURLY.' },
@@ -204,6 +216,7 @@ export const STORY = defineStory({
     },
 
     '5': {
+      goalWriting: 'crayon_go_home',
       mood: 'unhinged',
       intro: [
         { text: 'FLOOR 21 — R&D.\n(RAGE & DEPRESSION)' },
@@ -221,6 +234,12 @@ export const STORY = defineStory({
           lines: [
             { text: 'A SLEEPING BAG UNDER A DESK.\nDAD\'S SLIPPERS. DAD\'S PILLOW.' },
             { who: 'tero', text: 'Dada sleep... HERE?' },
+          ],
+        },
+        {
+          atTile: 52,
+          lines: [
+            { who: 'tero', text: 'Wheel go round.\nNobody go anywhere.' },
           ],
         },
         {
@@ -245,6 +264,7 @@ export const STORY = defineStory({
     },
 
     '6': {
+      goalWriting: 'crayon_power',
       mood: 'unhinged',
       intro: [
         { text: 'FLOOR 33 — THE SHAREHOLDERS\' SANCTUM.' },
@@ -276,6 +296,7 @@ export const STORY = defineStory({
       outro: [
         { text: 'TERO HOLDS UP DAD\'S TIE.\nSIX MONTHS OF FLOOR DUST ON IT.' },
         { who: 'dad', text: 'I... I came in for "a few extra hours."' },
+        { who: 'tero', text: 'You gave them everything.\nWe got the leftovers.' },
         { who: 'board', text: 'HE HAS A DELIVERABLE DUE.' },
         { text: 'DAD CLOSES THE LAPTOP.' },
         { who: 'dad', text: 'Let\'s go home, buddy.' },

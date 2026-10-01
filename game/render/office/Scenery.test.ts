@@ -75,6 +75,42 @@ describe('layoutScenery', () => {
     }
   });
 
+  it('auto gags never overlap authored gags of the same kind', () => {
+    for (const level of LEVELS) {
+      const authored = defaultPack.levels[`b_level_${level.id}`].scenery ?? [];
+      const out = layoutScenery(mapOf(level), { levelId: level.id, authored });
+      const placed = out.slice(0, out.filter((g) => authored.some((a) => a.gag === g.id && a.tx * TILE_SIZE === g.x)).length);
+      const autos = out.slice(placed.length);
+      for (const g of autos) {
+        const w = GAGS[g.id].draw().w;
+        for (const a of placed) {
+          if (GAGS[a.id].kind !== GAGS[g.id].kind) continue;
+          const aw = GAGS[a.id].draw().w;
+          expect(g.x + w <= a.x || g.x >= a.x + aw, `${level.name}: ${g.id} overlaps ${a.id}`).toBe(true);
+        }
+      }
+    }
+  });
+
+  it("puts each floor's crayon slogan centred above the elevator", () => {
+    for (const level of LEVELS) {
+      const writing = defaultPack.levels[`b_level_${level.id}`].goalWriting;
+      expect(writing, level.name).toBeTruthy();
+      // Goal sprite: 3 tiles wide, starting one tile left of goal.tx.
+      const centerX = (level.spawns.goal.tx - 1) * TILE_SIZE + (3 * TILE_SIZE) / 2;
+      const out = layoutScenery(mapOf(level), { levelId: level.id, goalWriting: { gag: writing!, centerX } });
+      const g = out.find((p) => p.id === writing)!;
+      const w = GAGS[g.id].draw().w;
+      expect(Math.abs(g.x + w / 2 - centerX), level.name).toBeLessThanOrEqual(1);
+      // nothing else hanging over it
+      for (const o of out) {
+        if (o === g || GAGS[o.id].kind !== 'hang') continue;
+        const ow = GAGS[o.id].draw().w;
+        expect(o.x + ow <= g.x || o.x >= g.x + w, `${level.name}: ${o.id}`).toBe(true);
+      }
+    }
+  });
+
   it('places authored gags, skips unknown ones and respects keepClear', () => {
     const { tiles, width, height } = buildLevel([
       '#'.repeat(40), ...Array(7).fill('.'.repeat(40)), '#'.repeat(40),

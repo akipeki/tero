@@ -106,6 +106,28 @@ function stickyNote(r: Raster, x: number, y: number, text: string, color: string
   drawText(r, text, x + 2, y + 2, C.ink);
 }
 
+/** Tero's crayon: wobbly baseline, one colour per line, centred lines. */
+function crayonWall(lines: string[], colors: string[]): Raster {
+  const scale = 2;
+  const w = Math.max(...lines.map((l) => textWidth(l, scale))) + 8;
+  const top = 26;                          // hangs below the ceiling, on the wall
+  const r = new Raster(w, top + lines.length * 13 + 6);
+  lines.forEach((line, li) => {
+    const lw = textWidth(line, scale);
+    let x = Math.floor((w - lw) / 2);
+    [...line].forEach((ch, i) => {
+      const wobble = ((i * 7 + li * 3) % 5) === 0 ? -1 : ((i * 5 + li) % 7) === 0 ? 1 : 0;
+      drawText(r, ch, x, top + li * 13 + wobble, colors[li % colors.length], scale);
+      x += 4 * scale;
+    });
+  });
+  // a scribbled underline under the last line
+  const uy = top + lines.length * 13;
+  for (let x = 4; x < w - 4; x += 2) r.px(x, uy + ((x >> 2) % 2), colors[colors.length - 1]);
+  // pale halo so it reads over posters and windows behind it
+  return r.outline('#f4ecd2');
+}
+
 /** Party balloon on a string; `sad` ones are half deflated and sag. */
 function balloon(r: Raster, x: number, y: number, color: string, sad: boolean): void {
   r.part(C.ink, (t) => (sad ? t.ellipse(x, y + 4, 3, 2, color) : t.ellipse(x, y, 3.5, 4.5, color)));
@@ -153,6 +175,8 @@ const hang2  = (draw: () => Raster): Gag => ({ kind: 'hang',  tier: 2, draw });
 const floor2 = (draw: () => Raster): Gag => ({ kind: 'floor', tier: 2, draw });
 const clueHang  = (draw: () => Raster): Gag => ({ kind: 'hang',  tier: 1, storyOnly: true, draw });
 const clueFloor = (draw: () => Raster): Gag => ({ kind: 'floor', tier: 1, storyOnly: true, draw });
+
+const CRAYON = { purple: '#7b3fb8', red: '#d8323a', orange: '#f07a1a', blue: '#2f62d8', green: '#2f9a3a' } as const;
 
 export const GAGS = {
   banner_synergy:   hang(() => banner(['SYNERGY IS NOT OPTIONAL'], C.navy, C.yellow)),
@@ -688,6 +712,14 @@ export const GAGS = {
     stickyNote(r, 0, fl - 40, '24/7', C.sticky);
     return r;
   }),
+
+  // ═══ Tero's crayon on the walls — story-only ══════════════════════════════
+
+  crayon_power:    clueHang(() => crayonWall(['POWER TO', 'THE DADAS!'], [CRAYON.red, CRAYON.purple])),
+  crayon_unite:    clueHang(() => crayonWall(['DADAS OF THE WORLD,', 'UNITE!'], [CRAYON.purple, CRAYON.red])),
+  crayon_want:     clueHang(() => crayonWall(['WHAT DO WE WANT? DADA!', 'WHEN DO WE WANT HIM?', 'AFTER NAP!'], [CRAYON.blue, CRAYON.orange, CRAYON.red])),
+  crayon_go_home:  clueHang(() => crayonWall(['WORKERS OF THE WORLD —', 'GO HOME'], [CRAYON.green, CRAYON.red])),
+  crayon_resource: clueHang(() => crayonWall(['DADA IS NOT A', 'HUMAN RESOURCE'], [CRAYON.orange, CRAYON.purple])),
 
   // ═══ Dad's trail — story-only clues ═══════════════════════════════════════
 

@@ -114,6 +114,8 @@ export interface LevelDef {
   /** Which gags the auto-fill may use: 'tame' (default) or 'unhinged',
    *  which adds the tier-2 weirdness and uses it first. */
   gagMood?: GagMood;
+  /** Tero's crayon slogan, centred above the elevator — his flagpole. */
+  goalWriting?: string;
 }
 
 export type GagMood = 'tame' | 'unhinged';

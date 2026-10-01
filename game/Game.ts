@@ -608,6 +608,9 @@ export class Game {
           levelId: L.id,
           authored: this.levelPack?.scenery,
           mood: this.levelPack?.gagMood,
+          goalWriting: this.levelPack?.goalWriting
+            ? { gag: this.levelPack.goalWriting, centerX: this.goal.x + this.goal.w / 2 }
+            : undefined,
           keepClear: [[this.goal.x - 40, this.goal.x + this.goal.w + 40]],
         })
       : []);

@@ -113,6 +113,8 @@ the handle, a fridge full of passive-aggressive notes…).
   'tame' by default.
 - Dad's trail (`dad_photo`, `dad_mug`, `dad_calendar`, `dad_cot`,
   `dad_desk`) is `storyOnly`: it appears only where the script places it.
+  So is Tero's crayon wall writing (`crayon_power`, `crayon_unite`,
+  `crayon_want`, `crayon_go_home`, `crayon_resource`).
 - `Scenery.ts` fills the rest of each level automatically (seeded by level
   id, so it's stable), keeps floor props on flat floor and away from the
   elevator.

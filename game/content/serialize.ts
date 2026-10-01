@@ -98,6 +98,7 @@ export function validatePack(raw: unknown): ContentPack {
         ensureString(G.gag, `levels.${k}.scenery.${i}.gag`);
       });
     }
+    if (L.goalWriting !== undefined) ensureString(L.goalWriting, `levels.${k}.goalWriting`);
     if (L.gagMood !== undefined && L.gagMood !== 'tame' && L.gagMood !== 'unhinged') {
       throw new PackValidationError("gagMood must be 'tame' or 'unhinged'", `levels.${k}.gagMood`);
     }

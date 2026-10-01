@@ -25,8 +25,8 @@ export interface PlacedGag {
 /** Average spacing of auto-placed gags, in world px. */
 const FILL_MIN = 150;
 const FILL_MAX = 230;
-/** Auto gags keep this far away from authored ones. */
-const AUTHORED_CLEARANCE = 110;
+/** Gap auto gags keep from authored gags of the same kind (world px). */
+const AUTHORED_GAP = 24;
 /** Rows the floor props may stand on (the visible ground band). */
 const FLOOR_ROWS = [6, 7, 8];
 
@@ -106,18 +106,31 @@ export interface LayoutOptions {
   keepClear?: [number, number][];
   /** 'tame' uses only tier-1 gags; 'unhinged' adds tier 2 and uses it first. */
   mood?: GagMood;
+  /** A hanging gag centred over world-x `centerX` — Tero's slogan above the
+   *  elevator, where Mario would have his flagpole. */
+  goalWriting?: { gag: string; centerX: number };
 }
 
 export function layoutScenery(map: Tilemap, opts: LayoutOptions): PlacedGag[] {
   const out: PlacedGag[] = [];
-  const authoredX: number[] = [];
+  const authored: { kind: 'floor' | 'hang'; x0: number; x1: number }[] = [];
 
   for (const a of opts.authored ?? []) {
     if (!isGagId(a.gag)) { console.warn(`[Tero] unknown scenery gag "${a.gag}"`); continue; }
     const s = spot(map, a.gag, a.tx * TILE_SIZE);
     if (!s) { console.warn(`[Tero] no flat floor for "${a.gag}" at tile ${a.tx}`); continue; }
     out.push({ id: a.gag, ...s });
-    authoredX.push(s.x);
+    authored.push({ kind: GAGS[a.gag].kind, x0: s.x, x1: s.x + raster(a.gag).w });
+  }
+
+  if (opts.goalWriting) {
+    const { gag, centerX } = opts.goalWriting;
+    if (!isGagId(gag)) console.warn(`[Tero] unknown goal writing "${gag}"`);
+    else {
+      const x = Math.round(centerX - raster(gag).w / 2);
+      out.push({ id: gag, ...hangSpot(map, centerX), x });
+      authored.push({ kind: GAGS[gag].kind, x0: x, x1: x + raster(gag).w });
+    }
   }
 
   const rand = rng(opts.levelId);
@@ -140,8 +153,10 @@ export function layoutScenery(map: Tilemap, opts: LayoutOptions): PlacedGag[] {
     used.add(id);
     return id;
   };
-  const blocked = (x: number, w: number) =>
-    authoredX.some((ax) => Math.abs(ax - x) < AUTHORED_CLEARANCE) ||
+  // Banners and floor props live in different bands, so only same-kind
+  // authored gags block; the keep-clear zones block everything.
+  const blocked = (kind: 'floor' | 'hang', x: number, w: number) =>
+    authored.some((a) => a.kind === kind && x < a.x1 + AUTHORED_GAP && x + w > a.x0 - AUTHORED_GAP) ||
     (opts.keepClear ?? []).some(([a, b]) => x < b && x + w > a);
 
   for (let x = 128 + rand() * 64; x < map.pixelWidth - 160; x += FILL_MIN + rand() * (FILL_MAX - FILL_MIN)) {
@@ -151,7 +166,7 @@ export function layoutScenery(map: Tilemap, opts: LayoutOptions): PlacedGag[] {
       const id = draw(kind);
       const gx = Math.round(x);
       const s = spot(map, id, gx);
-      if (!s || (kind === 'floor' && blocked(gx, raster(id).w)) || (kind === 'hang' && blocked(gx, 0))) continue;
+      if (!s || blocked(kind, gx, raster(id).w)) continue;
       out.push({ id, ...s });
       break;
     }

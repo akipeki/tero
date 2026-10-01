@@ -35,6 +35,8 @@ export interface StoryScript<C extends string> {
     scenery?: { atTile: number; gag: GagId }[];
     /** 'unhinged' fills the level with the weirder tier-2 gags first. */
     mood?: GagMood;
+    /** Tero's crayon slogan above the elevator at the end of the floor. */
+    goalWriting?: GagId;
   }>;
 }
 
@@ -49,6 +51,7 @@ export interface LevelStory {
   triggers?: StoryTrigger[];
   scenery?: SceneryPlacement[];
   gagMood?: GagMood;
+  goalWriting?: string;
 }
 
 export interface CompiledStory {
@@ -96,6 +99,7 @@ export function compileStory<C extends string>(script: StoryScript<C>): Compiled
       })),
       scenery: L.scenery?.map((g) => ({ tx: g.atTile, gag: g.gag })),
       gagMood: L.mood,
+      goalWriting: L.goalWriting,
     };
   }
 
