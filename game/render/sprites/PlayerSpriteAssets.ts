@@ -4,11 +4,15 @@
 //   - a single image  (frames: 1 — image is shown statically)
 //   - a sprite sheet  (frames: N — horizontal strip cycled at `fps`)
 //
-// The render pipeline lives in GameContainer's onPlayerRender callback.
-// Sheet rendering is via CSS `background-image` + `background-position`,
-// so swapping in a 4-frame walk cycle is just:
+// Game.syncPlayerOverlay picks the frame; GameContainer draws it via CSS
+// `background-image` + `background-position`. Swapping in a 6-frame walk
+// cycle is just:
 //
-//   walk: { src: '/images/tero/Tero_Walk_4.png', frames: 4, fps: 10 }
+//   walk: { src: '/images/tero/Tero_Walk_6.png', frames: 6, fps: 10 }
+//
+// The walk strip advances by distance walked (WALK_STRIDE_PX), not `fps`.
+// Leave a few transparent pixels around each cell: hi-res strips are filtered
+// smoothly and would otherwise bleed into the neighbouring frame.
 
 import { PlayerState } from '../../types';
 

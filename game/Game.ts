@@ -22,10 +22,10 @@ import { InputHandler } from './InputHandler';
 import { AudioManager } from './AudioManager';
 import { Stats } from './Stats';
 import { saveSettings, loadSettings } from './Settings';
-import { GameState, Action } from './types';
-import { CHAIN_BONUS } from './constants';
+import { GameState, Action, PlayerState } from './types';
+import { CHAIN_BONUS, SQUASH_STRENGTH, WALK_STRIDE_PX, WALK_BOB_PX } from './constants';
 import { updateBackground } from './render/Background';
-import { getPlayerFrame } from './render/sprites/PlayerSpriteAssets';
+import { getPlayerFrame, framePaths } from './render/sprites/PlayerSpriteAssets';
 import type { creaturesAndObjects, UpdateCtx } from './creaturesAndObjects/creaturesAndObjects';
 import type { HudData, PlayerRenderData, RunStats } from './types';
 import { FIXED_DT, MAX_FRAME_TIME, VIEWPORT_W, VIEWPORT_H, STARTING_LIVES, TILE_SIZE } from './constants';
@@ -153,7 +153,9 @@ export class Game {
       this.accumulator -= FIXED_DT;
     }
 
-    this.render();
+    // How far we are between the last update and the next one. Rendering at
+    // this fraction keeps motion smooth on displays faster than 60 Hz.
+    this.render(this.accumulator / FIXED_DT);
     this.rafId = requestAnimationFrame(this.loop);
   };
 
@@ -338,7 +340,7 @@ export class Game {
 
   // ─── Render ────────────────────────────────────────────────────────────────
 
-  private render(): void {
+  private render(alpha: number): void {
     const ctx = this.renderer.context;
     ctx.clearRect(0, 0, VIEWPORT_W, VIEWPORT_H);
 
@@ -355,39 +357,63 @@ export class Game {
 
     switch (this.state) {
       case GameState.TITLE:
-        updateBackground(this.camera?.x ?? 0);
+        updateBackground(Math.round(this.camera?.x ?? 0));
         this.renderer.drawTitleBackground();
         break;
       case GameState.PLAYING:
       case GameState.PAUSED:
       case GameState.GAME_OVER:
       case GameState.WIN:
-        this.renderer.render(this.camera.x, this.map, allEntities, this.particles, this.shake);
+        // The canvas is low-res pixel art, so the world scrolls in whole pixels.
+        this.renderer.render(Math.round(this.camera.at(alpha)), this.map, allEntities, this.particles, this.shake);
         break;
     }
 
-    this.syncPlayerOverlay();
+    this.syncPlayerOverlay(alpha);
   }
 
-  private syncPlayerOverlay(): void {
+  private syncPlayerOverlay(alpha: number): void {
     if (!this.onPlayerRender) return;
     const visible =
       this.player && this.camera && this.state !== GameState.TITLE;
     if (!visible) { this.onPlayerRender(null); return; }
-    const frame = getPlayerFrame(this.player.state);
+
+    const p = this.player;
+    // Freeze interpolation while the simulation is paused.
+    const a = this.state === GameState.PLAYING ? alpha : 1;
+    const camX = this.camera.at(a);
+    const footX = p.prevCx    + (p.cx     - p.prevCx)    * a;
+    const footY = p.prevFootY + (p.bottom - p.prevFootY) * a;
+
+    let frame = getPlayerFrame(p.state);
+    let frameIdx = 0;
+    let bobY = 0;
+    const walking = p.state === PlayerState.WALK || p.state === PlayerState.BIG_WALK;
+    if (walking) {
+      const step = Math.floor(p.walkDistance / WALK_STRIDE_PX);
+      if (frame.frames > 1) {
+        frameIdx = step % frame.frames;
+      } else {
+        // Two-pose fallback: alternate the walk and idle images per stride.
+        frame = step % 2 === 0 ? framePaths.walk : framePaths.idle;
+      }
+      // Lift on the passing pose of each step, down on contact.
+      bobY = -WALK_BOB_PX * Math.abs(Math.sin((Math.PI * p.walkDistance) / WALK_STRIDE_PX));
+    } else if (frame.frames > 1) {
+      frameIdx = Math.floor((performance.now() / 1000) * frame.fps) % frame.frames;
+    }
+
     this.onPlayerRender({
-      x: this.player.x,
-      y: this.player.y,
-      w: this.player.w,
-      h: this.player.h,
-      camX: this.camera.x,
-      facingRight: this.player.facingRight,
-      frameSrc: frame.src,
+      screenX: footX - camX + this.shake.offsetX,
+      screenY: footY + this.shake.offsetY,
+      bobY,
+      facingRight: p.facingRight,
+      src: frame.src,
       frames: frame.frames,
-      fps: frame.fps,
-      scaleX: this.player.scaleX,
-      scaleY: this.player.scaleY,
-      shouldFlash: this.player.shouldFlash,
+      frameIdx,
+      scaleX: 1 + (p.scaleX - 1) * SQUASH_STRENGTH,
+      scaleY: 1 + (p.scaleY - 1) * SQUASH_STRENGTH,
+      shouldFlash: p.shouldFlash,
     });
   }
 
@@ -432,6 +458,7 @@ export class Game {
     this.player = new Player(spawnX, spawnY, STARTING_LIVES);
     this.player.spawnX = spawnX;
     this.player.spawnY = spawnY;
+    this.camera.snap(this.player.cx);
 
     this.walkers = [];
     this.hoppers = [];

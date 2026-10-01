@@ -6,6 +6,7 @@ import { GameState, Action } from '@/game/types';
 import { VIEWPORT_W, VIEWPORT_H, TILE_SIZE, STARTING_LIVES } from '@/game/constants';
 import type { HudData, PlayerRenderData, RunStats } from '@/game/types';
 import { loadSettings, saveSettings } from '@/game/Settings';
+import { framePaths } from '@/game/render/sprites/PlayerSpriteAssets';
 
 interface EndScreenPayload {
   state: 'WIN' | 'GAME_OVER';
@@ -18,10 +19,28 @@ interface EndScreenPayload {
 }
 
 // ─── Sprite display tuning ──────────────────────────────────────────────────
-// Source PNGs are 200×200. We render them as squares 2 tiles tall so they
-// remain crisp at any canvas scale. Bump SPRITE_TILES if you want a chunkier
-// character — physics hitbox is independent (SMALL_W/H in Player.ts).
+// Sprites render as squares 2 tiles tall. Bump SPRITE_TILES if you want a
+// chunkier character — physics hitbox is independent (SMALL_W/H in Player.ts).
 const SPRITE_TILES = 2;
+
+/** Source frame widths, filled in as the player images preload. Frames wider
+ *  than the sprite's world size are hi-res art and get smooth filtering;
+ *  narrower ones are native pixel art and stay pixelated. */
+const frameWidths = new Map<string, number>();
+function preloadPlayerFrames(): void {
+  for (const def of Object.values(framePaths)) {
+    if (frameWidths.has(def.src)) continue;
+    const img = new Image();
+    img.onload = () => frameWidths.set(def.src, img.naturalWidth / def.frames);
+    img.src = def.src;
+  }
+}
+function imageRenderingFor(src: string): string {
+  const w = frameWidths.get(src);
+  // Unknown yet → assume hi-res; shrinking with nearest-neighbour is what
+  // made detailed sprites shimmer.
+  return w === undefined || w > TILE_SIZE * SPRITE_TILES ? 'auto' : 'pixelated';
+}
 
 // Detect touch-capable devices once, server-safe.
 function detectTouch(): boolean {
@@ -43,10 +62,8 @@ export default function GameContainer() {
   const wrapRef        = useRef<HTMLDivElement>(null);
   const viewportRef    = useRef<HTMLDivElement>(null);
   const playerDivRef   = useRef<HTMLDivElement>(null);
-  const playerImgRef   = useRef<HTMLImageElement>(null);
   const canvasScaleRef = useRef(1);
   const lastSrcRef     = useRef<string>('');
-  const walkAnim = useRef({ cycleStart: 0, lastMove: 0, prevX: 0 });
   const reducedMotionRef = useRef(false);
 
   const [hud, setHud] = useState<HudData>({
@@ -87,10 +104,10 @@ export default function GameContainer() {
     const onMq = () => { reducedMotionRef.current = mq.matches; };
     mq.addEventListener('change', onMq);
 
+    preloadPlayerFrames();
     game.onPlayerRender = (data: PlayerRenderData | null) => {
       const div = playerDivRef.current;
-      const img = playerImgRef.current;
-      if (!div || !img) return;
+      if (!div) return;
 
       if (!data) {
         div.style.display = 'none';
@@ -98,11 +115,18 @@ export default function GameContainer() {
       }
 
       const s = canvasScaleRef.current;
-      const { x, y, w, h, camX, facingRight, frameSrc, frames, fps, scaleX, scaleY, shouldFlash } = data;
+      const { screenX, screenY, bobY, facingRight, src, frames, frameIdx, shouldFlash } = data;
+      const still = reducedMotionRef.current;
+      const scaleX = still ? 1 : data.scaleX;
+      const scaleY = still ? 1 : data.scaleY;
 
+      // Snap to the physical pixel grid, not the game grid: moves stay smooth
+      // at any canvas scale while edges never straddle two device pixels.
+      const dpr  = window.devicePixelRatio || 1;
+      const snap = (v: number) => Math.round(v * dpr) / dpr;
       const spriteSize = TILE_SIZE * SPRITE_TILES * s;
-      const cx     = Math.floor(x - camX + w / 2) * s;
-      const footY  = Math.floor(y + h) * s;
+      const cx    = snap(screenX * s);
+      const footY = snap((screenY + (still ? 0 : bobY)) * s);
 
       div.style.transform = [
         `translate3d(${cx}px,${footY}px,0)`,
@@ -116,49 +140,14 @@ export default function GameContainer() {
       div.style.opacity = shouldFlash ? '0.65' : '1';
       div.style.display = 'block';
 
-      if (frames > 1) {
-        // ── Sprite-sheet path ────────────────────────────────────────────────
-        // Show the strip via background-image; pick a frame via background-position.
-        img.style.visibility = 'hidden';
-        div.style.backgroundImage    = `url(${frameSrc})`;
-        div.style.backgroundSize     = `${frames * spriteSize}px ${spriteSize}px`;
-        div.style.backgroundRepeat   = 'no-repeat';
-        div.style.imageRendering     = 'pixelated';
-        const now = performance.now();
-        const frameIdx = Math.floor((now / 1000) * fps) % frames;
-        div.style.backgroundPosition = `-${frameIdx * spriteSize}px 0`;
-        lastSrcRef.current = ''; // force re-set if we switch back to img mode
-      } else {
-        // ── Single-image path (legacy) — time-based IDLE/WALK toggle ─────────
-        div.style.backgroundImage = '';
-        img.style.visibility = 'visible';
-        const POSE_MS  = 600;
-        const GRACE_MS = 150;
-        const wa  = walkAnim.current;
-        const now = performance.now();
-        const IDLE = '/images/tero/Tero_Idle.png';
-        const WALK = '/images/tero/Tero_Walk.png';
-        const isGroundFrame = frameSrc === IDLE || frameSrc === WALK;
-
-        if (Math.abs(x - wa.prevX) > 0.2) wa.lastMove = now;
-        wa.prevX = x;
-
-        const isWalking = isGroundFrame && (now - wa.lastMove) < GRACE_MS;
-
-        let displaySrc: string;
-        if (isWalking) {
-          if (!wa.cycleStart) wa.cycleStart = now;
-          const phase = Math.floor((now - wa.cycleStart) / POSE_MS) % 2;
-          displaySrc = phase === 0 ? IDLE : WALK;
-        } else {
-          wa.cycleStart = 0;
-          displaySrc = isGroundFrame ? IDLE : frameSrc;
-        }
-        if (lastSrcRef.current !== displaySrc) {
-          img.src = displaySrc;
-          lastSrcRef.current = displaySrc;
-        }
+      // Single images and strips share one path: a strip is just frames > 1.
+      if (lastSrcRef.current !== src) {
+        div.style.backgroundImage = `url(${src})`;
+        lastSrcRef.current = src;
       }
+      div.style.imageRendering     = imageRenderingFor(src);
+      div.style.backgroundSize     = `${frames * spriteSize}px ${spriteSize}px`;
+      div.style.backgroundPosition = `${-frameIdx * spriteSize}px 0`;
     };
 
     gameRef.current = game;
@@ -297,21 +286,11 @@ export default function GameContainer() {
             pointerEvents: 'none',
             display: 'none',
             willChange: 'transform',
+            backgroundRepeat: 'no-repeat',
           }}
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            ref={playerImgRef}
-            alt="player"
-            onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = 'hidden'; }}
-            style={{
-              width: '100%',
-              height: '100%',
-              display: 'block',
-              imageRendering: 'pixelated',
-            }}
-          />
-        </div>
+          role="img"
+          aria-label="player"
+        />
       </div>
 
       {/* ── TITLE ── */}

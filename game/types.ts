@@ -97,18 +97,21 @@ export interface RunStats {
 
 // ─── Player render data (game → React DOM overlay) ───────────────────────────
 export interface PlayerRenderData {
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-  camX: number;
+  /** Foot-centre in viewport (game) pixels — interpolated, camera- and
+   *  shake-adjusted, NOT rounded. The overlay snaps to device pixels. */
+  screenX: number;
+  screenY: number;
+  /** Extra vertical offset (game px, negative = up) from the walk bob.
+   *  Kept separate so the UI can drop it under prefers-reduced-motion. */
+  bobY: number;
   facingRight: boolean;
-  /** Image path. For sprite sheets this is the strip; UI cycles via background-position. */
-  frameSrc: string;
-  /** Number of horizontal frames in `frameSrc`. 1 = static image. */
+  /** Image path. For sprite sheets this is the horizontal strip. */
+  src: string;
+  /** Number of horizontal frames in `src`. 1 = static image. */
   frames: number;
-  /** Cycle rate when frames > 1. */
-  fps: number;
+  /** Which cell of the strip to show (0 when frames === 1). */
+  frameIdx: number;
+  /** Squash/stretch, already damped by SQUASH_STRENGTH. */
   scaleX: number;
   scaleY: number;
   shouldFlash: boolean;

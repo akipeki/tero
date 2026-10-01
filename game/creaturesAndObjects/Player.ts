@@ -40,6 +40,14 @@ export class Player extends creaturesAndObjects {
   scaleY = 1;
   private squashTimer = 0;
 
+  // Render interpolation — foot-centre at the start of the latest update.
+  // Foot (not top-left) so height changes from duck/grow don't glide.
+  prevCx    = 0;
+  prevFootY = 0;
+  /** Ground distance walked since the player last stood still. Drives the
+   *  walk cycle so frames advance with movement, not wall-clock time. */
+  walkDistance = 0;
+
   // Air-time tracking — fed into chain-stomp scoring
   airChain = 0;
 
@@ -58,6 +66,13 @@ export class Player extends creaturesAndObjects {
   constructor(x: number, y: number, lives: number) {
     super(x, y, SMALL_W, SMALL_H);
     this.lives = lives;
+    this.syncPrev();
+  }
+
+  /** Discard interpolation history — call after any teleport. */
+  syncPrev(): void {
+    this.prevCx    = this.cx;
+    this.prevFootY = this.bottom;
   }
 
   get isDead()        { return this.state === PlayerState.DEAD; }
@@ -115,6 +130,7 @@ export class Player extends creaturesAndObjects {
     // Snap to spawn so the death bounce plays on solid ground and is visible.
     this.x = this.spawnX;
     this.y = this.spawnY;
+    this.syncPrev();
     this.vy = -10;
     this.vx = 0;
     this.deadTimer = DEAD_TIMER_FRAMES;
@@ -142,10 +158,13 @@ export class Player extends creaturesAndObjects {
     this.facingRight = true;
     this.ducking = false;
     this.airChain = 0;
+    this.walkDistance = 0;
+    this.syncPrev();
     this.setState(PlayerState.IDLE);
   }
 
   update(ctx: UpdateCtx): void {
+    this.syncPrev();
     if (this.state === PlayerState.DEAD) {
       this.updateDead();
       return;
@@ -162,6 +181,10 @@ export class Player extends creaturesAndObjects {
     this.stepPhysics(ctx);
     if (this.onGround) this.airChain = 0;
     this.updateState();
+    this.walkDistance =
+      this.state === PlayerState.WALK || this.state === PlayerState.BIG_WALK
+        ? this.walkDistance + Math.abs(this.vx)
+        : 0;
     this.updateSquash();
     this.prevJumpHeld = this.jumpHeld;
   }

@@ -6,7 +6,8 @@
 - All physics + tuning constants → `game/constants.ts`
 - Level data + registry + validator → `game/level/levels.ts` + `level{1,2,3}.ts`
 - Player physics (coyote/buffer/squash/duck) → `game/creaturesAndObjects/Player.ts`
-- Player visuals → DOM `<img>` overlay in `components/GameContainer.tsx`
+- Player visuals → DOM `<div>` overlay (background-image) in `components/GameContainer.tsx`;
+  frame/walk-cycle choice + interpolation in `Game.syncPlayerOverlay`
   (the canvas `Player.draw()` is intentionally a no-op)
 - React → game UI bridge → `Game.signal('enter' | 'retry' | 'quit')`
   and `InputHandler.onUiAction(cb)` (no `window.__*` globals)

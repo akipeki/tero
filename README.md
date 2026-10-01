@@ -71,8 +71,14 @@ game/
 
 The character art is high-res (200×200 px). Drawing it to the 480×270 canvas
 would force ugly downsampling. Instead, we render Tero as an absolutely
-positioned `<img>` with `image-rendering: pixelated`, synced to the camera
-each frame via a `Game.onPlayerRender` callback. The physics hitbox
+positioned `<div>` (sprite drawn as its background image), synced to the
+camera each frame via a `Game.onPlayerRender` callback. Positions are
+interpolated between 60 Hz physics steps and snapped to device pixels, so
+motion stays smooth on high-refresh displays. Frames wider than the sprite's
+world size (64 px) are treated as hi-res art and filtered smoothly; smaller
+frames are native pixel art and stay `pixelated`. Walk animation advances by
+distance walked (`WALK_STRIDE_PX`), and squash/stretch is damped by
+`SQUASH_STRENGTH` — both in `game/constants.ts`. The physics hitbox
 (22×28 / 22×44 / 22×18) is independent of the displayed sprite size, so you
 can swap in detailed art without re-tuning collisions.
 

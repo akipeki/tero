@@ -23,6 +23,14 @@ export const CHAIN_BONUS        = 50;  // added per consecutive air-stomp
 
 // ─── Animation ──────────────────────────────────────────────────────────────
 export const WALK_ANIM_FPS      = 8;
+/** World pixels travelled per walk-cycle frame. Animation follows distance,
+ *  not time, so the feet don't slide at low speeds. */
+export const WALK_STRIDE_PX     = 14;
+/** How much of Player.scaleX/Y squash reaches the screen (0 = off, 1 = full).
+ *  Detailed art distorts badly at full strength. */
+export const SQUASH_STRENGTH    = 0.35;
+/** Vertical bob (world px) on each step of a walk cycle. */
+export const WALK_BOB_PX        = 1.5;
 
 // ─── Viewport ───────────────────────────────────────────────────────────────
 export const VIEWPORT_W         = 480;
