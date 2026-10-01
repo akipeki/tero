@@ -1,6 +1,7 @@
 // file: game/render/sprites/WalkerSprite.ts
 
-import { getTheme } from '../Theme';
+import { getTheme, isOffice } from '../Theme';
+import { drawOfficeWalker } from '../office/OfficeSprites';
 
 export interface WalkerSpriteProps {
   x: number;
@@ -18,6 +19,7 @@ export function drawWalkerSprite(
   ctx: CanvasRenderingContext2D,
   props: WalkerSpriteProps,
 ): void {
+  if (isOffice()) return drawOfficeWalker(ctx, props);
   const theme = getTheme();
 
   const sx = Math.floor(props.x - props.camX + props.w / 2);

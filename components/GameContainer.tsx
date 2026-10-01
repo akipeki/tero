@@ -313,8 +313,9 @@ export default function GameContainer() {
 
       {/* ── TITLE ── */}
       {isTitle && (
-        <PixelOverlay>
-          <p className="pixel-title" style={{ color: '#ef7d57' }}>TERO</p>
+        <PixelOverlay dim>
+          <p className="pixel-title" style={{ color: '#6cc24a' }}>TERO</p>
+          <p className="pixel-sub mt-2" style={{ color: '#ffd23f', letterSpacing: '0.2em' }}>OFFICES &amp; HUMANS</p>
           <p className="pixel-sub mt-6" style={{ color: '#fff1e8' }}>PRESS ENTER OR TAP TO PLAY</p>
           <p className="pixel-hint mt-4" style={{ color: '#a7f070' }}>
             ARROWS / WASD &nbsp;|&nbsp; SPACE = JUMP &nbsp;|&nbsp; DOWN = DUCK &nbsp;|&nbsp; M = MUTE

@@ -498,15 +498,17 @@ export class Game {
     let bobY = 0;
     const walking = p.state === PlayerState.WALK || p.state === PlayerState.BIG_WALK;
     if (walking) {
-      const step = Math.floor(p.walkDistance / WALK_STRIDE_PX);
+      const stride = frame.stride ?? WALK_STRIDE_PX;
+      const step = Math.floor(p.walkDistance / stride);
       if (frame.frames > 1) {
+        // A real walk cycle carries its own bob in the art.
         frameIdx = step % frame.frames;
       } else {
-        // Two-pose fallback: alternate the walk and idle images per stride.
+        // Two-pose fallback: alternate the walk and idle images per stride,
+        // lifting on the passing pose of each step.
         frame = step % 2 === 0 ? framePaths.walk : framePaths.idle;
+        bobY = -WALK_BOB_PX * Math.abs(Math.sin((Math.PI * p.walkDistance) / stride));
       }
-      // Lift on the passing pose of each step, down on contact.
-      bobY = -WALK_BOB_PX * Math.abs(Math.sin((Math.PI * p.walkDistance) / WALK_STRIDE_PX));
     } else if (frame.frames > 1) {
       frameIdx = Math.floor((performance.now() / 1000) * frame.fps) % frame.frames;
     }

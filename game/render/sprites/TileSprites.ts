@@ -1,14 +1,19 @@
 // file: game/render/sprites/TileSprites.ts
 
 import { TILE_SIZE } from '../../constants';
-import { getTheme } from '../Theme';
+import { getTheme, isOffice } from '../Theme';
 import { tileConfig, type TileDot } from './tileConfig';
+import {
+  drawOfficeSolid, drawOfficePlatform, drawOfficeHazard, type SolidNeighbours,
+} from '../office/OfficeTiles';
 
 export function drawSolidTile(
   ctx: CanvasRenderingContext2D,
   sx: number,
   sy: number,
+  n: SolidNeighbours = { tx: 0, ty: 1, openAbove: true, openBelow: false },
 ): void {
+  if (isOffice()) return drawOfficeSolid(ctx, sx, sy, n);
   const theme = getTheme();
   const S = TILE_SIZE;
   const cfg = tileConfig.solid;
@@ -57,6 +62,7 @@ export function drawPlatformTile(
   sx: number,
   sy: number,
 ): void {
+  if (isOffice()) return drawOfficePlatform(ctx, sx, sy);
   const theme = getTheme();
   const S = TILE_SIZE;
   const cfg = tileConfig.platform;
@@ -77,7 +83,9 @@ export function drawHazardTile(
   ctx: CanvasRenderingContext2D,
   sx: number,
   sy: number,
+  tx = 0,
 ): void {
+  if (isOffice()) return drawOfficeHazard(ctx, sx, sy, tx);
   const theme = getTheme();
   const S = TILE_SIZE;
   const cfg = tileConfig.hazard;

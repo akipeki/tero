@@ -21,9 +21,9 @@ export interface LevelDef {
 }
 
 export const LEVELS: readonly LevelDef[] = [
-  { id: '1', name: 'Ember Hills',  theme: 'ember', tiles: level1Tiles, spawns: level1Spawns, width: L1W,         height: L1H },
-  { id: '2', name: 'Mint Meadow',  theme: 'mint',  tiles: level2Tiles, spawns: level2Spawns, width: LEVEL2_WIDTH, height: LEVEL2_HEIGHT },
-  { id: '3', name: 'Dusk Citadel', theme: 'dusk',  tiles: level3Tiles, spawns: level3Spawns, width: LEVEL3_WIDTH, height: LEVEL3_HEIGHT },
+  { id: '1', name: 'The Mailroom',  theme: 'office', tiles: level1Tiles, spawns: level1Spawns, width: L1W,         height: L1H },
+  { id: '2', name: 'Cubicle Farm',  theme: 'office', tiles: level2Tiles, spawns: level2Spawns, width: LEVEL2_WIDTH, height: LEVEL2_HEIGHT },
+  { id: '3', name: 'The Boardroom', theme: 'office', tiles: level3Tiles, spawns: level3Spawns, width: LEVEL3_WIDTH, height: LEVEL3_HEIGHT },
 ] as const;
 
 /** Validate level data on load. Pads missing cells with AIR and warns;

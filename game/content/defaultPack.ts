@@ -6,7 +6,7 @@
 // Built-in ids are prefixed `b_` so user ids (`u_`) never collide.
 
 import { LEVELS } from '../level/levels';
-import { framePaths } from '../render/sprites/PlayerSpriteAssets';
+import { framePaths, PLAYER_FRAME_PX } from '../render/sprites/PlayerSpriteAssets';
 import type {
   ContentPack, LevelDef, SpriteAsset, EntityDef, Chapter, StoryCard,
 } from './types';
@@ -24,9 +24,8 @@ const sprites: Record<string, SpriteAsset> = Object.fromEntries(
       id,
       name:    `Player · ${name}`,
       dataUrl: def.src,
-      // Source PNGs are 200×200; v1 doesn't try to introspect on disk.
-      width:   200,
-      height:  200,
+      width:   PLAYER_FRAME_PX,
+      height:  PLAYER_FRAME_PX,
       frames:  def.frames,
       fps:     def.fps,
     } satisfies SpriteAsset];

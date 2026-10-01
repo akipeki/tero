@@ -1,6 +1,6 @@
 // file: game/level/level3.ts
 //
-// Dusk Citadel — 80 × 15. Hazard-dense.
+// The Boardroom (was Dusk Citadel) — 80 × 15. Hazard-dense.
 
 import type { LevelSpawns } from '../types';
 import { buildLevel } from './buildLevel';

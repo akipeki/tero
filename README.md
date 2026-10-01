@@ -1,8 +1,9 @@
-# TERO
+# TERO — Offices & Humans
 
 A retro pixel-art platformer — Next.js 16 + TypeScript, 60 fps canvas
-loop with a fixed time-step, tile-based AABB physics, three themed levels,
-and a DOM-overlay player sprite so the hero stays crisp at any screen size.
+loop with a fixed time-step, tile-based AABB physics and a DOM-overlay
+player sprite. Dungeons & Dragons in reverse: Tero, a lovable dragon in a
+tie, adventures through a 1993 office full of short, zombie-ish humans.
 
 ## Run locally
 
@@ -43,9 +44,9 @@ game/
   Camera.ts            — Smooth horizontal follow w/ clamp
   ScreenShake.ts       — Decaying random offset
   level/
-    level1.ts          — Ember Hills (110 wide)
-    level2.ts          — Mint Meadow (70 wide, more vertical)
-    level3.ts          — Dusk Citadel (90 wide, hazard-dense)
+    level1.ts          — The Mailroom
+    level2.ts          — Cubicle Farm (more vertical)
+    level3.ts          — The Boardroom (hazard-dense)
     levels.ts          — Registry + per-level validator
     Tilemap.ts         — Stored 1D, queried 2D
   physics/
@@ -67,10 +68,33 @@ game/
     sprites/           — Each entity's draw function lives here
 ```
 
+### Characters are rigged, not hand-drawn
+
+Tero (`game/render/characters/dragon.ts`) and the humans
+(`characters/humans.ts`) are drawn by small pixel rigs on a DOM-free
+`Raster` (`render/pixel/Raster.ts`): each body part is a shaded ellipse,
+capsule or triangle with its own outline. An animation is just a list of
+poses (`DRAGON_ANIMS`).
+
+- The dragon is rendered to PNG strips by `npm run sprites`
+  → `public/images/dragon/*.png`. Re-run it after changing the rig; a test
+  fails if `framePaths` and the PNGs drift apart. You can also repaint the
+  PNGs by hand — keep the 64×64 frame size and frame counts.
+- The humans are rendered to canvases at runtime (`office/OfficeSprites.ts`).
+
+### The office theme
+
+`theme: 'office'` switches every drawer to `game/render/office/`: carpet,
+ceiling lights (one flickers), filing cabinets, desks and thumbtack pits
+(`OfficeTiles.ts`); a parallax wall/window/cubicle background
+(`OfficeBackground.ts`); and floppy-disk coins, coffee-mug power-ups,
+computer "?" blocks, a water-cooler checkpoint and an elevator goal
+(`OfficeSprites.ts`). The older `ember`/`mint`/`dusk` themes still work for
+user levels.
+
 ### Why a DOM-overlay player
 
-The character art is high-res (200×200 px). Drawing it to the 480×270 canvas
-would force ugly downsampling. Instead, we render Tero as an absolutely
+We render Tero as an absolutely
 positioned `<div>` (sprite drawn as its background image), synced to the
 camera each frame via a `Game.onPlayerRender` callback. Positions are
 interpolated between 60 Hz physics steps and snapped to device pixels, so

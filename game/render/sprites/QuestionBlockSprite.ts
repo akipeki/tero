@@ -1,7 +1,8 @@
 // file: game/render/sprites/QuestionBlockSprite.ts
 
 import { TILE_SIZE } from '../../constants';
-import { getTheme } from '../Theme';
+import { getTheme, isOffice } from '../Theme';
+import { drawOfficeComputer } from '../office/OfficeSprites';
 import { QUESTION_MARK_GLYPH, drawGlyph } from './glyphs';
 
 export type QuestionBlockVisualState = 'idle' | 'bump' | 'open';
@@ -19,6 +20,7 @@ export function drawQuestionBlockSprite(
   ctx: CanvasRenderingContext2D,
   props: QuestionBlockSpriteProps,
 ): void {
+  if (isOffice()) return drawOfficeComputer(ctx, props);
   const theme = getTheme();
 
   const sx = Math.floor(props.x - props.camX);

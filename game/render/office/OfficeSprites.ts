@@ -1,0 +1,287 @@
+// file: game/render/office/OfficeSprites.ts
+//
+// Office versions of every entity sprite. Rig-drawn characters are rendered
+// once to canvases (both facings) and blitted at native size.
+
+import { TILE_SIZE } from '../../constants';
+import { drawClerk, drawManager, HUMAN_FRAME } from '../characters/humans';
+import type { Raster } from '../pixel/Raster';
+import type { WalkerSpriteProps } from '../sprites/WalkerSprite';
+import type { HopperSpriteProps } from '../sprites/HopperSprite';
+import type { CoinSpriteProps } from '../sprites/CoinSprite';
+import type { MushroomSpriteProps } from '../sprites/MushroomSprite';
+import type { QuestionBlockSpriteProps } from '../sprites/QuestionBlockSprite';
+import { QUESTION_MARK_GLYPH, drawGlyph } from '../sprites/glyphs';
+
+// ─── Character cache ─────────────────────────────────────────────────────────
+
+interface Facings { right: HTMLCanvasElement; left: HTMLCanvasElement }
+const cache = new Map<string, Facings>();
+
+function facings(key: string, make: () => Raster): Facings {
+  let f = cache.get(key);
+  if (!f) {
+    const r = make();
+    f = { right: r.toCanvas(), left: r.flipX().toCanvas() };
+    cache.set(key, f);
+  }
+  return f;
+}
+
+/** Draws a 32×32 human frame with its feet on the hitbox's bottom-centre. */
+function blitHuman(
+  ctx: CanvasRenderingContext2D, img: Facings, p: { x: number; y: number; w: number; h: number; camX: number; facingRight: boolean; scaleY: number },
+): void {
+  const footX = Math.round(p.x - p.camX + p.w / 2);
+  const footY = Math.round(p.y + p.h);
+  ctx.save();
+  ctx.translate(footX, footY);
+  ctx.scale(1, p.scaleY);
+  ctx.drawImage(p.facingRight ? img.right : img.left, -HUMAN_FRAME / 2, -HUMAN_FRAME);
+  ctx.restore();
+}
+
+export function drawOfficeWalker(ctx: CanvasRenderingContext2D, p: WalkerSpriteProps): void {
+  // Shamble frames follow distance walked, so the feet never skate.
+  const f = p.dying ? 0 : Math.floor(Math.abs(p.x) / 6) % 4;
+  blitHuman(ctx, facings(`clerk${f}`, () => drawClerk(f)), p);
+}
+
+export function drawOfficeHopper(ctx: CanvasRenderingContext2D, p: HopperSpriteProps): void {
+  const air = p.airborne && !p.dying;
+  blitHuman(ctx, facings(`manager${air ? 1 : 0}`, () => drawManager(air)), p);
+}
+
+// ─── Floppy disk (coin) ──────────────────────────────────────────────────────
+
+export function drawOfficeCoin(ctx: CanvasRenderingContext2D, p: CoinSpriteProps): void {
+  const sx = Math.floor(p.x - p.camX);
+  const sy = Math.floor(p.y);
+  const W = 14, H = 14;
+  if (p.collected) ctx.globalAlpha = Math.max(0, 1 - p.collectAnim / 18);
+
+  // spin = squash horizontally; show the label side only when facing us
+  const k = Math.abs(Math.cos(p.spinPhase * Math.PI * 2));
+  const w = Math.max(2, Math.round(k * W));
+  const x = sx + Math.floor((W - w) / 2);
+  const y = sy + 1;
+  const bob = Math.round(Math.sin(p.spinPhase * Math.PI * 2) * 1);
+
+  ctx.fillStyle = '#141824';
+  ctx.fillRect(x - 1, y - 1 + bob, w + 2, H + 2);
+  ctx.fillStyle = '#2b3f8c';
+  ctx.fillRect(x, y + bob, w, H);
+  if (w >= 8) {
+    const s = w / W;
+    // metal shutter
+    ctx.fillStyle = '#c9ced6';
+    ctx.fillRect(x + Math.round(3 * s), y + bob, Math.round(8 * s), 5);
+    ctx.fillStyle = '#2b3f8c';
+    ctx.fillRect(x + Math.round(8 * s), y + 1 + bob, Math.max(1, Math.round(2 * s)), 3);
+    // label
+    ctx.fillStyle = '#f4f1e6';
+    ctx.fillRect(x + Math.round(2 * s), y + 7 + bob, Math.round(10 * s), 6);
+    ctx.fillStyle = '#d83b3b';
+    ctx.fillRect(x + Math.round(3 * s), y + 9 + bob, Math.round(7 * s), 1);
+    ctx.fillStyle = '#6b7280';
+    ctx.fillRect(x + Math.round(3 * s), y + 11 + bob, Math.round(5 * s), 1);
+  }
+  ctx.globalAlpha = 1;
+}
+
+// ─── Coffee mug (power-up) ───────────────────────────────────────────────────
+
+export function drawOfficeMug(ctx: CanvasRenderingContext2D, p: MushroomSpriteProps): void {
+  const sx = Math.floor(p.x - p.camX);
+  const sy = Math.floor(p.y);
+  ctx.save();
+  if (p.collected) ctx.globalAlpha = Math.max(0, 1 - p.collectAnim / 20);
+
+  // steam wisps
+  const t = Math.floor(performance.now() / 180) % 3;
+  ctx.fillStyle = 'rgba(240,240,240,0.85)';
+  for (let i = 0; i < 3; i++) {
+    const wx = sx + 5 + i * 4 + ((i + t) % 2);
+    ctx.fillRect(wx, sy - 3 - ((i + t) % 3), 1, 3);
+  }
+  // outline, body, handle
+  ctx.fillStyle = '#1b1620';
+  ctx.fillRect(sx + 2, sy + 3, 14, 17);
+  ctx.fillRect(sx + 15, sy + 7, 5, 9);
+  ctx.fillStyle = '#f4f1e6';
+  ctx.fillRect(sx + 3, sy + 4, 12, 15);
+  ctx.fillStyle = '#dcd6c4';
+  ctx.fillRect(sx + 12, sy + 4, 3, 15);
+  ctx.fillStyle = '#f4f1e6';
+  ctx.fillRect(sx + 16, sy + 8, 3, 7);
+  ctx.fillStyle = '#1b1620';
+  ctx.fillRect(sx + 16, sy + 10, 2, 3);
+  // coffee
+  ctx.fillStyle = '#6b3f22';
+  ctx.fillRect(sx + 3, sy + 4, 12, 2);
+  // "#1" heart decal
+  ctx.fillStyle = '#d83b3b';
+  ctx.fillRect(sx + 5, sy + 9, 2, 2);
+  ctx.fillRect(sx + 8, sy + 9, 2, 2);
+  ctx.fillRect(sx + 5, sy + 11, 5, 2);
+  ctx.fillRect(sx + 6, sy + 13, 3, 1);
+  ctx.fillRect(sx + 7, sy + 14, 1, 1);
+  ctx.restore();
+}
+
+// ─── Computer "?" block ──────────────────────────────────────────────────────
+
+export function drawOfficeComputer(ctx: CanvasRenderingContext2D, p: QuestionBlockSpriteProps): void {
+  const S = TILE_SIZE;
+  const sx = Math.floor(p.x - p.camX);
+  const sy = Math.floor(p.y + p.bumpOffset);
+
+  // beige case with bevel
+  ctx.fillStyle = '#1b1620';
+  ctx.fillRect(sx, sy, S, S);
+  ctx.fillStyle = '#d8cfb8';
+  ctx.fillRect(sx + 1, sy + 1, S - 2, S - 2);
+  ctx.fillStyle = '#efe8d4';
+  ctx.fillRect(sx + 1, sy + 1, S - 2, 2);
+  ctx.fillRect(sx + 1, sy + 1, 2, S - 2);
+  ctx.fillStyle = '#a99f86';
+  ctx.fillRect(sx + S - 3, sy + 2, 2, S - 3);
+  ctx.fillRect(sx + 2, sy + S - 3, S - 3, 2);
+
+  // screen
+  const open = p.state === 'open';
+  ctx.fillStyle = '#5a5446';
+  ctx.fillRect(sx + 4, sy + 4, S - 8, 18);
+  ctx.fillStyle = open ? '#1d3fa8' : '#10261a';
+  ctx.fillRect(sx + 5, sy + 5, S - 10, 16);
+
+  if (open) {
+    // blue screen of sadness  :(
+    ctx.fillStyle = '#f4f1e6';
+    ctx.fillRect(sx + 11, sy + 9, 2, 2);
+    ctx.fillRect(sx + 11, sy + 14, 2, 2);
+    ctx.fillRect(sx + 16, sy + 8, 2, 2);
+    ctx.fillRect(sx + 15, sy + 10, 2, 6);
+    ctx.fillRect(sx + 16, sy + 16, 2, 2);
+  } else {
+    const blink = p.animFrame === 3;
+    drawGlyph(ctx, QUESTION_MARK_GLYPH, sx + 11, sy + 6, 2, blink ? '#1f6b3a' : '#46e07a');
+    // scanlines
+    ctx.fillStyle = 'rgba(0,0,0,0.25)';
+    for (let y = sy + 6; y < sy + 21; y += 2) ctx.fillRect(sx + 5, y, S - 10, 1);
+  }
+
+  // floppy slot + power LED
+  ctx.fillStyle = '#5a5446';
+  ctx.fillRect(sx + 6, sy + 25, 12, 2);
+  ctx.fillStyle = open ? '#8a846f' : '#46e07a';
+  ctx.fillRect(sx + 23, sy + 25, 3, 2);
+}
+
+// ─── Water cooler (checkpoint) ───────────────────────────────────────────────
+
+export function drawOfficeCooler(
+  ctx: CanvasRenderingContext2D, x: number, y: number, camX: number, triggered: boolean, wave: number,
+): void {
+  // Entity box is 8 wide × 64 tall; the cooler stands on its bottom edge.
+  const cx = Math.floor(x - camX) + 4;
+  const base = Math.floor(y) + TILE_SIZE * 2;
+  const bx = cx - 8;
+
+  // cabinet
+  ctx.fillStyle = '#1b1620';
+  ctx.fillRect(bx - 1, base - 30, 18, 30);
+  ctx.fillStyle = '#e6e2d6';
+  ctx.fillRect(bx, base - 29, 16, 29);
+  ctx.fillStyle = '#c4bfb0';
+  ctx.fillRect(bx + 12, base - 29, 4, 29);
+  // taps
+  ctx.fillStyle = '#d83b3b'; ctx.fillRect(bx + 3, base - 22, 3, 3);
+  ctx.fillStyle = '#3f7fd8'; ctx.fillRect(bx + 10, base - 22, 3, 3);
+  // drip tray
+  ctx.fillStyle = '#8a8f96'; ctx.fillRect(bx + 2, base - 14, 12, 2);
+  // status light
+  ctx.fillStyle = triggered ? '#46e07a' : '#5a5446';
+  ctx.fillRect(bx + 7, base - 27, 2, 2);
+
+  // jug
+  const jy = base - 48;
+  ctx.fillStyle = '#1b1620';
+  ctx.fillRect(bx, jy - 1, 16, 20);
+  ctx.fillStyle = triggered ? '#7fc8f0' : '#cfe3ec';
+  ctx.fillRect(bx + 1, jy, 14, 18);
+  ctx.fillStyle = triggered ? '#4ea6d8' : '#b5ccd6';
+  ctx.fillRect(bx + 1, jy + 6, 14, 12);
+  ctx.fillStyle = 'rgba(255,255,255,0.7)';
+  ctx.fillRect(bx + 3, jy + 2, 2, 12);
+  ctx.fillStyle = '#3f7fd8';
+  ctx.fillRect(bx + 5, jy - 4, 6, 4);
+
+  if (triggered) {
+    // bubbles glug upward
+    ctx.fillStyle = '#e8f6ff';
+    for (let i = 0; i < 3; i++) {
+      const by = jy + 16 - ((wave * 0.4 + i * 6) % 15);
+      ctx.fillRect(bx + 6 + (i % 2) * 3, Math.floor(by), 2, 2);
+    }
+  }
+}
+
+// ─── Elevator (goal) ─────────────────────────────────────────────────────────
+
+export function drawOfficeElevator(
+  ctx: CanvasRenderingContext2D, camX: number, x: number, y: number, w: number, h: number, wave: number,
+): void {
+  const sx = Math.floor(x - camX);
+  const bottom = Math.floor(y) + h;
+  const dw = 60, dh = 84;
+  const dx = sx + Math.floor((w - dw) / 2);
+  const dy = bottom - dh;
+
+  // marble surround
+  ctx.fillStyle = '#1b1620';
+  ctx.fillRect(dx - 9, dy - 25, dw + 18, dh + 25);
+  ctx.fillStyle = '#bfb7a6';
+  ctx.fillRect(dx - 8, dy - 24, dw + 16, dh + 24);
+  ctx.fillStyle = '#d6cfbf';
+  ctx.fillRect(dx - 8, dy - 24, dw + 16, 2);
+  ctx.fillStyle = '#a69e8b';
+  for (const [vx, vy] of [[-4, 8], [dw + 3, 30], [10, -18], [dw - 14, -16]]) ctx.fillRect(dx + vx, dy + vy, 3, 1);
+
+  // floor indicator with blinking ▲
+  ctx.fillStyle = '#1b1620';
+  ctx.fillRect(dx + dw / 2 - 14, dy - 19, 28, 12);
+  const lit = Math.floor(wave / 20) % 2 === 0;
+  ctx.fillStyle = lit ? '#ffb347' : '#6b4a20';
+  const ax = dx + dw / 2 - 8, ay = dy - 16;
+  ctx.fillRect(ax + 2, ay, 1, 1); ctx.fillRect(ax + 1, ay + 1, 3, 1); ctx.fillRect(ax, ay + 2, 5, 1);
+  // "12"
+  ctx.fillStyle = '#ffb347';
+  ctx.fillRect(dx + dw / 2 + 2, dy - 16, 1, 5);
+  ctx.fillRect(dx + dw / 2 + 4, dy - 16, 3, 1); ctx.fillRect(dx + dw / 2 + 6, dy - 15, 1, 1);
+  ctx.fillRect(dx + dw / 2 + 4, dy - 14, 3, 1); ctx.fillRect(dx + dw / 2 + 4, dy - 13, 1, 1);
+  ctx.fillRect(dx + dw / 2 + 4, dy - 12, 3, 1);
+
+  // steel doors
+  ctx.fillStyle = '#6b7480';
+  ctx.fillRect(dx, dy, dw, dh);
+  for (const half of [0, 1]) {
+    const hx = dx + 2 + half * (dw / 2);
+    ctx.fillStyle = '#a9b3bd';
+    ctx.fillRect(hx, dy + 2, dw / 2 - 3, dh - 2);
+    ctx.fillStyle = '#c9d1d9';
+    ctx.fillRect(hx + 4, dy + 2, 3, dh - 2);
+    ctx.fillStyle = '#8b94a0';
+    ctx.fillRect(hx + dw / 2 - 6, dy + 2, 1, dh - 2);
+  }
+  ctx.fillStyle = '#1b1620';
+  ctx.fillRect(dx + dw / 2 - 1, dy, 1, dh);
+
+  // call button
+  ctx.fillStyle = '#1b1620';
+  ctx.fillRect(dx + dw + 2, dy + 36, 5, 10);
+  ctx.fillStyle = '#c9c2a8';
+  ctx.fillRect(dx + dw + 3, dy + 37, 3, 8);
+  ctx.fillStyle = lit ? '#ffb347' : '#d8cfb8';
+  ctx.fillRect(dx + dw + 3, dy + 39, 3, 3);
+}

@@ -136,7 +136,7 @@ export class Player extends creaturesAndObjects {
     this.deadTimer = DEAD_TIMER_FRAMES;
     ctx.shake.trigger(7);
     ctx.audio.play('death');
-    ctx.particles.burst(this.cx, this.cy, 12, P.PLAYER_BLUE, P.PLAYER_DARK);
+    ctx.particles.burst(this.cx, this.cy, 12, P.DRAGON, P.DRAGON_DARK);
   }
 
   triggerWin(): void {

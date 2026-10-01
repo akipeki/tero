@@ -47,40 +47,39 @@ export default function StoryBox({
       aria-live="polite"
       aria-label={view.speaker ? `${view.speaker} says` : 'Story'}
     >
-      <div
-        style={{
-          display: 'flex',
-          gap: '3%',
-          alignItems: 'flex-start',
-          width: '100%',
-          background: 'rgba(26,28,44,0.94)',
-          border: '3px solid #fff1e8',
-          boxShadow: '0 0 0 3px #1a1c2c',
-          padding: 'clamp(8px, 2vw, 18px)',
-          cursor: 'pointer',
-        }}
-      >
-        {view.portraitSrc && (
-          <div
-            aria-hidden
-            style={{
-              flexShrink: 0,
-              width: 'clamp(40px, 9vw, 96px)',
-              aspectRatio: '1',
-              border: '2px solid #5d6a8a',
-              background: `#29366f url(${view.portraitSrc}) no-repeat 0 0 / ${(view.portraitFrames ?? 1) * 100}% 100%`,
-            }}
-          />
-        )}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          {view.speaker && (
-            <p style={{ color: '#ffcd75', fontSize: 'clamp(8px, 1.4vw, 14px)', marginBottom: '0.8em' }}>
-              {view.speaker}
-            </p>
+      {/* Windows 3.1-style message box */}
+      <div style={{ width: '100%', background: WIN.face, cursor: 'pointer', ...bevel(false), boxShadow: '3px 3px 0 rgba(0,0,0,0.45)' }}>
+        <div
+          className="flex justify-between items-center"
+          style={{
+            background: WIN.title, color: '#ffffff',
+            fontSize: 'clamp(7px, 1.2vw, 12px)', padding: '0.45em 0.7em', letterSpacing: '0.05em',
+          }}
+        >
+          <span>{view.speaker ?? 'MEMO'}</span>
+          <span aria-hidden style={{ opacity: 0.8 }}>{view.index + 1}/{view.total}</span>
+        </div>
+
+        <div style={{ display: 'flex', gap: '3%', alignItems: 'flex-start', padding: 'clamp(8px, 1.8vw, 16px)' }}>
+          {view.portraitSrc && (
+            <div
+              aria-hidden
+              style={{
+                flexShrink: 0,
+                width: 'clamp(40px, 9vw, 96px)',
+                aspectRatio: '1',
+                imageRendering: 'pixelated',
+                ...bevel(true),
+                background: `#008080 url(${view.portraitSrc}) no-repeat`,
+                ...portraitCrop(view.portraitFrames ?? 1),
+              }}
+            />
           )}
           <p
             style={{
-              color: '#fff1e8',
+              flex: 1,
+              minWidth: 0,
+              color: '#000000',
               fontSize: 'clamp(9px, 1.6vw, 16px)',
               lineHeight: 1.7,
               whiteSpace: 'pre-line',
@@ -90,25 +89,70 @@ export default function StoryBox({
             <span ref={shownRef} />
             <span ref={restRef} style={{ visibility: 'hidden' }} />
           </p>
-          <div
-            className="flex justify-between items-center"
-            style={{ marginTop: '0.8em', fontSize: 'clamp(7px, 1.1vw, 11px)', color: '#94b0c2' }}
+        </div>
+
+        <div
+          className="flex justify-end"
+          style={{ gap: '0.8em', padding: '0 clamp(8px, 1.8vw, 16px) clamp(8px, 1.8vw, 16px)', fontSize: 'clamp(7px, 1.1vw, 11px)' }}
+        >
+          <button
+            type="button"
+            onPointerDown={(e) => { e.stopPropagation(); e.preventDefault(); onSkip(); }}
+            style={winButton}
+            aria-label="Skip story"
           >
-            <button
-              type="button"
-              onPointerDown={(e) => { e.stopPropagation(); e.preventDefault(); onSkip(); }}
-              style={{ fontFamily: 'inherit', color: 'inherit', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-              aria-label="Skip story"
-            >
-              ESC SKIP
-            </button>
-            <span>
-              {view.index + 1}/{view.total}{' '}
-              <span ref={nextRef} style={{ color: '#a7f070' }}>▶ ENTER</span>
-            </span>
-          </div>
+            CANCEL (ESC)
+          </button>
+          <span ref={nextRef} style={{ ...winButton, fontWeight: 'bold', outline: '1px solid #000', outlineOffset: '-4px' }}>
+            OK ▶
+          </span>
         </div>
       </div>
     </div>
   );
 }
+
+/** Character sprites are full-body; zoom the first frame 2× onto the head,
+ *  which sits in the upper-middle of the frame. */
+const PORTRAIT_ZOOM = 2;
+const HEAD_LEFT = 0.34;  // left edge of the crop, as a fraction of one frame
+const HEAD_TOP  = 0.1;
+function portraitCrop(frames: number): React.CSSProperties {
+  // background-position % aligns p% of the image with p% of the box:
+  // offset = p * (imageSize - boxSize), solved for p.
+  const x = (HEAD_LEFT * PORTRAIT_ZOOM) / (frames * PORTRAIT_ZOOM - 1);
+  const y = (HEAD_TOP * PORTRAIT_ZOOM) / (PORTRAIT_ZOOM - 1);
+  return {
+    backgroundSize: `${frames * PORTRAIT_ZOOM * 100}% ${PORTRAIT_ZOOM * 100}%`,
+    backgroundPosition: `${x * 100}% ${y * 100}%`,
+  };
+}
+
+const WIN = {
+  face:   '#c0c0c0',
+  light:  '#ffffff',
+  shadow: '#808080',
+  dark:   '#000000',
+  title:  '#000080',
+} as const;
+
+/** Classic 3D bevel: raised (buttons, windows) or sunken (fields, insets). */
+function bevel(sunken: boolean): React.CSSProperties {
+  const [tl, br] = sunken ? [WIN.shadow, WIN.light] : [WIN.light, WIN.shadow];
+  return {
+    borderStyle: 'solid',
+    borderWidth: 2,
+    borderColor: `${tl} ${br} ${br} ${tl}`,
+    outline: `1px solid ${WIN.dark}`,
+  };
+}
+
+const winButton: React.CSSProperties = {
+  fontFamily: 'inherit',
+  fontSize: 'inherit',
+  color: '#000000',
+  background: WIN.face,
+  padding: '0.6em 1.1em',
+  cursor: 'pointer',
+  ...bevel(false),
+};

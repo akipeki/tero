@@ -1,6 +1,7 @@
 // file: game/render/sprites/HopperSprite.ts
 
-import { getTheme } from '../Theme';
+import { getTheme, isOffice } from '../Theme';
+import { drawOfficeHopper } from '../office/OfficeSprites';
 
 export interface HopperSpriteProps {
   x: number;
@@ -18,6 +19,7 @@ export function drawHopperSprite(
   ctx: CanvasRenderingContext2D,
   props: HopperSpriteProps,
 ): void {
+  if (isOffice()) return drawOfficeHopper(ctx, props);
   const theme = getTheme();
 
   const sx = Math.floor(props.x - props.camX + props.w / 2);

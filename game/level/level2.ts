@@ -1,6 +1,6 @@
 // file: game/level/level2.ts
 //
-// Mint Meadow — 70 × 15. Vertical layout with stacked platforms.
+// Cubicle Farm (was Mint Meadow) — 70 × 15. Vertical layout with stacked platforms.
 
 import type { LevelSpawns } from '../types';
 import { buildLevel } from './buildLevel';

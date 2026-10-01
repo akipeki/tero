@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Press_Start_2P } from "next/font/google";
 import "./globals.css";
+import { criticalFrames } from "@/game/render/sprites/PlayerSpriteAssets";
 
 const pressStart = Press_Start_2P({
   weight: "400",
@@ -15,12 +16,7 @@ export const metadata: Metadata = {
 };
 
 // Critical player frames — preload so the very first PLAY tap doesn't pop in.
-const PRELOAD = [
-  "/images/tero/Tero_Idle.png",
-  "/images/tero/Tero_Walk.png",
-  "/images/tero/Tero_Jump.png",
-  "/images/tero/Tero_Fall.png",
-];
+const PRELOAD = criticalFrames;
 
 export default function RootLayout({
   children,

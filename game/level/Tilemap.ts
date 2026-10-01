@@ -59,7 +59,11 @@ export class Tilemap {
 
         switch (tile) {
           case TileType.SOLID:
-            drawSolidTile(ctx, sx, sy);
+            drawSolidTile(ctx, sx, sy, {
+              tx, ty,
+              openAbove: this.tileAt(tx, ty - 1) !== TileType.SOLID,
+              openBelow: this.tileAt(tx, ty + 1) !== TileType.SOLID,
+            });
             break;
 
           case TileType.PLATFORM:
@@ -67,7 +71,7 @@ export class Tilemap {
             break;
 
           case TileType.HAZARD:
-            drawHazardTile(ctx, sx, sy);
+            drawHazardTile(ctx, sx, sy, tx);
             break;
         }
       }
