@@ -1,4 +1,4 @@
-# WHERE IS DADA?
+# WHERE IS DADA? - Baby Dragon Strikes Back
 
 A retro pixel-art platformer — Next.js 16 + TypeScript, 60 fps canvas
 loop with a fixed time-step, tile-based AABB physics and a DOM-overlay
