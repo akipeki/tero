@@ -12,6 +12,9 @@
 //                 intro     plays before the level starts
 //                 outro     plays when the player reaches the goal
 //                 triggers  play when the player first walks past tile column `atTile`
+//                 scenery   background gags at fixed tile columns — use them to hint
+//                           at what happened here (ids: game/render/office/gags.ts).
+//                           The rest of each level is filled with random gags.
 //
 // Intros don't replay when the player retries a level.
 
@@ -47,13 +50,25 @@ export const STORY = defineStory({
       ],
       triggers: [
         {
+          atTile: 37,
+          lines: [
+            { who: 'tero', text: 'Somebody slew the photocopier...\nwith a TWO-HANDED SWORD?!' },
+          ],
+        },
+        {
           atTile: 41,
           lines: [
             { who: 'it', text: 'Psst. Big green guy. Your floppy\nwent up in the internal mail. Floor 6.' },
             { who: 'tero', text: 'You can see I\'m a dragon?' },
-            { who: 'it', text: 'I work in IT. I\'ve seen worse.' },
+            { who: 'it', text: 'I work in IT. I\'ve seen worse.\nAccounts did the copier, by the way.' },
           ],
         },
+      ],
+      scenery: [
+        { atTile: 3,  gag: 'party_aftermath' },   // last night's "team building"
+        { atTile: 15, gag: 'banner_mondays' },
+        { atTile: 34, gag: 'copier_slain' },
+        { atTile: 52, gag: 'supply_closet' },
       ],
       outro: [
         { who: 'tero', text: 'Elevator! Hold the door!\n...Why is everyone moaning?' },
@@ -74,6 +89,11 @@ export const STORY = defineStory({
           ],
         },
       ],
+      scenery: [
+        { atTile: 11, gag: 'fridge_notes' },
+        { atTile: 30, gag: 'copier_butt' },
+        { atTile: 46, gag: 'money_shrine' },
+      ],
       outro: [
         { who: 'tero', text: 'Boardroom. Floor 12.\nNo pressure. No pressure at all.' },
       ],
@@ -86,11 +106,23 @@ export const STORY = defineStory({
       ],
       triggers: [
         {
+          atTile: 48,
+          lines: [
+            { who: 'tero', text: '"1. Meet. 2. ???. 3. Profit."\nThat\'s the whole company plan?' },
+          ],
+        },
+        {
           atTile: 58,
           lines: [
             { who: 'tero', text: 'I can see the elevator.\nAlmost there...' },
           ],
         },
+      ],
+      scenery: [
+        { atTile: 1,  gag: 'employee_month' },
+        { atTile: 20, gag: 'banner_q4' },
+        { atTile: 45, gag: 'whiteboard' },
+        { atTile: 60, gag: 'sign_hr' },
       ],
       outro: [
         { who: 'boss', text: '4:59. Hm. Adequate.\n...Nice tie.' },

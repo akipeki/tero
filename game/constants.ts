@@ -31,6 +31,9 @@ export const WALK_STRIDE_PX     = 14;
 export const SQUASH_STRENGTH    = 0.35;
 /** Vertical bob (world px) on each step of a walk cycle. */
 export const WALK_BOB_PX        = 1.5;
+/** Sprite scale while caffeinated (the "big" power-up). Matches the hitbox
+ *  growing from 28 to 44 px tall. */
+export const BIG_SPRITE_SCALE   = 1.5;
 
 // ─── Story ───────────────────────────────────────────────────────────────────
 /** Typewriter speed for story cards (characters per 60 Hz tick ≈ 45 chars/s). */

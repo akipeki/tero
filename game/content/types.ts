@@ -108,6 +108,14 @@ export interface LevelDef {
   outro?:    StoryCardId[];
   /** Mid-level story beats, fired once per attempt. */
   triggers?: StoryTrigger[];
+  /** Background gags placed on purpose (office theme). The rest of the level
+   *  is auto-filled. `gag` is a key of GAGS in render/office/gags.ts. */
+  scenery?: SceneryPlacement[];
+}
+
+export interface SceneryPlacement {
+  tx:  number;
+  gag: string;
 }
 
 // ─── Story ───────────────────────────────────────────────────────────────────

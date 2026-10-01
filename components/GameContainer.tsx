@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { Game } from '@/game/Game';
 import { GameState, Action } from '@/game/types';
-import { VIEWPORT_W, VIEWPORT_H, TILE_SIZE, STARTING_LIVES } from '@/game/constants';
+import { VIEWPORT_W, VIEWPORT_H, TILE_SIZE, STARTING_LIVES, BIG_SPRITE_SCALE } from '@/game/constants';
 import type { HudData, PlayerRenderData, RunStats, StoryView } from '@/game/types';
 import StoryBox from './StoryBox';
 import { loadSettings, saveSettings } from '@/game/Settings';
@@ -129,7 +129,7 @@ export default function GameContainer() {
       // at any canvas scale while edges never straddle two device pixels.
       const dpr  = window.devicePixelRatio || 1;
       const snap = (v: number) => Math.round(v * dpr) / dpr;
-      const spriteSize = TILE_SIZE * SPRITE_TILES * s;
+      const spriteSize = TILE_SIZE * SPRITE_TILES * s * (data.big ? BIG_SPRITE_SCALE : 1);
       const cx    = snap(screenX * s);
       const footY = snap((screenY + (still ? 0 : bobY)) * s);
 

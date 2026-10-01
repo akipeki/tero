@@ -18,4 +18,6 @@
   `render/pixel/Raster.ts`; `npm run sprites` regenerates the dragon PNGs
 - Office theme (default for built-in levels) → `game/render/office/`; each
   sprite/tile drawer delegates there when `isOffice()`
+- Background gags → `render/office/gags.ts` (library) + `Scenery.ts`
+  (authored `scenery` from the story script + seeded auto-fill)
 - Palettes → `game/render/Theme.ts`; backgrounds cached to offscreen canvases.

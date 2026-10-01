@@ -1,0 +1,72 @@
+import { describe, it, expect } from 'vitest';
+import { Tilemap } from '../../level/Tilemap';
+import { buildLevel } from '../../level/buildLevel';
+import { TILE_SIZE } from '../../constants';
+import { TileType } from '../../types';
+import { layoutScenery } from './Scenery';
+import { GAGS, GAG_IDS } from './gags';
+import { LEVELS } from '../../level/levels';
+import { defaultPack } from '../../content/defaultPack';
+
+function mapOf(level: (typeof LEVELS)[number]): Tilemap {
+  return new Tilemap([...level.tiles], level.width, level.height);
+}
+
+describe('gag library', () => {
+  it('every gag draws something', () => {
+    for (const id of GAG_IDS) {
+      const r = GAGS[id].draw();
+      expect(r.w * r.h, id).toBeGreaterThan(0);
+      let any = false;
+      for (let y = 0; y < r.h && !any; y++) for (let x = 0; x < r.w && !any; x++) any = r.opaque(x, y);
+      expect(any, id).toBe(true);
+    }
+  });
+});
+
+describe('layoutScenery', () => {
+  for (const level of LEVELS) {
+    it(`fills "${level.name}" deterministically with floor props on flat floor`, () => {
+      const map = mapOf(level);
+      const a = layoutScenery(map, { levelId: level.id });
+      const b = layoutScenery(map, { levelId: level.id });
+      expect(a).toEqual(b);
+      // something every ~screen (viewport is 480 wide)
+      expect(a.length).toBeGreaterThanOrEqual(Math.floor(map.pixelWidth / 480));
+
+      for (const g of a.filter((g) => GAGS[g.id].kind === 'floor')) {
+        const w = GAGS[g.id].draw().w;
+        const h = GAGS[g.id].draw().h;
+        const row = (g.y + h) / TILE_SIZE;
+        expect(Number.isInteger(row), g.id).toBe(true);
+        for (let tx = Math.floor(g.x / TILE_SIZE); tx <= Math.floor((g.x + w - 1) / TILE_SIZE); tx++) {
+          expect(map.tileAt(tx, row), `${g.id} @${tx}`).toBe(TileType.SOLID);
+        }
+      }
+    });
+  }
+
+  it('every scenery gag in the story script finds a spot', () => {
+    for (const level of LEVELS) {
+      const authored = defaultPack.levels[`b_level_${level.id}`].scenery ?? [];
+      const out = layoutScenery(mapOf(level), { levelId: level.id, authored });
+      for (const a of authored) {
+        expect(out.some((g) => g.id === a.gag && g.x === a.tx * TILE_SIZE), `${level.name}: ${a.gag}`).toBe(true);
+      }
+    }
+  });
+
+  it('places authored gags, skips unknown ones and respects keepClear', () => {
+    const { tiles, width, height } = buildLevel([
+      '#'.repeat(40), ...Array(7).fill('.'.repeat(40)), '#'.repeat(40),
+    ]);
+    const map = new Tilemap(tiles, width, height);
+    const out = layoutScenery(map, {
+      levelId: 't',
+      authored: [{ tx: 2, gag: 'copier_slain' }, { tx: 10, gag: 'nope' }],
+      keepClear: [[0, 40 * TILE_SIZE]],
+    });
+    expect(out[0]).toMatchObject({ id: 'copier_slain', x: 64 });
+    expect(out.filter((g) => GAGS[g.id].kind === 'floor')).toHaveLength(1);
+  });
+});

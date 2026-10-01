@@ -88,6 +88,16 @@ export function validatePack(raw: unknown): ContentPack {
         ensureStringArray(T.cards, `levels.${k}.triggers.${i}.cards`);
       });
     }
+    if (L.scenery !== undefined) {
+      if (!Array.isArray(L.scenery)) {
+        throw new PackValidationError('scenery must be SceneryPlacement[]', `levels.${k}.scenery`);
+      }
+      L.scenery.forEach((g: unknown, i: number) => {
+        const G = ensureObject(g, `levels.${k}.scenery.${i}`);
+        ensureNumber(G.tx, `levels.${k}.scenery.${i}.tx`);
+        ensureString(G.gag, `levels.${k}.scenery.${i}.gag`);
+      });
+    }
   }
 
   // story

@@ -92,6 +92,22 @@ computer "?" blocks, a water-cooler checkpoint and an elevator goal
 (`OfficeSprites.ts`). The older `ember`/`mint`/`dusk` themes still work for
 user levels.
 
+### Background gags
+
+The office is a parody, so every screen should have something dumb on it.
+`game/render/office/gags.ts` is the gag library: ceiling banners
+("SYNERGY IS NOT OPTIONAL", "Q4 IS COMING"…) and floor props (a photocopier
+slain with a two-handed sword, a money shrine, a supply closet with a sock on
+the handle, a fridge full of passive-aggressive notes…).
+
+- Place gags on purpose in `story/script.ts` with `scenery: [{ atTile, gag }]`
+  — use them as hints about what happened in the office.
+- `Scenery.ts` fills the rest of each level automatically (seeded by level
+  id, so it's stable), keeps floor props on flat floor and away from the
+  elevator.
+- New gag: add an entry to `GAGS`, then
+  `npm run sprites -- --preview DIR` renders a contact sheet of all of them.
+
 ### Why a DOM-overlay player
 
 We render Tero as an absolutely

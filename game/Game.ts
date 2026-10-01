@@ -30,6 +30,7 @@ import {
   STORY_INPUT_GRACE,
 } from './constants';
 import { updateBackground } from './render/Background';
+import { layoutScenery, setScenery } from './render/office/Scenery';
 import { getPlayerFrame, framePaths } from './render/sprites/PlayerSpriteAssets';
 import type { creaturesAndObjects, UpdateCtx } from './creaturesAndObjects/creaturesAndObjects';
 import type { HudData, PlayerRenderData, RunStats, StoryView } from './types';
@@ -524,6 +525,7 @@ export class Game {
       scaleX: 1 + (p.scaleX - 1) * SQUASH_STRENGTH,
       scaleY: 1 + (p.scaleY - 1) * SQUASH_STRENGTH,
       shouldFlash: p.shouldFlash,
+      big: p.isBig,
     });
   }
 
@@ -598,6 +600,16 @@ export class Game {
 
     this.mushrooms = [];
     this.goal = new Goal(L.spawns.goal.tx, L.spawns.goal.ty);
+
+    // Office gags: authored story hints + seeded auto-fill. Kept clear of the
+    // elevator so the goal always reads.
+    setScenery(L.theme === 'office'
+      ? layoutScenery(this.map, {
+          levelId: L.id,
+          authored: this.levelPack?.scenery,
+          keepClear: [[this.goal.x - 40, this.goal.x + this.goal.w + 40]],
+        })
+      : []);
   }
 
   private endRun(outcome: 'WIN' | 'GAME_OVER'): void {

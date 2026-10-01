@@ -8,6 +8,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { DRAGON_ANIMS, renderDragonStrip, type DragonAnimName } from '../game/render/characters/dragon';
 import { Raster } from '../game/render/pixel/Raster';
+import { GAGS, GAG_IDS } from '../game/render/office/gags';
 import { encodePng } from './png';
 
 const outDir = join(process.cwd(), 'public/images/dragon');
@@ -33,4 +34,18 @@ if (previewIdx > 0) {
   mkdirSync(dir, { recursive: true });
   writeFileSync(join(dir, 'dragon-preview.png'), encodePng(sheet, 4));
   console.log(`preview → ${join(dir, 'dragon-preview.png')}`);
+
+  // gag contact sheet, packed into rows
+  const gags = GAG_IDS.map((id) => GAGS[id].draw());
+  const rowW = 400;
+  let x = 0, y = 0, rowH = 0;
+  const pos = gags.map((g) => {
+    if (x + g.w > rowW) { x = 0; y += rowH + 6; rowH = 0; }
+    const p = [x, y]; x += g.w + 6; rowH = Math.max(rowH, g.h); return p;
+  });
+  const gsheet = new Raster(rowW, y + rowH);
+  for (let yy = 0; yy < gsheet.h; yy++) for (let xx = 0; xx < gsheet.w; xx++) gsheet.px(xx, yy, '#d6caae');
+  gags.forEach((g, i) => gsheet.draw(g, pos[i][0], pos[i][1]));
+  writeFileSync(join(dir, 'gags-preview.png'), encodePng(gsheet, 3));
+  console.log(`preview → ${join(dir, 'gags-preview.png')}`);
 }

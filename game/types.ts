@@ -117,6 +117,8 @@ export interface PlayerRenderData {
   scaleX: number;
   scaleY: number;
   shouldFlash: boolean;
+  /** Caffeinated — drawn BIG_SPRITE_SCALE larger. */
+  big: boolean;
 }
 
 // ─── Story overlay (game → React) ────────────────────────────────────────────
