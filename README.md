@@ -1,9 +1,13 @@
-# TERO — Offices & Humans
+# WHERE IS DADA?
 
 A retro pixel-art platformer — Next.js 16 + TypeScript, 60 fps canvas
 loop with a fixed time-step, tile-based AABB physics and a DOM-overlay
-player sprite. Dungeons & Dragons in reverse: Tero, a lovable dragon in a
-tie, adventures through a 1993 office full of short, zombie-ish humans.
+player sprite.
+
+Six months ago the company asked Dad to "give a little bit more". He never
+came home. Tero, a two-year-old baby dragon dragging Dad's tie, storms the
+1993 office tower — full of short, zombie-ish humans and office-culture
+parody — to bring him back. (The name lives in `game/title.ts`.)
 
 ## Run locally
 
@@ -47,6 +51,7 @@ game/
     level1.ts          — The Mailroom
     level2.ts          — Cubicle Farm (more vertical)
     level3.ts          — The Boardroom (hazard-dense)
+    level4–6.ts        — Chapter 2: Legal, R&D, The Sanctum (unhinged gags)
     levels.ts          — Registry + per-level validator
     Tilemap.ts         — Stored 1D, queried 2D
   physics/
@@ -70,7 +75,7 @@ game/
 
 ### Characters are rigged, not hand-drawn
 
-Tero (`game/render/characters/dragon.ts`) and the humans
+Baby Tero and Dad (`game/render/characters/dragon.ts`) and the humans
 (`characters/humans.ts`) are drawn by small pixel rigs on a DOM-free
 `Raster` (`render/pixel/Raster.ts`): each body part is a shaded ellipse,
 capsule or triangle with its own outline. An animation is just a list of
@@ -102,6 +107,12 @@ the handle, a fridge full of passive-aggressive notes…).
 
 - Place gags on purpose in `story/script.ts` with `scenery: [{ atTile, gag }]`
   — use them as hints about what happened in the office.
+- Gags have a tier: 1 = everyday absurdity, 2 = the unhinged stuff (Project
+  Orphanage, an axe in a PC, the VP-of-Sales poodle…). A level's `mood:
+  'unhinged'` lets the auto-fill use tier 2, and use it first; levels are
+  'tame' by default.
+- Dad's trail (`dad_photo`, `dad_mug`, `dad_calendar`, `dad_cot`,
+  `dad_desk`) is `storyOnly`: it appears only where the script places it.
 - `Scenery.ts` fills the rest of each level automatically (seeded by level
   id, so it's stable), keeps floor props on flat floor and away from the
   elevator.

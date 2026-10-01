@@ -9,6 +9,9 @@ import type { ThemeName } from '../render/Theme';
 import { level1Tiles, level1Spawns, LEVEL_WIDTH as L1W, LEVEL_HEIGHT as L1H } from './level1';
 import { level2Tiles, level2Spawns, LEVEL2_WIDTH, LEVEL2_HEIGHT } from './level2';
 import { level3Tiles, level3Spawns, LEVEL3_WIDTH, LEVEL3_HEIGHT } from './level3';
+import { level4Tiles, level4Spawns, LEVEL4_WIDTH, LEVEL4_HEIGHT } from './level4';
+import { level5Tiles, level5Spawns, LEVEL5_WIDTH, LEVEL5_HEIGHT } from './level5';
+import { level6Tiles, level6Spawns, LEVEL6_WIDTH, LEVEL6_HEIGHT } from './level6';
 
 export interface LevelDef {
   id:     string;
@@ -24,6 +27,9 @@ export const LEVELS: readonly LevelDef[] = [
   { id: '1', name: 'The Mailroom',  theme: 'office', tiles: level1Tiles, spawns: level1Spawns, width: L1W,         height: L1H },
   { id: '2', name: 'Cubicle Farm',  theme: 'office', tiles: level2Tiles, spawns: level2Spawns, width: LEVEL2_WIDTH, height: LEVEL2_HEIGHT },
   { id: '3', name: 'The Boardroom', theme: 'office', tiles: level3Tiles, spawns: level3Spawns, width: LEVEL3_WIDTH, height: LEVEL3_HEIGHT },
+  { id: '4', name: 'Legal',         theme: 'office', tiles: level4Tiles, spawns: level4Spawns, width: LEVEL4_WIDTH, height: LEVEL4_HEIGHT },
+  { id: '5', name: 'R&D',           theme: 'office', tiles: level5Tiles, spawns: level5Spawns, width: LEVEL5_WIDTH, height: LEVEL5_HEIGHT },
+  { id: '6', name: 'The Sanctum',   theme: 'office', tiles: level6Tiles, spawns: level6Spawns, width: LEVEL6_WIDTH, height: LEVEL6_HEIGHT },
 ] as const;
 
 /** Validate level data on load. Pads missing cells with AIR and warns;

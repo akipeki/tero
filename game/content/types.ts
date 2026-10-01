@@ -111,7 +111,12 @@ export interface LevelDef {
   /** Background gags placed on purpose (office theme). The rest of the level
    *  is auto-filled. `gag` is a key of GAGS in render/office/gags.ts. */
   scenery?: SceneryPlacement[];
+  /** Which gags the auto-fill may use: 'tame' (default) or 'unhinged',
+   *  which adds the tier-2 weirdness and uses it first. */
+  gagMood?: GagMood;
 }
+
+export type GagMood = 'tame' | 'unhinged';
 
 export interface SceneryPlacement {
   tx:  number;

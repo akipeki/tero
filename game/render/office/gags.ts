@@ -11,12 +11,17 @@
 // can render them all to one contact sheet.
 
 import { Raster } from '../pixel/Raster';
+import { drawDad } from '../characters/dragon';
 import { drawText, drawTextCentered, textWidth } from '../pixel/font';
 
 export type GagKind = 'hang' | 'floor';
 
 export interface Gag {
   kind: GagKind;
+  /** 1 = everyday office absurdity, 2 = the unhinged later floors. */
+  tier: 1 | 2;
+  /** Clues on Dad's trail: only placed by the story, never by auto-fill. */
+  storyOnly?: boolean;
   draw: () => Raster;
 }
 
@@ -101,6 +106,13 @@ function stickyNote(r: Raster, x: number, y: number, text: string, color: string
   drawText(r, text, x + 2, y + 2, C.ink);
 }
 
+/** Party balloon on a string; `sad` ones are half deflated and sag. */
+function balloon(r: Raster, x: number, y: number, color: string, sad: boolean): void {
+  r.part(C.ink, (t) => (sad ? t.ellipse(x, y + 4, 3, 2, color) : t.ellipse(x, y, 3.5, 4.5, color)));
+  r.px(x - 1, y - (sad ? -3 : 2), C.white);
+  r.line(x, y + (sad ? 6 : 5), x + 1, y + 16, C.greyDark);
+}
+
 /** Simple zombie office worker, standing or kneeling, facing right. */
 function worker(r: Raster, x: number, floor: number, kneeling: boolean): void {
   const legH = kneeling ? 3 : 7;
@@ -135,8 +147,12 @@ function worker(r: Raster, x: number, floor: number, kneeling: boolean): void {
 
 // ─── Banners & signs (hang) ──────────────────────────────────────────────────
 
-const hang = (draw: () => Raster): Gag => ({ kind: 'hang', draw });
-const floor = (draw: () => Raster): Gag => ({ kind: 'floor', draw });
+const hang  = (draw: () => Raster): Gag => ({ kind: 'hang',  tier: 1, draw });
+const floor = (draw: () => Raster): Gag => ({ kind: 'floor', tier: 1, draw });
+const hang2  = (draw: () => Raster): Gag => ({ kind: 'hang',  tier: 2, draw });
+const floor2 = (draw: () => Raster): Gag => ({ kind: 'floor', tier: 2, draw });
+const clueHang  = (draw: () => Raster): Gag => ({ kind: 'hang',  tier: 1, storyOnly: true, draw });
+const clueFloor = (draw: () => Raster): Gag => ({ kind: 'floor', tier: 1, storyOnly: true, draw });
 
 export const GAGS = {
   banner_synergy:   hang(() => banner(['SYNERGY IS NOT OPTIONAL'], C.navy, C.yellow)),
@@ -409,6 +425,364 @@ export const GAGS = {
     box(r, 1, fl - 44, 32, 16, '#e3b55c');
     drawTextCentered(r, 'EVIDENCE', 1, 32, fl - 40, C.red);
     r.rect(6, fl - 28, 22, 2, C.ink);
+    return r;
+  }),
+
+  // ═══ Tier 2 — the later floors, where things got weird ═════════════════════
+
+  banner_capitalism: hang2(() => banner(['CAPITALISM IS 4 EVER'], C.ink, C.gold)),
+  banner_growth:     hang2(() => banner(['♥ ENDLESS GROWTH ♥'], C.pink, C.redDark)),
+  banner_family:     hang2(() => banner(['WE ARE A FAMILY*', '*TERMS APPLY'], C.paper, C.navy)),
+  banner_layoffs:    hang2(() => banner(['LAYOFFS = SELF-CARE'], C.teal, C.paper)),
+  banner_soul:       hang2(() => banner(['YOUR SOUL IS A KPI'], C.purple, C.paper)),
+  banner_crush:      hang2(() => banner(['CRUSH Q4.', 'CRUSH HOPE.'], C.red, C.ink)),
+
+  /** Party garland that outlived the party. */
+  banner_fun_lasted: hang2(() => {
+    const r = banner(['IT WAS FUN AS LONG AS IT LASTED'], C.yellow, C.purple);
+    const out = new Raster(r.w + 20, r.h + 26);
+    out.draw(r, 10, 0);
+    // balloons dangling from each end: one proud, one deflated
+    balloon(out, 6, r.h + 4, C.red, false);
+    balloon(out, 14, r.h + 10, C.teal, false);
+    balloon(out, out.w - 8, r.h + 12, C.purple, true);
+    return out;
+  }),
+
+  sign_shareholders: hang2(() => {
+    const r = signBoard('NOTICE', ['THE SHAREHOLDERS', 'ARE WATCHING', ''], C.ink);
+    // an eye on the blank last line
+    const cx = Math.floor(r.w / 2), cy = r.h - 7;
+    r.part(C.ink, (t) => t.ellipse(cx, cy, 6, 2.5, C.white));
+    r.rect(cx - 1, cy - 1, 2, 3, C.red);
+    return r;
+  }),
+
+  /** The business plan nobody should have written down. */
+  orphan_plan: floor2(() => {
+    const r = new Raster(96, 70);
+    const fl = 69;
+    // flip chart on an easel
+    r.line(18, fl, 28, fl - 30, C.woodDark); r.line(78, fl, 68, fl - 30, C.woodDark);
+    box(r, 4, fl - 68, 88, 46, C.white);
+    r.rect(4, fl - 68, 88, 3, C.greyDark);
+    drawTextCentered(r, 'PROJECT ORPHANAGE', 4, 88, fl - 63, C.red);
+    drawText(r, '1. BUY ORPHANAGE', 8, fl - 55, C.ink);
+    drawText(r, '2. EVICT ORPHANS', 8, fl - 48, C.ink);
+    drawText(r, '3. LUXURY CONDOS', 8, fl - 41, C.ink);
+    drawText(r, '4. $$$', 8, fl - 34, C.green);
+    // the tiny house, crossed out
+    box(r, 76, fl - 52, 9, 7, C.paper);
+    r.tri(75, fl - 52, 86, fl - 52, 80, fl - 57, C.red);
+    r.line(74, fl - 58, 87, fl - 43, C.red); r.line(74, fl - 43, 87, fl - 58, C.red);
+    // profit arrow
+    r.line(40, fl - 30, 86, fl - 39, C.green);
+    r.line(86, fl - 39, 82, fl - 39, C.green); r.line(86, fl - 39, 84, fl - 35, C.green);
+    stickyNote(r, 2, fl - 18, 'GREAT IDEA!', C.sticky);
+    return r;
+  }),
+
+  /** Somebody got told about the restructuring. */
+  smashed_pc: floor2(() => {
+    const r = new Raster(64, 52);
+    const fl = 51;
+    // desk
+    box(r, 2, fl - 20, 58, 3, C.woodLight);
+    r.rect(5, fl - 17, 3, 17, C.woodDark); r.rect(54, fl - 17, 3, 17, C.woodDark);
+    // CRT split open
+    box(r, 16, fl - 40, 13, 19, C.beige);
+    box(r, 31, fl - 38, 13, 17, C.beige);
+    r.rect(18, fl - 37, 9, 10, '#10261a');
+    r.rect(31, fl - 35, 9, 10, '#10261a');
+    // the axe, buried in it
+    r.part(C.ink, (t) => {
+      t.capsule(29, fl - 34, 44, fl - 50, 1.3, C.woodLight);  // handle
+      t.tri(24, fl - 36, 32, fl - 44, 34, fl - 30, C.steel);   // blade
+    });
+    // shards, sparks, a flying key
+    for (const [x, y] of [[10, fl - 1], [46, fl - 2], [52, fl - 1], [14, fl - 3]]) r.rect(x, y, 2, 1, C.greyLight);
+    for (const [x, y] of [[30, fl - 44], [36, fl - 42], [28, fl - 26]]) r.px(x, y, C.yellow);
+    r.part(C.ink, (t) => t.rect(48, fl - 30, 5, 4, C.paperDim));
+    drawText(r, 'F1', 48, fl - 36, C.red);
+    // keyboard snapped in two
+    r.part(C.ink, (t) => { t.rect(4, fl - 24, 10, 3, C.greyLight); t.rect(46, fl - 23, 11, 3, C.greyLight); });
+    return r;
+  }),
+
+  /** Desk flipped, chair through the partition, note left behind. */
+  flipped_desk: floor2(() => {
+    const r = new Raster(70, 40);
+    const fl = 39;
+    // upside-down desk, legs in the air
+    box(r, 6, fl - 6, 44, 5, C.woodLight);
+    r.rect(9, fl - 18, 3, 12, C.woodDark); r.rect(44, fl - 18, 3, 12, C.woodDark);
+    // spilled papers + mug
+    for (let i = 0; i < 6; i++) r.rect(2 + i * 9, fl - 1 - (i % 2), 7, 2, C.paper);
+    r.part(C.ink, (t) => t.rect(52, fl - 4, 5, 4, C.white));
+    r.rect(56, fl - 1, 6, 1, C.brown);
+    // chair on its side
+    r.part(C.ink, (t) => { t.rect(58, fl - 14, 10, 3, C.greyDark); t.rect(62, fl - 22, 3, 9, C.greyDark); });
+    stickyNote(r, 14, fl - 30, 'I QUIT', C.red);
+    drawText(r, 'I QUIT', 16, fl - 28, C.white);
+    return r;
+  }),
+
+  /** The VP of Sales. Nobody questions it. */
+  poodle_desk: floor2(() => {
+    const r = new Raster(56, 56);
+    const fl = 55;
+    // desk
+    box(r, 2, fl - 22, 52, 3, C.woodLight);
+    r.rect(5, fl - 19, 3, 19, C.woodDark); r.rect(48, fl - 19, 3, 19, C.woodDark);
+    box(r, 10, fl - 17, 36, 6, C.gold);
+    drawTextCentered(r, 'VP SALES', 10, 36, fl - 16, C.ink);
+    // white trimmed poodle: pom-poms everywhere
+    const poof = (x: number, y: number, rr: number) => r.part(C.greyDark, (t) => t.ellipse(x, y, rr, rr, C.white));
+    r.rect(10, fl - 30, 2, 7, C.paperDim); r.rect(22, fl - 30, 2, 7, C.paperDim);   // skinny legs
+    poof(11, fl - 25, 2.5); poof(23, fl - 25, 2.5);                                   // ankle pom-poms
+    r.rect(12, fl - 34, 12, 4, C.paperDim);                                           // shaved body
+    poof(22, fl - 36, 4.5);                                                           // chest mane
+    poof(8, fl - 35, 3.5);                                                            // hip pom
+    poof(4, fl - 41, 2.5);                                                            // tail pom
+    r.line(6, fl - 36, 5, fl - 39, C.paperDim);
+    poof(26, fl - 43, 4);                                                             // head
+    poof(25, fl - 49, 3);                                                             // top-knot
+    r.rect(29, fl - 43, 4, 3, C.paperDim);                                            // snout
+    r.px(32, fl - 43, C.ink); r.px(27, fl - 44, C.ink);
+    r.rect(23, fl - 40, 3, 4, C.paperDim);                                            // ear
+    // tiny tie
+    r.rect(25, fl - 38, 2, 1, C.red); r.rect(25, fl - 37, 2, 3, C.red);
+    return r;
+  }),
+
+  /** Lost & Found, after the offsite. */
+  lost_and_found: floor2(() => {
+    const r = new Raster(56, 66);
+    const fl = 65;
+    // coat rack
+    r.rect(24, fl - 60, 2, 58, C.woodDark);
+    r.rect(17, fl - 2, 16, 2, C.woodDark);
+    r.line(25, fl - 56, 16, fl - 50, C.woodDark); r.line(25, fl - 56, 34, fl - 50, C.woodDark);
+    // a bra, boxers with hearts, a tie
+    r.part(C.ink, (t) => {
+      t.ellipse(12, fl - 46, 3, 2.5, C.pink);
+      t.ellipse(19, fl - 46, 3, 2.5, C.pink);
+    });
+    r.line(15, fl - 49, 16, fl - 51, C.pink);
+    r.part(C.ink, (t) => { t.rect(30, fl - 50, 10, 6, C.white); t.rect(30, fl - 44, 4, 4, C.white); t.rect(36, fl - 44, 4, 4, C.white); });
+    for (const [hx, hy] of [[32, fl - 48], [37, fl - 46]]) { r.px(hx, hy, C.red); r.px(hx + 1, hy, C.red); }
+    r.capsule(25, fl - 40, 26, fl - 30, 0.8, C.red);
+    // the box
+    box(r, 2, fl - 16, 49, 15, C.brown);
+    r.rect(2, fl - 16, 49, 2, '#9a6a3a');
+    drawTextCentered(r, 'LOST & FOUND', 2, 49, fl - 11, C.paper);
+    // one high heel next to it
+    r.part(C.ink, (t) => { t.rect(50, fl - 3, 5, 2, C.red); t.rect(53, fl - 5, 1, 3, C.red); });
+    return r;
+  }),
+
+  /** The cake from the farewell party. */
+  layoff_cake: floor2(() => {
+    const r = new Raster(66, 54);
+    const fl = 53;
+    // table
+    box(r, 2, fl - 18, 62, 3, C.paper);
+    r.rect(6, fl - 15, 2, 15, C.greyDark); r.rect(58, fl - 15, 2, 15, C.greyDark);
+    // cake
+    box(r, 9, fl - 35, 48, 16, C.paper);
+    r.rect(9, fl - 35, 48, 2, C.pink);
+    for (let x = 10; x < 57; x += 4) r.px(x, fl - 33, C.pink);
+    drawTextCentered(r, 'CONGRATS ON', 9, 48, fl - 31, C.red);
+    drawTextCentered(r, 'YOUR LAYOFF', 9, 48, fl - 25, C.red);
+    // one candle, the knife
+    r.rect(32, fl - 40, 2, 5, C.teal); r.px(32, fl - 41, C.flame);
+    r.part(C.ink, (t) => t.capsule(52, fl - 33, 60, fl - 41, 0.8, C.steel));
+    // balloons tied to the table
+    balloon(r, 6, fl - 44, C.red, false);
+    balloon(r, 60, fl - 40, C.purple, true);
+    return r;
+  }),
+
+  /** The CEO's throne of money bags. */
+  money_throne: floor2(() => {
+    const r = new Raster(58, 64);
+    const fl = 63;
+    // pile of bags
+    for (const [bx, by] of [[6, 10], [20, 10], [34, 10], [48, 10], [13, 22], [27, 22], [41, 22]] as const) {
+      r.part(C.ink, (t) => { t.ellipse(bx, fl - by + 4, 6, 5, C.beige); t.rect(bx - 2, fl - by - 3, 4, 3, C.beige); });
+      drawText(r, '$', bx - 1, fl - by + 2, C.green);
+    }
+    // golden chair on top
+    r.part(C.ink, (t) => {
+      t.rect(18, fl - 58, 22, 26, C.gold);
+      t.rect(14, fl - 36, 30, 6, C.gold);
+    });
+    r.rect(21, fl - 55, 16, 18, C.red);
+    r.rect(18, fl - 58, 22, 2, C.goldLight);
+    // crown on the backrest
+    r.part(C.ink, (t) => {
+      t.rect(23, fl - 63, 12, 3, C.gold);
+      t.tri(23, fl - 63, 26, fl - 63, 24, fl - 67, C.gold);
+      t.tri(28, fl - 63, 31, fl - 63, 29, fl - 67, C.gold);
+      t.tri(32, fl - 63, 35, fl - 63, 34, fl - 67, C.gold);
+    });
+    return r;
+  }),
+
+  /** HR's newest onboarding form. */
+  soul_contract: floor2(() => {
+    const r = new Raster(48, 58);
+    const fl = 57;
+    // lectern
+    r.part(C.ink, (t) => { t.rect(18, fl - 26, 12, 26, C.woodDark); t.rect(12, fl - 2, 24, 2, C.woodDark); });
+    r.part(C.ink, (t) => t.tri(4, fl - 30, 44, fl - 36, 44, fl - 26, C.woodLight));
+    // the contract
+    box(r, 8, fl - 56, 32, 24, C.paper);
+    drawTextCentered(r, 'SOUL', 8, 32, fl - 53, C.ink);
+    drawTextCentered(r, 'TRANSFER', 8, 32, fl - 47, C.ink);
+    r.rect(12, fl - 41, 24, 1, C.greyDark);
+    drawText(r, 'SIGN', 12, fl - 39, C.red);
+    r.rect(30, fl - 39, 1, 4, C.red); r.rect(30, fl - 35, 2, 1, C.red);   // the drip
+    // quill
+    r.part(C.ink, (t) => t.capsule(38, fl - 40, 46, fl - 54, 1, C.white));
+    r.line(39, fl - 42, 37, fl - 38, C.red);
+    return r;
+  }),
+
+  /** Renewable energy initiative. */
+  intern_wheel: floor2(() => {
+    const r = new Raster(64, 58);
+    const fl = 57;
+    // the wheel
+    r.part(C.ink, (t) => t.ellipse(22, fl - 22, 20, 20, C.greyLight));
+    r.ellipse(22, fl - 22, 17, 17, '#e9e6dc');
+    for (let a = 0; a < 8; a++) r.line(22, fl - 22, 22 + Math.cos(a * Math.PI / 4) * 17, fl - 22 + Math.sin(a * Math.PI / 4) * 17, C.grey);
+    r.rect(20, fl - 2, 5, 2, C.greyDark);
+    // the intern, running
+    worker(r, 17, fl - 5, false);
+    for (const [sx, sy] of [[30, fl - 30], [32, fl - 26]]) r.px(sx, sy, '#9fe3ff');     // sweat
+    // cable to a glowing monitor
+    r.line(42, fl - 6, 48, fl - 6, C.ink);
+    box(r, 46, fl - 22, 16, 14, C.beige);
+    box(r, 48, fl - 20, 12, 8, '#10261a');
+    r.rect(49, fl - 18, 8, 1, '#46e07a');
+    stickyNote(r, 10, fl - 54, 'INTERN POWER', C.sticky);
+    return r;
+  }),
+
+  /** Productivity station: coffee straight into the vein. */
+  coffee_iv: floor2(() => {
+    const r = new Raster(36, 66);
+    const fl = 65;
+    // IV stand
+    r.rect(17, fl - 62, 2, 60, C.greyDark);
+    r.rect(10, fl - 2, 16, 2, C.greyDark);
+    r.rect(12, fl - 62, 12, 2, C.greyDark);
+    // bag of coffee
+    r.part(C.ink, (t) => t.rect(6, fl - 60, 10, 14, C.brown));
+    r.rect(7, fl - 54, 8, 7, '#5a3418');
+    drawText(r, 'JOE', 7, fl - 59, C.paper);
+    r.line(11, fl - 46, 26, fl - 20, C.brown);
+    // empty office chair waiting
+    r.part(C.ink, (t) => { t.rect(22, fl - 22, 12, 3, C.greyDark); t.rect(31, fl - 34, 3, 12, C.greyDark); t.rect(27, fl - 19, 2, 17, C.greyDark); });
+    stickyNote(r, 0, fl - 40, '24/7', C.sticky);
+    return r;
+  }),
+
+  // ═══ Dad's trail — story-only clues ═══════════════════════════════════════
+
+  /** Dad's desk on floor 1: the family photo, his face under a sticky note. */
+  dad_photo: clueFloor(() => {
+    const r = new Raster(62, 48);
+    const fl = 47;
+    box(r, 2, fl - 20, 58, 3, C.woodLight);
+    r.rect(5, fl - 17, 3, 17, C.woodDark); r.rect(54, fl - 17, 3, 17, C.woodDark);
+    // framed photo: big green dragon + tiny green dragon
+    box(r, 8, fl - 40, 26, 20, C.gold);
+    box(r, 10, fl - 38, 22, 15, '#9fd0ff');
+    r.part(C.ink, (t) => { t.ellipse(17, fl - 30, 4, 5, '#6cc24a'); t.ellipse(26, fl - 27, 3, 3, '#6cc24a'); });
+    r.px(27, fl - 28, C.ink);
+    stickyNote(r, 9, fl - 36, 'TBD', C.sticky);          // over Dad's face
+    // name plate
+    box(r, 36, fl - 26, 23, 5, C.greyLight);
+    drawTextCentered(r, '#4471', 36, 23, fl - 25, C.ink);
+    return r;
+  }),
+
+  /** Cold coffee in Dad's mug. */
+  dad_mug: clueFloor(() => {
+    const r = new Raster(64, 56);
+    const fl = 55;
+    box(r, 2, fl - 20, 60, 3, C.woodLight);
+    r.rect(5, fl - 17, 3, 17, C.woodDark); r.rect(56, fl - 17, 3, 17, C.woodDark);
+    r.part(C.ink, (t) => {
+      t.rect(10, fl - 52, 44, 32, C.white);
+      t.rect(54, fl - 46, 6, 18, C.white);
+    });
+    r.rect(55, fl - 43, 3, 12, C.paperDim);
+    r.rect(10, fl - 52, 44, 3, '#5a3418');
+    drawTextCentered(r, "WORLD'S", 10, 44, fl - 47, C.navy);
+    drawTextCentered(r, 'OKAYEST', 10, 44, fl - 40, C.navy);
+    drawTextCentered(r, 'DAD', 10, 44, fl - 33, C.red);
+    stickyNote(r, 22, fl - 27, 'COLD', '#9fe3ff');
+    return r;
+  }),
+
+  /** Six months, crossed out one day at a time. */
+  dad_calendar: clueHang(() => {
+    const w = 44, h = 44;
+    const r = new Raster(w + 2, h + 6);
+    r.line(Math.floor(w / 2), 0, Math.floor(w / 2), 4, C.greyDark);
+    box(r, 1, 5, w, h, C.paper);
+    r.rect(1, 5, w, 8, C.red);
+    drawTextCentered(r, '1993', 1, w, 7, C.white);
+    for (let row = 0; row < 4; row++) {
+      for (let col = 0; col < 7; col++) {
+        const x = 4 + col * 6, y = 15 + row * 6;
+        if (row === 3 && col === 6) {
+          r.part(C.red, (t) => t.ellipse(x + 1, y + 1, 2.5, 2.5, C.paper));
+          continue;
+        }
+        r.line(x, y, x + 3, y + 3, C.red);
+        r.line(x, y + 3, x + 3, y, C.red);
+      }
+    }
+    drawText(r, 'HOME?', 22, 42, C.red);
+    return r;
+  }),
+
+  /** Dad has been living under his desk. */
+  dad_cot: clueFloor(() => {
+    const r = new Raster(76, 42);
+    const fl = 41;
+    box(r, 2, fl - 24, 72, 3, C.woodLight);
+    r.rect(4, fl - 21, 3, 21, C.woodDark); r.rect(69, fl - 21, 3, 21, C.woodDark);
+    // sleeping bag + pillow underneath
+    r.part(C.ink, (t) => { t.rect(10, fl - 8, 50, 7, C.teal); t.ellipse(14, fl - 7, 5, 3, C.white); });
+    r.rect(20, fl - 8, 1, 7, '#246e6a');
+    // slippers
+    r.part(C.ink, (t) => { t.ellipse(62, fl - 2, 3, 1.5, C.pink); t.ellipse(66, fl - 1, 3, 1.5, C.pink); });
+    // sign taped to the desk
+    box(r, 8, fl - 38, 60, 13, C.paper);
+    drawTextCentered(r, 'DO NOT DISTURB', 8, 60, fl - 36, C.red);
+    drawTextCentered(r, 'Q3 CLOSE', 8, 60, fl - 30, C.ink);
+    return r;
+  }),
+
+  /** Floor 33: Dad himself, at his laptop, next to the elevator. */
+  dad_desk: clueFloor(() => {
+    const r = new Raster(84, 66);
+    const fl = 65;
+    // Dad behind the desk
+    r.draw(drawDad({ frontArm: 0.3, backArm: 0.4 }), 4, fl - 64);
+    // desk + laptop glow
+    box(r, 30, fl - 22, 52, 3, C.woodLight);
+    r.rect(33, fl - 19, 3, 19, C.woodDark); r.rect(76, fl - 19, 3, 19, C.woodDark);
+    r.part(C.ink, (t) => { t.rect(52, fl - 34, 18, 11, C.greyDark); t.rect(48, fl - 24, 24, 2, C.grey); });
+    r.rect(54, fl - 32, 14, 7, '#9fe3ff');
+    drawText(r, 'Q4', 57, fl - 31, C.navy);
+    // paper mountain
+    for (let i = 0; i < 5; i++) r.rect(72 - (i % 2), fl - 24 - i * 2, 9, 2, i % 2 ? C.paper : C.paperDim);
     return r;
   }),
 } satisfies Record<string, Gag>;

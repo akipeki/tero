@@ -2,10 +2,10 @@ import { describe, it, expect } from 'vitest';
 import { LEVELS, validateLevel } from './levels';
 
 describe('levels registry', () => {
-  it('contains three levels with unique ids', () => {
-    expect(LEVELS).toHaveLength(3);
+  it('contains six levels with unique ids', () => {
+    expect(LEVELS).toHaveLength(6);
     const ids = new Set(LEVELS.map(L => L.id));
-    expect(ids.size).toBe(3);
+    expect(ids.size).toBe(6);
   });
 
   it('every level has tiles matching width × height', () => {

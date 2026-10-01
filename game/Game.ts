@@ -607,6 +607,7 @@ export class Game {
       ? layoutScenery(this.map, {
           levelId: L.id,
           authored: this.levelPack?.scenery,
+          mood: this.levelPack?.gagMood,
           keepClear: [[this.goal.x - 40, this.goal.x + this.goal.w + 40]],
         })
       : []);

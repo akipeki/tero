@@ -6,6 +6,7 @@ import { GameState, Action } from '@/game/types';
 import { VIEWPORT_W, VIEWPORT_H, TILE_SIZE, STARTING_LIVES, BIG_SPRITE_SCALE } from '@/game/constants';
 import type { HudData, PlayerRenderData, RunStats, StoryView } from '@/game/types';
 import StoryBox from './StoryBox';
+import { GAME_SUBTITLE, GAME_TITLE_LINES } from '@/game/title';
 import { loadSettings, saveSettings } from '@/game/Settings';
 import { framePaths } from '@/game/render/sprites/PlayerSpriteAssets';
 
@@ -314,8 +315,10 @@ export default function GameContainer() {
       {/* ── TITLE ── */}
       {isTitle && (
         <PixelOverlay dim>
-          <p className="pixel-title" style={{ color: '#6cc24a' }}>TERO</p>
-          <p className="pixel-sub mt-2" style={{ color: '#ffd23f', letterSpacing: '0.2em' }}>OFFICES &amp; HUMANS</p>
+          <h1 className="pixel-title" style={{ color: '#6cc24a', fontSize: 'clamp(26px, 6.5vw, 72px)', lineHeight: 1.15 }}>
+            {GAME_TITLE_LINES.map((line) => <span key={line} className="block">{line}</span>)}
+          </h1>
+          <p className="pixel-sub mt-3" style={{ color: '#ffd23f', letterSpacing: '0.2em' }}>{GAME_SUBTITLE}</p>
           <p className="pixel-sub mt-6" style={{ color: '#fff1e8' }}>PRESS ENTER OR TAP TO PLAY</p>
           <p className="pixel-hint mt-4" style={{ color: '#a7f070' }}>
             ARROWS / WASD &nbsp;|&nbsp; SPACE = JUMP &nbsp;|&nbsp; DOWN = DUCK &nbsp;|&nbsp; M = MUTE

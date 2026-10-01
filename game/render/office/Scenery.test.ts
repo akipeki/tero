@@ -56,6 +56,25 @@ describe('layoutScenery', () => {
     }
   });
 
+  it("never auto-fills Dad's story-only clues", () => {
+    for (const level of LEVELS) {
+      for (const mood of ['tame', 'unhinged'] as const) {
+        const out = layoutScenery(mapOf(level), { levelId: level.id, mood });
+        expect(out.some((g) => (GAGS[g.id] as { storyOnly?: boolean }).storyOnly), level.name).toBe(false);
+      }
+    }
+  });
+
+  it('tame levels never auto-fill tier-2 gags; unhinged ones lead with them', () => {
+    for (const level of LEVELS) {
+      const map = mapOf(level);
+      const tame = layoutScenery(map, { levelId: level.id, mood: 'tame' });
+      expect(tame.every((g) => GAGS[g.id].tier === 1), level.name).toBe(true);
+      const wild = layoutScenery(map, { levelId: level.id, mood: 'unhinged' });
+      expect(GAGS[wild[0].id].tier, level.name).toBe(2);
+    }
+  });
+
   it('places authored gags, skips unknown ones and respects keepClear', () => {
     const { tiles, width, height } = buildLevel([
       '#'.repeat(40), ...Array(7).fill('.'.repeat(40)), '#'.repeat(40),

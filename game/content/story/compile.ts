@@ -4,7 +4,7 @@
 // StoryCard / Chapter / per-level fields. Card ids are generated from where
 // the line sits, e.g. `b_card_level_2_trigger_0_1`.
 
-import type { Chapter, StoryCard, StoryTrigger, SpriteId, SceneryPlacement } from '../types';
+import type { Chapter, StoryCard, StoryTrigger, SpriteId, SceneryPlacement, GagMood } from '../types';
 import type { GagId } from '../../render/office/gags';
 
 export interface CastMember {
@@ -33,6 +33,8 @@ export interface StoryScript<C extends string> {
     triggers?: { atTile: number; lines: Line<C>[] }[];
     /** Background gags at fixed spots — hints about what happened here. */
     scenery?: { atTile: number; gag: GagId }[];
+    /** 'unhinged' fills the level with the weirder tier-2 gags first. */
+    mood?: GagMood;
   }>;
 }
 
@@ -46,6 +48,7 @@ export interface LevelStory {
   outro?: string[];
   triggers?: StoryTrigger[];
   scenery?: SceneryPlacement[];
+  gagMood?: GagMood;
 }
 
 export interface CompiledStory {
@@ -92,6 +95,7 @@ export function compileStory<C extends string>(script: StoryScript<C>): Compiled
         cards: emit(`${base}_trigger_${i}`, t.lines) ?? [],
       })),
       scenery: L.scenery?.map((g) => ({ tx: g.atTile, gag: g.gag })),
+      gagMood: L.mood,
     };
   }
 

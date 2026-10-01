@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { Raster } from '../pixel/Raster';
-import { DRAGON_ANIMS, DRAGON_FRAME, drawDragon, renderDragonStrip, type DragonAnimName } from './dragon';
+import { DRAGON_ANIMS, DRAGON_FRAME, drawBaby, drawDad, renderDragonStrip, type DragonAnimName } from './dragon';
 import { drawClerk, drawManager, HUMAN_FRAME } from './humans';
 import { framePaths } from '../sprites/PlayerSpriteAssets';
 
@@ -31,8 +31,12 @@ describe('dragon rig', () => {
   it('stands on the bottom row in every grounded pose', () => {
     const grounded: DragonAnimName[] = ['idle', 'walk', 'duck', 'hurt', 'lose', 'win'];
     for (const name of grounded) {
-      for (const pose of DRAGON_ANIMS[name].poses) expect(bottomRowOpaque(drawDragon(pose))).toBe(true);
+      for (const pose of DRAGON_ANIMS[name].poses) expect(bottomRowOpaque(drawBaby(pose))).toBe(true);
     }
+  });
+
+  it('Dad stands on the bottom row too', () => {
+    expect(bottomRowOpaque(drawDad())).toBe(true);
   });
 
   it('framePaths and the generated PNGs match the rig (run `npm run sprites` if this fails)', () => {

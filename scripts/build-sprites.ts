@@ -1,12 +1,12 @@
 // file: scripts/build-sprites.ts
 //
 // Renders the rigged characters to PNG strips in public/.
-//   npm run sprites               → public/images/dragon/<anim>.png
+//   npm run sprites               → public/images/dragon/<anim>.png + dad.png
 //   npm run sprites -- --preview DIR  → also writes an enlarged contact sheet
 
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { DRAGON_ANIMS, renderDragonStrip, type DragonAnimName } from '../game/render/characters/dragon';
+import { DRAGON_ANIMS, drawDad, renderDragonStrip, type DragonAnimName } from '../game/render/characters/dragon';
 import { Raster } from '../game/render/pixel/Raster';
 import { GAGS, GAG_IDS } from '../game/render/office/gags';
 import { encodePng } from './png';
@@ -20,6 +20,9 @@ names.forEach((n, i) => {
   writeFileSync(join(outDir, `${n}.png`), encodePng(strips[i]));
   console.log(`wrote public/images/dragon/${n}.png (${DRAGON_ANIMS[n].poses.length} frames)`);
 });
+// Dad: a single frame, used as his story portrait.
+writeFileSync(join(outDir, 'dad.png'), encodePng(drawDad()));
+console.log('wrote public/images/dragon/dad.png');
 
 const previewIdx = process.argv.indexOf('--preview');
 if (previewIdx > 0) {

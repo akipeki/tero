@@ -32,6 +32,17 @@ const sprites: Record<string, SpriteAsset> = Object.fromEntries(
   }),
 );
 
+// Dad's portrait (single frame, rendered by `npm run sprites`).
+sprites.b_sprite_dad = {
+  id:      'b_sprite_dad',
+  name:    'Dad',
+  dataUrl: '/images/dragon/dad.png',
+  width:   PLAYER_FRAME_PX,
+  height:  PLAYER_FRAME_PX,
+  frames:  1,
+  fps:     1,
+};
+
 // ─── Entities: the six engine-supported bases ────────────────────────────────
 // Stats are left empty — the engine defaults take effect when stats are omitted.
 function entity(id: string, base: EntityDef['base'], name: string): EntityDef {

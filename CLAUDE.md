@@ -14,7 +14,8 @@
 - Story → write in `game/content/story/script.ts`; compiled into pack
   cards/chapters; played by `StoryPlayer` via the `STORY` game state and
   shown by `components/StoryBox.tsx`
-- Characters are pixel rigs → `game/render/characters/` (dragon, humans) on
+- Game name → `game/title.ts`
+- Characters are pixel rigs → `game/render/characters/` (baby Tero + Dad, humans) on
   `render/pixel/Raster.ts`; `npm run sprites` regenerates the dragon PNGs
 - Office theme (default for built-in levels) → `game/render/office/`; each
   sprite/tile drawer delegates there when `isOffice()`

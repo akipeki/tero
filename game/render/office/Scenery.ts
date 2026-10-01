@@ -11,9 +11,9 @@
 import { TILE_SIZE } from '../../constants';
 import { TileType } from '../../types';
 import type { Tilemap } from '../../level/Tilemap';
-import type { SceneryPlacement } from '../../content/types';
+import type { SceneryPlacement, GagMood } from '../../content/types';
 import type { Raster } from '../pixel/Raster';
-import { GAGS, GAG_IDS, isGagId, type GagId } from './gags';
+import { GAGS, GAG_IDS, isGagId, type Gag, type GagId } from './gags';
 
 export interface PlacedGag {
   id: GagId;
@@ -104,6 +104,8 @@ export interface LayoutOptions {
   authored?: SceneryPlacement[];
   /** World-x ranges where floor gags must not go (e.g. the goal). */
   keepClear?: [number, number][];
+  /** 'tame' uses only tier-1 gags; 'unhinged' adds tier 2 and uses it first. */
+  mood?: GagMood;
 }
 
 export function layoutScenery(map: Tilemap, opts: LayoutOptions): PlacedGag[] {
@@ -119,10 +121,15 @@ export function layoutScenery(map: Tilemap, opts: LayoutOptions): PlacedGag[] {
   }
 
   const rand = rng(opts.levelId);
-  const decks: Record<'floor' | 'hang', GagId[]> = {
-    floor: shuffled(GAG_IDS.filter((id) => GAGS[id].kind === 'floor'), rand),
-    hang:  shuffled(GAG_IDS.filter((id) => GAGS[id].kind === 'hang'), rand),
+  // Deck order = preference: unhinged levels burn through tier 2 first.
+  const deck = (kind: 'floor' | 'hang'): GagId[] => {
+    const of = (tier: 1 | 2) => shuffled(GAG_IDS.filter((id) => {
+      const g: Gag = GAGS[id];
+      return g.kind === kind && g.tier === tier && !g.storyOnly;
+    }), rand);
+    return opts.mood === 'unhinged' ? [...of(2), ...of(1)] : of(1);
   };
+  const decks: Record<'floor' | 'hang', GagId[]> = { floor: deck('floor'), hang: deck('hang') };
   const used = new Set(out.map((g) => g.id));
   const draw = (kind: 'floor' | 'hang'): GagId => {
     // prefer gags not already in this level; cycle the deck

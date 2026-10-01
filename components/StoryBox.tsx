@@ -116,7 +116,7 @@ export default function StoryBox({
  *  which sits in the upper-middle of the frame. */
 const PORTRAIT_ZOOM = 2;
 const HEAD_LEFT = 0.34;  // left edge of the crop, as a fraction of one frame
-const HEAD_TOP  = 0.1;
+const HEAD_TOP  = 0.18;
 function portraitCrop(frames: number): React.CSSProperties {
   // background-position % aligns p% of the image with p% of the box:
   // offset = p * (imageSize - boxSize), solved for p.

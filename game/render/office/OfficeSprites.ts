@@ -89,7 +89,7 @@ export function drawOfficeCoin(ctx: CanvasRenderingContext2D, p: CoinSpriteProps
   ctx.globalAlpha = 1;
 }
 
-// ─── Coffee mug (power-up) ───────────────────────────────────────────────────
+// ─── Baby bottle of coffee (power-up) ────────────────────────────────────────
 
 export function drawOfficeMug(ctx: CanvasRenderingContext2D, p: MushroomSpriteProps): void {
   const sx = Math.floor(p.x - p.camX);
@@ -97,35 +97,29 @@ export function drawOfficeMug(ctx: CanvasRenderingContext2D, p: MushroomSpritePr
   ctx.save();
   if (p.collected) ctx.globalAlpha = Math.max(0, 1 - p.collectAnim / 20);
 
-  // steam wisps
+  const rect = (c: string, x: number, y: number, w: number, h: number) => {
+    ctx.fillStyle = c;
+    ctx.fillRect(sx + x, sy + y, w, h);
+  };
+  // steam curling off the teat
   const t = Math.floor(performance.now() / 180) % 3;
   ctx.fillStyle = 'rgba(240,240,240,0.85)';
-  for (let i = 0; i < 3; i++) {
-    const wx = sx + 5 + i * 4 + ((i + t) % 2);
-    ctx.fillRect(wx, sy - 3 - ((i + t) % 3), 1, 3);
-  }
-  // outline, body, handle
-  ctx.fillStyle = '#1b1620';
-  ctx.fillRect(sx + 2, sy + 3, 14, 17);
-  ctx.fillRect(sx + 15, sy + 7, 5, 9);
-  ctx.fillStyle = '#f4f1e6';
-  ctx.fillRect(sx + 3, sy + 4, 12, 15);
-  ctx.fillStyle = '#dcd6c4';
-  ctx.fillRect(sx + 12, sy + 4, 3, 15);
-  ctx.fillStyle = '#f4f1e6';
-  ctx.fillRect(sx + 16, sy + 8, 3, 7);
-  ctx.fillStyle = '#1b1620';
-  ctx.fillRect(sx + 16, sy + 10, 2, 3);
-  // coffee
-  ctx.fillStyle = '#6b3f22';
-  ctx.fillRect(sx + 3, sy + 4, 12, 2);
-  // "#1" heart decal
-  ctx.fillStyle = '#d83b3b';
-  ctx.fillRect(sx + 5, sy + 9, 2, 2);
-  ctx.fillRect(sx + 8, sy + 9, 2, 2);
-  ctx.fillRect(sx + 5, sy + 11, 5, 2);
-  ctx.fillRect(sx + 6, sy + 13, 3, 1);
-  ctx.fillRect(sx + 7, sy + 14, 1, 1);
+  for (let i = 0; i < 2; i++) ctx.fillRect(sx + 8 + i * 4 + ((i + t) % 2), sy - 6 - ((i + t) % 3), 1, 3);
+
+  // outline
+  rect('#1b1620', 8, -2, 5, 4);
+  rect('#1b1620', 5, 2, 11, 18);
+  // rubber teat + collar
+  rect('#e0b77a', 9, -1, 3, 3);
+  rect('#3f7fd8', 6, 3, 9, 3);
+  rect('#7fb0f0', 6, 3, 9, 1);
+  // bottle: clear plastic, mostly coffee
+  rect('#e8f4fa', 6, 6, 9, 13);
+  rect('#6b3f22', 6, 10, 9, 9);
+  rect('#8a5a33', 6, 10, 9, 1);
+  rect('rgba(255,255,255,0.6)', 7, 7, 1, 11);
+  // measuring ticks
+  for (const y of [8, 11, 14]) rect('#1b1620', 13, y, 2, 1);
   ctx.restore();
 }
 
