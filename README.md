@@ -90,6 +90,33 @@ can swap in detailed art without re-tuning collisions.
 4. Register it in `game/level/levels.ts` with a theme (`ember`/`mint`/`dusk`).
 5. The validator runs on import in development.
 
+### Writing story
+
+All built-in dialogue lives in `game/content/story/script.ts`, written as
+plain lines (no ids):
+
+```ts
+levels: {
+  '2': {
+    intro:    [{ text: 'FLOOR 6 — THE CUBICLE FARM.' }],          // narration
+    triggers: [{ atTile: 32, lines: [{ who: 'doris', text: 'Hi.' }] }],
+    outro:    [{ who: 'tero', text: 'Onward!' }],
+  },
+},
+```
+
+- `who` must be a key in `cast` (a typo is a TypeScript error); leave it out
+  for narration. `cast` entries can have a `portrait` sprite id.
+- A chapter's `intro` plays before its first level, then the level `intro`.
+  Intros don't replay on retry.
+- `triggers` play once per attempt when the player walks past tile column
+  `atTile`; `outro` plays at the goal, before the results screen.
+- Enter / Space / tap advances (first press finishes the typing), Esc skips.
+
+The script compiles into the pack's `StoryCard` / `Chapter` data
+(`story/compile.ts`), so user packs can carry story too; dangling card
+references are logged at startup (`story/validate.ts`).
+
 ### Tuning game feel
 
 All numbers live in [`game/constants.ts`](game/constants.ts). The settings

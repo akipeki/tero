@@ -106,6 +106,8 @@ export interface LevelDef {
   chapterId?: ChapterId;
   intro?:    StoryCardId[];
   outro?:    StoryCardId[];
+  /** Mid-level story beats, fired once per attempt. */
+  triggers?: StoryTrigger[];
 }
 
 // ─── Story ───────────────────────────────────────────────────────────────────
@@ -116,6 +118,12 @@ export interface StoryCard {
   portrait?: SpriteId;
   /** Single string; "\n" splits lines. */
   text:      string;
+}
+
+/** Plays `cards` the first time the player's centre crosses tile column `tx`. */
+export interface StoryTrigger {
+  tx:    number;
+  cards: StoryCardId[];
 }
 
 export interface Chapter {

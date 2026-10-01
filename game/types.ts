@@ -5,6 +5,8 @@ export const enum GameState {
   PAUSED    = 'PAUSED',
   GAME_OVER = 'GAME_OVER',
   WIN       = 'WIN',
+  /** A story sequence is on screen; the world is frozen behind it. */
+  STORY     = 'STORY',
 }
 
 // ─── Input ───────────────────────────────────────────────────────────────────
@@ -115,4 +117,16 @@ export interface PlayerRenderData {
   scaleX: number;
   scaleY: number;
   shouldFlash: boolean;
+}
+
+// ─── Story overlay (game → React) ────────────────────────────────────────────
+export interface StoryView {
+  speaker?: string;
+  /** Portrait image (first frame of a strip is shown). */
+  portraitSrc?: string;
+  portraitFrames?: number;
+  text: string;
+  /** 0-based position in the current sequence. */
+  index: number;
+  total: number;
 }

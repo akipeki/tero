@@ -32,6 +32,15 @@ export const SQUASH_STRENGTH    = 0.35;
 /** Vertical bob (world px) on each step of a walk cycle. */
 export const WALK_BOB_PX        = 1.5;
 
+// ─── Story ───────────────────────────────────────────────────────────────────
+/** Typewriter speed for story cards (characters per 60 Hz tick ≈ 45 chars/s). */
+export const STORY_CHARS_PER_TICK = 0.75;
+/** Play the typing blip every N revealed characters. */
+export const STORY_BLIP_EVERY     = 3;
+/** Ticks after a sequence opens during which advance/skip input is ignored,
+ *  so a jump pressed mid-run doesn't skip a story beat it walked into. */
+export const STORY_INPUT_GRACE    = 20;
+
 // ─── Viewport ───────────────────────────────────────────────────────────────
 export const VIEWPORT_W         = 480;
 export const VIEWPORT_H         = 270;

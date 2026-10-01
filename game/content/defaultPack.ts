@@ -11,6 +11,10 @@ import type {
   ContentPack, LevelDef, SpriteAsset, EntityDef, Chapter, StoryCard,
 } from './types';
 import { PACK_VERSION } from './types';
+import { STORY } from './story/script';
+import { compileStory } from './story/compile';
+
+const story = compileStory(STORY);
 
 // ─── Sprites: one per built-in player frame ──────────────────────────────────
 const sprites: Record<string, SpriteAsset> = Object.fromEntries(
@@ -80,18 +84,20 @@ const levels: Record<string, LevelDef> = Object.fromEntries(
       height: L.height,
       rows:   rowsFromTiles(L.tiles, L.width, L.height),
       spawns: L.spawns,
+      ...story.levels[id],
     } satisfies LevelDef];
   }),
 );
 
-// ─── Story: one default chapter listing the built-in levels ──────────────────
-const defaultChapter: Chapter = {
+// ─── Story: compiled from story/script.ts ─────────────────────────────────────
+// Falls back to one chapter listing every built-in level if the script has none.
+const chapters: Chapter[] = story.chapters.length > 0 ? story.chapters : [{
   id:       'b_chapter_main',
   name:     'The Journey',
   levelIds: Object.keys(levels),
-};
+}];
 
-const cards: Record<string, StoryCard> = {};
+const cards: Record<string, StoryCard> = story.cards;
 
 export const defaultPack: ContentPack = {
   meta: {
@@ -104,7 +110,7 @@ export const defaultPack: ContentPack = {
   entities,
   levels,
   story: {
-    chapters: [defaultChapter],
+    chapters,
     cards,
   },
 };

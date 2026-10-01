@@ -4,7 +4,8 @@ import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { Game } from '@/game/Game';
 import { GameState, Action } from '@/game/types';
 import { VIEWPORT_W, VIEWPORT_H, TILE_SIZE, STARTING_LIVES } from '@/game/constants';
-import type { HudData, PlayerRenderData, RunStats } from '@/game/types';
+import type { HudData, PlayerRenderData, RunStats, StoryView } from '@/game/types';
+import StoryBox from './StoryBox';
 import { loadSettings, saveSettings } from '@/game/Settings';
 import { framePaths } from '@/game/render/sprites/PlayerSpriteAssets';
 
@@ -65,6 +66,8 @@ export default function GameContainer() {
   const canvasScaleRef = useRef(1);
   const lastSrcRef     = useRef<string>('');
   const reducedMotionRef = useRef(false);
+  const storyRevealRef = useRef<((revealed: number) => void) | null>(null);
+  const [story, setStory] = useState<StoryView | null>(null);
 
   const [hud, setHud] = useState<HudData>({
     lives: STARTING_LIVES, maxLives: STARTING_LIVES, isBig: false, coins: 0, state: GameState.TITLE,
@@ -95,6 +98,8 @@ export default function GameContainer() {
     game.onHudUpdate = setHud;
     game.onEndScreen = setEndScreen;
     game.onScore = (s) => setScore(s);
+    game.onStory = setStory;
+    game.onStoryReveal = (n) => storyRevealRef.current?.(n);
     game.onChain = (chainSize, bonus) => {
       if (bonus > 0) pushFloater(`+${bonus} CHAIN×${chainSize}`);
     };
@@ -240,6 +245,9 @@ export default function GameContainer() {
     gameRef.current?.audioManager.init();
     gameRef.current?.signal('enter');
   }, []);
+  const handleStorySkip = useCallback(() => {
+    gameRef.current?.signal('skip');
+  }, []);
   const handleMute = useCallback(() => setMuted(m => !m), []);
   const handlePauseToggle = useCallback(() => {
     const game = gameRef.current;
@@ -291,6 +299,16 @@ export default function GameContainer() {
           role="img"
           aria-label="player"
         />
+
+        {/* ── STORY ── inside the viewport so the box sits on the game area */}
+        {story && (
+          <StoryBox
+            view={story}
+            revealRef={storyRevealRef}
+            onAdvance={handleNext}
+            onSkip={handleStorySkip}
+          />
+        )}
       </div>
 
       {/* ── TITLE ── */}

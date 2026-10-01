@@ -11,5 +11,8 @@
   (the canvas `Player.draw()` is intentionally a no-op)
 - React → game UI bridge → `Game.signal('enter' | 'retry' | 'quit')`
   and `InputHandler.onUiAction(cb)` (no `window.__*` globals)
+- Story → write in `game/content/story/script.ts`; compiled into pack
+  cards/chapters; played by `StoryPlayer` via the `STORY` game state and
+  shown by `components/StoryBox.tsx`
 - Three themed palettes → `game/render/Theme.ts`; backgrounds cached
   to offscreen canvases per theme.
