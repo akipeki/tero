@@ -7,6 +7,7 @@ import { layoutScenery } from './Scenery';
 import { GAGS, GAG_IDS } from './gags';
 import { LEVELS } from '../../level/levels';
 import { defaultPack } from '../../content/defaultPack';
+import { DECOR_IDS, isDecorId } from './decor';
 
 function mapOf(level: (typeof LEVELS)[number]): Tilemap {
   return new Tilemap([...level.tiles], level.width, level.height);
@@ -107,6 +108,28 @@ describe('layoutScenery', () => {
         if (o === g || GAGS[o.id].kind !== 'hang') continue;
         const ow = GAGS[o.id].draw().w;
         expect(o.x + ow <= g.x || o.x >= g.x + w, `${level.name}: ${o.id}`).toBe(true);
+      }
+    }
+  });
+
+  it('every built-in floor has a valid décor, each one different', () => {
+    const decors = LEVELS.map((L) => defaultPack.levels[`b_level_${L.id}`].decor);
+    for (const d of decors) expect(d && isDecorId(d), String(d)).toBe(true);
+    expect(new Set(decors).size).toBe(LEVELS.length);
+  });
+
+  it('floor-restricted gags only auto-fill on their floors', () => {
+    for (const g of Object.values(GAGS) as { floors?: string[] }[]) {
+      for (const f of g.floors ?? []) expect(isDecorId(f), f).toBe(true);
+    }
+    const map = mapOf(LEVELS[0]);
+    for (const decor of DECOR_IDS) {
+      for (const mood of ['tame', 'unhinged'] as const) {
+        const out = layoutScenery(map, { levelId: `t-${decor}`, mood, decor });
+        for (const p of out) {
+          const floors = (GAGS[p.id] as { floors?: string[] }).floors;
+          if (floors) expect(floors, `${p.id} on ${decor}`).toContain(decor);
+        }
       }
     }
   });

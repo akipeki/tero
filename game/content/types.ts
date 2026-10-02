@@ -118,6 +118,8 @@ export interface LevelDef {
   goalWriting?: string;
   /** How often the auto-fill drops a gag. Default 'normal'. */
   gagDensity?: GagDensity;
+  /** Office décor for this floor (render/office/decor.ts). Default 'cubicles'. */
+  decor?: string;
 }
 
 export type GagDensity = 'sparse' | 'normal';

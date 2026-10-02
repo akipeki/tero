@@ -104,6 +104,17 @@ computer "?" blocks, a water-cooler checkpoint and an elevator goal
 (`OfficeSprites.ts`). The older `ember`/`mint`/`dusk` themes still work for
 user levels.
 
+### Every floor has its own décor
+
+`game/render/office/decor.ts` gives each floor a look — wallpaper, chair
+rail, carpet, desk style, window blinds and the background strip — and it
+gets fancier as you climb: basement mailroom (concrete, pipes, leaking water
+pits) → cubicle farm → wood-panelled boardroom → dark-green Legal → white
+R&D lab → steel Security with blinds shut and a CCTV wall → 90s Memphis
+Executive Wing → marble-and-gold penthouse. A level picks one with
+`decor:` in the story script. Gags can be limited to some floors with
+`floors: [...]` (e.g. the Ferrari only parks in the penthouse).
+
 ### Background gags
 
 The office is a parody, so every screen should have something dumb on it.

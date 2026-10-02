@@ -16,6 +16,8 @@
 //                           at what happened here (ids: game/render/office/gags.ts).
 //                           The rest of each level is filled with random gags.
 //                 goalWriting  Tero's crayon slogan above the elevator (his flagpole)
+//                 decor     the floor's look (render/office/decor.ts): basement,
+//                           cubicles, boardroom, legal, lab, security, executive, penthouse
 //                 mood      'unhinged' lets the auto-fill use the weird tier-2 gags
 //                           (and use them first). Default is 'tame'.
 //
@@ -63,10 +65,11 @@ export const STORY = defineStory({
 
   levels: {
     '1': {
+      decor: 'basement',
       density: 'sparse',
       goalWriting: 'crayon_power',
       intro: [
-        { text: 'FLOOR 1 — THE MAILROOM.' },
+        { text: 'FLOOR 1 — THE MAILROOM.\nTHE PIPES HAVE BEEN LEAKING SINCE 1987.' },
         { who: 'tero', text: 'Dada? Dada!' },
       ],
       triggers: [
@@ -96,6 +99,9 @@ export const STORY = defineStory({
         { atTile: 15, gag: 'banner_mondays' },
         { atTile: 17, gag: 'dad_photo' },
         { atTile: 34, gag: 'copier_slain' },
+        { atTile: 40, gag: 'wet_floor_sign' },
+        { atTile: 52, gag: 'vhs_archive' },
+        { atTile: 64, gag: 'wet_floor_sign' },
       ],
       outro: [
         { who: 'tero', text: 'Up! UP!' },
@@ -103,6 +109,7 @@ export const STORY = defineStory({
     },
 
     '2': {
+      decor: 'cubicles',
       density: 'sparse',
       goalWriting: 'crayon_want',
       intro: [
@@ -134,6 +141,9 @@ export const STORY = defineStory({
         { atTile: 11, gag: 'fridge_notes' },
         { atTile: 14, gag: 'dad_mug' },
         { atTile: 46, gag: 'money_shrine' },
+        { atTile: 4,  gag: 'dead_xmas_tree' },
+        { atTile: 31, gag: 'water_dispenser' },
+        { atTile: 38, gag: 'vending_snacks' },
       ],
       outro: [
         { who: 'tero', text: 'Bottle good. More bottle.' },
@@ -141,6 +151,7 @@ export const STORY = defineStory({
     },
 
     '3': {
+      decor: 'boardroom',
       density: 'sparse',
       goalWriting: 'crayon_resource',
       intro: [
@@ -174,6 +185,8 @@ export const STORY = defineStory({
         { atTile: 10, gag: 'dad_calendar' },
         { atTile: 20, gag: 'banner_q4' },
         { atTile: 45, gag: 'whiteboard' },
+        { atTile: 17, gag: 'room_closed' },
+        { atTile: 67, gag: 'copier_jam' },
       ],
       outro: [
         { who: 'tero', text: 'Dada. Floor. Thirty. Free.' },
@@ -185,6 +198,7 @@ export const STORY = defineStory({
     // ── Chapter 2: the floors where things got weird ────────────────────────
 
     '4': {
+      decor: 'legal',
       goalWriting: 'crayon_unite',
       mood: 'unhinged',
       intro: [
@@ -211,6 +225,8 @@ export const STORY = defineStory({
         { atTile: 30, gag: 'orphan_plan' },
         { atTile: 50, gag: 'soul_contract' },
         { atTile: 62, gag: 'banner_family' },
+        { atTile: 20, gag: 'room_review' },
+        { atTile: 41, gag: 'vhs_archive' },
       ],
       outro: [
         { who: 'tero', text: 'Tear up. Tear UP.' },
@@ -218,6 +234,7 @@ export const STORY = defineStory({
     },
 
     '5': {
+      decor: 'lab',
       goalWriting: 'crayon_go_home',
       mood: 'unhinged',
       intro: [
@@ -259,6 +276,8 @@ export const STORY = defineStory({
         { atTile: 42, gag: 'dad_cot' },
         { atTile: 50, gag: 'intern_wheel' },
         { atTile: 58, gag: 'poodle_desk' },
+        { atTile: 9,  gag: 'fax_machine' },
+        { atTile: 60, gag: 'room_motivate' },
       ],
       outro: [
         { who: 'it', text: 'Security\'s next. Then the executives.\nThen your dad. Go get him, kid.' },
@@ -266,6 +285,7 @@ export const STORY = defineStory({
     },
 
     '7': {
+      decor: 'security',
       mood: 'unhinged',
       goalWriting: 'crayon_whose',
       intro: [
@@ -300,6 +320,9 @@ export const STORY = defineStory({
         { atTile: 27, gag: 'poster_skynet' },
         { atTile: 38, gag: 'banner_loan' },
         { atTile: 60, gag: 'sign_hr' },
+        { atTile: 11, gag: 'dead_plant' },
+        { atTile: 28, gag: 'brick_phone' },
+        { atTile: 46, gag: 'room_feedback' },
       ],
       outro: [
         { who: 'guard', text: 'He... got past us?\nWe need a meeting about this.' },
@@ -307,6 +330,7 @@ export const STORY = defineStory({
     },
 
     '8': {
+      decor: 'executive',
       mood: 'unhinged',
       goalWriting: 'crayon_no_peace',
       intro: [
@@ -337,6 +361,8 @@ export const STORY = defineStory({
         { atTile: 51, gag: 'supply_closet' },
         { atTile: 58, gag: 'trickle_down' },
         { atTile: 66, gag: 'pension_grave' },
+        { atTile: 10, gag: 'scandi_set' },
+        { atTile: 25, gag: 'sofa_memphis' },
       ],
       outro: [
         { who: 'pig', text: 'The Board will not be pleased.' },
@@ -345,6 +371,7 @@ export const STORY = defineStory({
     },
 
     '6': {
+      decor: 'penthouse',
       goalWriting: 'crayon_power',
       mood: 'unhinged',
       intro: [
@@ -352,6 +379,19 @@ export const STORY = defineStory({
         { who: 'board', text: 'A CHILD? HERE?\nWHAT IS ITS QUARTERLY OUTPUT?' },
       ],
       triggers: [
+        {
+          atTile: 9,
+          lines: [
+            { who: 'tero', text: 'Juice?' },
+            { text: 'IT IS NOT JUICE.' },
+          ],
+        },
+        {
+          atTile: 48,
+          lines: [
+            { who: 'tero', text: 'Vroom vroom.\n...Inside?' },
+          ],
+        },
         {
           atTile: 29,
           lines: [
@@ -368,10 +408,15 @@ export const STORY = defineStory({
       ],
       scenery: [
         { atTile: 3,  gag: 'banner_growth' },
-        { atTile: 15, gag: 'coffee_iv' },
+        { atTile: 8,  gag: 'hostess_blonde' },
+        { atTile: 14, gag: 'fountain' },
+        { atTile: 21, gag: 'hostess_brunette' },
         { atTile: 27, gag: 'money_throne' },
+        { atTile: 34, gag: 'coffee_iv' },
         { atTile: 40, gag: 'sign_shareholders' },
-        { atTile: 47, gag: 'lost_and_found' },
+        { atTile: 46, gag: 'ferrari' },
+        { atTile: 55, gag: 'hostess_redhead' },
+        { atTile: 61, gag: 'sofa_memphis' },
         { atTile: 69, gag: 'dad_desk' },
       ],
       outro: [

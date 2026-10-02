@@ -32,6 +32,7 @@ import {
 } from './constants';
 import { updateBackground } from './render/Background';
 import { layoutScenery, setScenery } from './render/office/Scenery';
+import { setDecor, isDecorId } from './render/office/decor';
 import { getPlayerFrame, framePaths } from './render/sprites/PlayerSpriteAssets';
 import type { creaturesAndObjects, UpdateCtx } from './creaturesAndObjects/creaturesAndObjects';
 import type { HudData, PlayerRenderData, RunStats, StoryView } from './types';
@@ -603,6 +604,10 @@ export class Game {
     this.mushrooms = [];
     this.goal = new Goal(L.spawns.goal.tx, L.spawns.goal.ty);
 
+    // Each office floor has its own décor; unknown ids fall back to cubicles.
+    const decor = this.levelPack?.decor;
+    setDecor(decor && isDecorId(decor) ? decor : undefined);
+
     // Office gags: authored story hints + seeded auto-fill. Kept clear of the
     // elevator so the goal always reads.
     setScenery(L.theme === 'office'
@@ -611,6 +616,7 @@ export class Game {
           authored: this.levelPack?.scenery,
           mood: this.levelPack?.gagMood,
           density: this.levelPack?.gagDensity,
+          decor: decor && isDecorId(decor) ? decor : 'cubicles',
           goalWriting: this.levelPack?.goalWriting
             ? { gag: this.levelPack.goalWriting, centerX: this.goal.x + this.goal.w / 2 }
             : undefined,

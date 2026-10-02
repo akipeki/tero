@@ -99,6 +99,7 @@ export function validatePack(raw: unknown): ContentPack {
       });
     }
     if (L.goalWriting !== undefined) ensureString(L.goalWriting, `levels.${k}.goalWriting`);
+    if (L.decor !== undefined) ensureString(L.decor, `levels.${k}.decor`);
     if (L.gagDensity !== undefined && L.gagDensity !== 'sparse' && L.gagDensity !== 'normal') {
       throw new PackValidationError("gagDensity must be 'sparse' or 'normal'", `levels.${k}.gagDensity`);
     }

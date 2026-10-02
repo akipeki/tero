@@ -6,6 +6,7 @@
 
 import type { Chapter, StoryCard, StoryTrigger, SpriteId, SceneryPlacement, GagMood, GagDensity } from '../types';
 import type { GagId } from '../../render/office/gags';
+import type { DecorId } from '../../render/office/decor';
 
 export interface CastMember {
   name: string;
@@ -39,6 +40,8 @@ export interface StoryScript<C extends string> {
     goalWriting?: GagId;
     /** 'sparse' spaces the random gags out more. Default 'normal'. */
     density?: GagDensity;
+    /** The floor's look: wallpaper, carpet, desks, background. */
+    decor?: DecorId;
   }>;
 }
 
@@ -55,6 +58,7 @@ export interface LevelStory {
   gagMood?: GagMood;
   goalWriting?: string;
   gagDensity?: GagDensity;
+  decor?: string;
 }
 
 export interface CompiledStory {
@@ -104,6 +108,7 @@ export function compileStory<C extends string>(script: StoryScript<C>): Compiled
       gagMood: L.mood,
       goalWriting: L.goalWriting,
       gagDensity: L.density,
+      decor: L.decor,
     };
   }
 

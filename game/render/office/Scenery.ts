@@ -12,6 +12,7 @@ import { TILE_SIZE } from '../../constants';
 import { TileType } from '../../types';
 import type { Tilemap } from '../../level/Tilemap';
 import type { SceneryPlacement, GagMood, GagDensity } from '../../content/types';
+import type { DecorId } from './decor';
 import type { Raster } from '../pixel/Raster';
 import { GAGS, GAG_IDS, isGagId, type Gag, type GagId } from './gags';
 
@@ -112,6 +113,8 @@ export interface LayoutOptions {
    *  elevator, where Mario would have his flagpole. */
   goalWriting?: { gag: string; centerX: number };
   density?: GagDensity;
+  /** Floor décor — gags with a `floors` list only auto-fill on those floors. */
+  decor?: DecorId;
 }
 
 export function layoutScenery(map: Tilemap, opts: LayoutOptions): PlacedGag[] {
@@ -141,7 +144,8 @@ export function layoutScenery(map: Tilemap, opts: LayoutOptions): PlacedGag[] {
   const deck = (kind: 'floor' | 'hang'): GagId[] => {
     const of = (tier: 1 | 2) => shuffled(GAG_IDS.filter((id) => {
       const g: Gag = GAGS[id];
-      return g.kind === kind && g.tier === tier && !g.storyOnly;
+      return g.kind === kind && g.tier === tier && !g.storyOnly &&
+        (!g.floors || g.floors.includes(opts.decor ?? 'cubicles'));
     }), rand);
     return opts.mood === 'unhinged' ? [...of(2), ...of(1)] : of(1);
   };

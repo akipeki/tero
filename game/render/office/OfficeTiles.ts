@@ -5,17 +5,13 @@
 // map, filing cabinets when floating, plain slab underneath.
 
 import { TILE_SIZE } from '../../constants';
+import { getDecor, type DeskStyle } from './decor';
 
 const S = TILE_SIZE;
 
+// Floor-independent colours. Carpet, slab, ceiling and desks come from the
+// current floor's décor (decor.ts).
 const C = {
-  carpet:      '#5b6f8f',
-  carpetLight: '#7184a3',
-  carpetDark:  '#465874',
-  slab:        '#8d8a80',
-  slabDark:    '#6f6c63',
-  slabLight:   '#a29f94',
-  ceiling:     '#e7e3d6',
   ceilingDot:  '#c3bfb1',
   ceilingGrid: '#b3ae9e',
   lamp:        '#fdfbe8',
@@ -26,11 +22,6 @@ const C = {
   cabinetDark: '#8a846f',
   handle:      '#5d5a50',
   label:       '#f4f1e6',
-  desk:        '#a8743f',
-  deskLight:   '#c99560',
-  deskDark:    '#6e4a26',
-  panel:       '#6f7480',
-  panelDark:   '#555a64',
   pinSteel:    '#dfe3e8',
   pinShadow:   '#2f3440',
   pinColors:   ['#d83b3b', '#ffd23f', '#3f7fd8'],
@@ -49,30 +40,39 @@ export function drawOfficeSolid(ctx: CanvasRenderingContext2D, sx: number, sy: n
   if (n.ty === 0) return drawCeiling(ctx, sx, sy, n.tx);
   if (n.openAbove && n.openBelow) return drawCabinet(ctx, sx, sy);
 
-  // concrete slab with a seam
-  ctx.fillStyle = C.slab;
+  const d = getDecor();
+  const [slab, slabLight, slabDark] = d.slab;
+  // slab with a seam
+  ctx.fillStyle = slab;
   ctx.fillRect(sx, sy, S, S);
-  ctx.fillStyle = C.slabDark;
+  ctx.fillStyle = slabDark;
   ctx.fillRect(sx, sy + S - 2, S, 2);
   ctx.fillRect(sx + S - 2, sy, 2, S);
-  ctx.fillStyle = C.slabLight;
+  ctx.fillStyle = slabLight;
   ctx.fillRect(sx + 5, sy + 9, 2, 1);
   ctx.fillRect(sx + 20, sy + 21, 3, 1);
 
   if (n.openAbove) {
     // carpet with a speckle + baseboard shadow
-    ctx.fillStyle = C.carpet;
+    const [carpet, carpetLight, carpetDark] = d.carpet;
+    ctx.fillStyle = carpet;
     ctx.fillRect(sx, sy, S, 7);
-    ctx.fillStyle = C.carpetLight;
+    ctx.fillStyle = carpetLight;
     ctx.fillRect(sx, sy, S, 1);
     for (let i = 0; i < 6; i++) ctx.fillRect(sx + ((i * 11 + n.tx * 7) % 31), sy + 2 + (i % 3) * 2, 1, 1);
-    ctx.fillStyle = C.carpetDark;
+    if (d.id === 'penthouse') {
+      // gold carpet runner trim
+      ctx.fillStyle = '#c9a24a';
+      ctx.fillRect(sx, sy + 1, S, 1);
+      ctx.fillRect(sx, sy + 5, S, 1);
+    }
+    ctx.fillStyle = carpetDark;
     ctx.fillRect(sx, sy + 7, S, 2);
   }
 }
 
 function drawCeiling(ctx: CanvasRenderingContext2D, sx: number, sy: number, tx: number): void {
-  ctx.fillStyle = C.ceiling;
+  ctx.fillStyle = getDecor().ceiling;
   ctx.fillRect(sx, sy, S, S);
   ctx.fillStyle = C.ceilingGrid;
   ctx.fillRect(sx, sy + S - 2, S, 2);
@@ -113,28 +113,104 @@ function drawCabinet(ctx: CanvasRenderingContext2D, sx: number, sy: number): voi
   }
 }
 
+const DESKS: Record<DeskStyle, { top: string; light: string; dark: string; panel: string; panelDark: string }> = {
+  metal:    { top: '#8a8f96', light: '#a9aeb5', dark: '#5a5f68', panel: '#6b7078', panelDark: '#4f545c' },
+  laminate: { top: '#a8743f', light: '#c99560', dark: '#6e4a26', panel: '#6f7480', panelDark: '#555a64' },
+  wood:     { top: '#5e3b1f', light: '#7a5232', dark: '#3e2614', panel: '#4a2e18', panelDark: '#341f10' },
+  white:    { top: '#f2f4f5', light: '#ffffff', dark: '#b9c3cb', panel: '#d8dee3', panelDark: '#aeb8c0' },
+  steel:    { top: '#4a505a', light: '#6a707a', dark: '#2a2e35', panel: '#3a3f48', panelDark: '#2a2e35' },
+  glass:    { top: '#bfe6ec', light: '#e8f8fa', dark: '#7fb8c0', panel: '#ff77a8', panelDark: '#d8558a' },
+  marble:   { top: '#f2ede2', light: '#ffffff', dark: '#c9c2b2', panel: '#c9a24a', panelDark: '#a07e2e' },
+};
+
 export function drawOfficePlatform(ctx: CanvasRenderingContext2D, sx: number, sy: number): void {
+  const style = getDecor().desk;
+  const D = DESKS[style];
   // desk top
-  ctx.fillStyle = C.desk;
+  ctx.fillStyle = D.top;
   ctx.fillRect(sx, sy, S, 6);
-  ctx.fillStyle = C.deskLight;
+  ctx.fillStyle = D.light;
   ctx.fillRect(sx, sy, S, 2);
-  ctx.fillStyle = C.deskDark;
+  ctx.fillStyle = D.dark;
   ctx.fillRect(sx, sy + 5, S, 1);
-  // modesty panel
-  ctx.fillStyle = C.panel;
-  ctx.fillRect(sx + 1, sy + 6, S - 2, 10);
-  ctx.fillStyle = C.panelDark;
-  ctx.fillRect(sx + 1, sy + 14, S - 2, 2);
-  ctx.fillRect(sx + S / 2, sy + 6, 1, 8);
+
+  switch (style) {
+    case 'glass':
+      // see-through top on chrome legs, Memphis-pink crossbar
+      ctx.fillStyle = '#c9ced6';
+      ctx.fillRect(sx + 2, sy + 6, 2, 10); ctx.fillRect(sx + S - 4, sy + 6, 2, 10);
+      ctx.fillStyle = D.panel;
+      ctx.fillRect(sx + 4, sy + 11, S - 8, 2);
+      break;
+    case 'marble':
+      // veined marble slab on a gold plinth
+      ctx.fillStyle = '#b8b0a2';
+      ctx.fillRect(sx + 6, sy + 2, 9, 1); ctx.fillRect(sx + 18, sy + 3, 7, 1);
+      ctx.fillStyle = D.panel;
+      ctx.fillRect(sx + 3, sy + 6, S - 6, 10);
+      ctx.fillStyle = D.panelDark;
+      ctx.fillRect(sx + 3, sy + 14, S - 6, 2);
+      ctx.fillStyle = '#f0d27a';
+      ctx.fillRect(sx + 3, sy + 6, S - 6, 1);
+      break;
+    case 'metal':
+    case 'steel':
+      // drawer pedestal with riveted edges
+      ctx.fillStyle = D.panel;
+      ctx.fillRect(sx + 1, sy + 6, S - 2, 10);
+      ctx.fillStyle = D.panelDark;
+      ctx.fillRect(sx + 1, sy + 14, S - 2, 2);
+      ctx.fillStyle = D.light;
+      for (const x of [4, S - 6]) ctx.fillRect(sx + x, sy + 8, 2, 1);
+      ctx.fillRect(sx + S / 2 - 4, sy + 10, 8, 1);
+      break;
+    default:
+      // modesty panel
+      ctx.fillStyle = D.panel;
+      ctx.fillRect(sx + 1, sy + 6, S - 2, 10);
+      ctx.fillStyle = D.panelDark;
+      ctx.fillRect(sx + 1, sy + 14, S - 2, 2);
+      ctx.fillRect(sx + S / 2, sy + 6, 1, 8);
+  }
+}
+
+/** Basement hazard: a pool of leaked water under a broken, dripping pipe. */
+function drawLeak(ctx: CanvasRenderingContext2D, sx: number, sy: number, tx: number): void {
+  const t = performance.now();
+  // the burst pipe end on the wall, right above the pool
+  ctx.fillStyle = '#5a5f68';
+  ctx.fillRect(sx + 6, 36, 20, 5);
+  ctx.fillStyle = '#3a3f48';
+  ctx.fillRect(sx + 24, 35, 3, 7);
+  // falling drips (the pool is in the ground row; drips fall the whole way)
+  ctx.fillStyle = '#9fd8f8';
+  for (let k = 0; k < 3; k++) {
+    const period = 900 + ((tx * 131 + k * 271) % 500);
+    const phase = ((t + k * 337 + tx * 97) % period) / period;
+    const y = 42 + phase * (sy + 4 - 42);
+    ctx.fillRect(sx + 10 + k * 6, Math.round(y), 1, 3);
+  }
+  // the pool: dark water, a lighter surface line, rings where drips land
+  ctx.fillStyle = '#1f3a52';
+  ctx.fillRect(sx, sy + 3, S, S - 3);
+  ctx.fillStyle = '#3f6e94';
+  ctx.fillRect(sx, sy + 3, S, 2);
+  const ring = Math.floor((t / 160 + tx * 3) % 6);
+  ctx.fillStyle = '#9fd8f8';
+  ctx.fillRect(sx + 14 - ring, sy + 4, 1, 1);
+  ctx.fillRect(sx + 14 + ring, sy + 4, 1, 1);
+  ctx.fillRect(sx + 4 + ((tx * 5) % 20), sy + 9, 4, 1);
+  ctx.fillRect(sx + 18 - ((tx * 3) % 12), sy + 12, 3, 1);
 }
 
 export function drawOfficeHazard(ctx: CanvasRenderingContext2D, sx: number, sy: number, tx: number): void {
+  if (getDecor().id === 'basement') return drawLeak(ctx, sx, sy, tx);
   // A floor gap full of upturned thumbtacks. Hazards sit in the ground row,
   // whose lower half is below the viewport, so the pins live in the top half.
-  ctx.fillStyle = C.carpetDark;
+  const [carpet, , carpetDark] = getDecor().carpet;
+  ctx.fillStyle = carpetDark;
   ctx.fillRect(sx, sy + 12, S, S - 12);
-  ctx.fillStyle = C.carpet;
+  ctx.fillStyle = carpet;
   ctx.fillRect(sx, sy + 12, S, 2);
   for (let i = 0; i < 3; i++) {
     const px = sx + 4 + i * 10 + ((tx + i) % 2);
