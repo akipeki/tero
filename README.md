@@ -1,8 +1,13 @@
-# TERO
+# WHERE IS DADA? - Baby Dragon Strikes Back
 
 A retro pixel-art platformer — Next.js 16 + TypeScript, 60 fps canvas
-loop with a fixed time-step, tile-based AABB physics, three themed levels,
-and a DOM-overlay player sprite so the hero stays crisp at any screen size.
+loop with a fixed time-step, tile-based AABB physics and a DOM-overlay
+player sprite.
+
+Six months ago the company asked Dad to "give a little bit more". He never
+came home. Tero, a two-year-old baby dragon dragging Dad's tie, storms the
+1993 office tower — full of short, zombie-ish humans and office-culture
+parody — to bring him back. (The name lives in `game/title.ts`.)
 
 ## Run locally
 
@@ -43,9 +48,11 @@ game/
   Camera.ts            — Smooth horizontal follow w/ clamp
   ScreenShake.ts       — Decaying random offset
   level/
-    level1.ts          — Ember Hills (110 wide)
-    level2.ts          — Mint Meadow (70 wide, more vertical)
-    level3.ts          — Dusk Citadel (90 wide, hazard-dense)
+    level1.ts          — The Mailroom
+    level2.ts          — Cubicle Farm (more vertical)
+    level3.ts          — The Boardroom (hazard-dense)
+    level4–8.ts        — Chapter 2 in play order: Legal (4), R&D (5),
+                         Security (7), Executive Wing (8), The Sanctum (6)
     levels.ts          — Registry + per-level validator
     Tilemap.ts         — Stored 1D, queried 2D
   physics/
@@ -67,12 +74,92 @@ game/
     sprites/           — Each entity's draw function lives here
 ```
 
+### Characters are rigged, not hand-drawn
+
+Baby Tero and Dad (`game/render/characters/dragon.ts`) and the humans
+(`characters/humans.ts`) are drawn by small pixel rigs on a DOM-free
+`Raster` (`render/pixel/Raster.ts`): each body part is a shaded ellipse,
+capsule or triangle with its own outline. An animation is just a list of
+poses (`DRAGON_ANIMS`).
+
+- The dragon is rendered to PNG strips by `npm run sprites`
+  → `public/images/dragon/*.png`. Re-run it after changing the rig; a test
+  fails if `framePaths` and the PNGs drift apart. You can also repaint the
+  PNGs by hand — keep the 64×64 frame size and frame counts.
+- The humans are rendered to canvases at runtime (`office/OfficeSprites.ts`).
+- The rest of the company lives in `characters/creatures.ts`: security
+  guards, corporate rats, pigs and gorillas, vampires, walking robots and
+  flesh-eating plants. Each is a Walker or Hopper variant
+  (`creaturesAndObjects/enemyKinds.ts` sets size, speed and jump); levels
+  spawn them by name, e.g. `{ type: 'pig', tx: 12, ty: 6 }`. Plants don't
+  move and can't be stomped.
+
+### The office theme
+
+`theme: 'office'` switches every drawer to `game/render/office/`: carpet,
+ceiling lights (one flickers), filing cabinets, desks and thumbtack pits
+(`OfficeTiles.ts`); a parallax wall/window/cubicle background
+(`OfficeBackground.ts`); and floppy-disk coins, coffee-mug power-ups,
+computer "?" blocks, a water-cooler checkpoint and an elevator goal
+(`OfficeSprites.ts`). The older `ember`/`mint`/`dusk` themes still work for
+user levels.
+
+### Every floor has its own décor
+
+`game/render/office/decor.ts` gives each floor a look — wallpaper, chair
+rail, carpet, desk style, window blinds and the background strip — and it
+gets fancier as you climb: basement mailroom (concrete, pipes, leaking water
+pits) → cubicle farm → wood-panelled boardroom → dark-green Legal → white
+R&D lab → steel Security with blinds shut and a CCTV wall → 90s Memphis
+Executive Wing → marble-and-gold penthouse. A level picks one with
+`decor:` in the story script. Gags can be limited to some floors with
+`floors: [...]` (e.g. the Ferrari only parks in the penthouse).
+
+### Readability rule: scenery muted, gameplay bright
+
+Background layers and gag props are desaturated once when cached
+(`render/office/mute.ts`). Everything the player interacts with is drawn at
+full colour: every surface you can stand on (desks, cabinets, mystery boxes)
+carries the same yellow-and-black safety tape; "?" blocks are bright
+cardboard boxes with a floppy-and-? shipping label; floppy pickups glow and
+sparkle. Keep new gameplay objects bright and new scenery muted.
+
+### Background gags
+
+The office is a parody, so every screen should have something dumb on it.
+`game/render/office/gags.ts` is the gag library: ceiling banners
+("SYNERGY IS NOT OPTIONAL", "Q4 IS COMING"…) and floor props (a photocopier
+slain with a two-handed sword, a money shrine, a supply closet with a sock on
+the handle, a fridge full of passive-aggressive notes…).
+
+- Place gags on purpose in `story/script.ts` with `scenery: [{ atTile, gag }]`
+  — use them as hints about what happened in the office.
+- Gags have a tier: 1 = everyday absurdity, 2 = the unhinged stuff (Project
+  Orphanage, an axe in a PC, the VP-of-Sales poodle…). A level's `mood:
+  'unhinged'` lets the auto-fill use tier 2, and use it first; levels are
+  'tame' by default. `density: 'sparse'` spaces the random gags out (the
+  first chapter uses it).
+- Dad's trail (`dad_photo`, `dad_mug`, `dad_calendar`, `dad_cot`,
+  `dad_desk`) is `storyOnly`: it appears only where the script places it.
+  So is Tero's crayon wall writing (`crayon_power`, `crayon_unite`,
+  `crayon_want`, `crayon_go_home`, `crayon_resource`).
+- `Scenery.ts` fills the rest of each level automatically (seeded by level
+  id, so it's stable), keeps floor props on flat floor and away from the
+  elevator.
+- New gag: add an entry to `GAGS`, then
+  `npm run sprites -- --preview DIR` renders a contact sheet of all of them.
+
 ### Why a DOM-overlay player
 
-The character art is high-res (200×200 px). Drawing it to the 480×270 canvas
-would force ugly downsampling. Instead, we render Tero as an absolutely
-positioned `<img>` with `image-rendering: pixelated`, synced to the camera
-each frame via a `Game.onPlayerRender` callback. The physics hitbox
+We render Tero as an absolutely
+positioned `<div>` (sprite drawn as its background image), synced to the
+camera each frame via a `Game.onPlayerRender` callback. Positions are
+interpolated between 60 Hz physics steps and snapped to device pixels, so
+motion stays smooth on high-refresh displays. Frames wider than the sprite's
+world size (64 px) are treated as hi-res art and filtered smoothly; smaller
+frames are native pixel art and stay `pixelated`. Walk animation advances by
+distance walked (`WALK_STRIDE_PX`), and squash/stretch is damped by
+`SQUASH_STRENGTH` — both in `game/constants.ts`. The physics hitbox
 (22×28 / 22×44 / 22×18) is independent of the displayed sprite size, so you
 can swap in detailed art without re-tuning collisions.
 
@@ -83,6 +170,33 @@ can swap in detailed art without re-tuning collisions.
 3. Add spawns (`player`, `enemies`, `blocks`, `coins`, `checkpoints`, `goal`).
 4. Register it in `game/level/levels.ts` with a theme (`ember`/`mint`/`dusk`).
 5. The validator runs on import in development.
+
+### Writing story
+
+All built-in dialogue lives in `game/content/story/script.ts`, written as
+plain lines (no ids):
+
+```ts
+levels: {
+  '2': {
+    intro:    [{ text: 'FLOOR 6 — THE CUBICLE FARM.' }],          // narration
+    triggers: [{ atTile: 32, lines: [{ who: 'doris', text: 'Hi.' }] }],
+    outro:    [{ who: 'tero', text: 'Onward!' }],
+  },
+},
+```
+
+- `who` must be a key in `cast` (a typo is a TypeScript error); leave it out
+  for narration. `cast` entries can have a `portrait` sprite id.
+- A chapter's `intro` plays before its first level, then the level `intro`.
+  Intros don't replay on retry.
+- `triggers` play once per attempt when the player walks past tile column
+  `atTile`; `outro` plays at the goal, before the results screen.
+- Enter / Space / tap advances (first press finishes the typing), Esc skips.
+
+The script compiles into the pack's `StoryCard` / `Chapter` data
+(`story/compile.ts`), so user packs can carry story too; dangling card
+references are logged at startup (`story/validate.ts`).
 
 ### Tuning game feel
 

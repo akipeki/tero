@@ -106,6 +106,32 @@ export interface LevelDef {
   chapterId?: ChapterId;
   intro?:    StoryCardId[];
   outro?:    StoryCardId[];
+  /** Mid-level story beats, fired once per attempt. */
+  triggers?: StoryTrigger[];
+  /** Background gags placed on purpose (office theme). The rest of the level
+   *  is auto-filled. `gag` is a key of GAGS in render/office/gags.ts. */
+  scenery?: SceneryPlacement[];
+  /** Which gags the auto-fill may use: 'tame' (default) or 'unhinged',
+   *  which adds the tier-2 weirdness and uses it first. */
+  gagMood?: GagMood;
+  /** Tero's crayon slogan, centred above the elevator — his flagpole. */
+  goalWriting?: string;
+  /** How often the auto-fill drops a gag. Default 'normal'. */
+  gagDensity?: GagDensity;
+  /** Office décor for this floor (render/office/decor.ts). Default 'cubicles'. */
+  decor?: string;
+  /** Tile-column ranges [from, to] the gag auto-fill leaves empty — long,
+   *  monotonous corridors that let the eye rest. Authored gags still show. */
+  quietZones?: [number, number][];
+}
+
+export type GagDensity = 'sparse' | 'normal';
+
+export type GagMood = 'tame' | 'unhinged';
+
+export interface SceneryPlacement {
+  tx:  number;
+  gag: string;
 }
 
 // ─── Story ───────────────────────────────────────────────────────────────────
@@ -116,6 +142,12 @@ export interface StoryCard {
   portrait?: SpriteId;
   /** Single string; "\n" splits lines. */
   text:      string;
+}
+
+/** Plays `cards` the first time the player's centre crosses tile column `tx`. */
+export interface StoryTrigger {
+  tx:    number;
+  cards: StoryCardId[];
 }
 
 export interface Chapter {

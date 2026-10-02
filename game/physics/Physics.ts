@@ -84,7 +84,9 @@ function sweepVertical(
   const left  = Math.floor(body.x / TILE_SIZE);
   const right = Math.floor((body.x + body.w - 1) / TILE_SIZE);
   const top   = Math.floor(body.y / TILE_SIZE);
-  const bot   = Math.floor((body.y + body.h - 1) / TILE_SIZE);
+  // Positions are sub-pixel: a whole-pixel margin here missed the floor when
+  // gravity sank a grounded body < 1px, so onGround flickered every frame.
+  const bot   = Math.floor((body.y + body.h - 0.001) / TILE_SIZE);
 
   let ground  = false;
   let ceiling = false;

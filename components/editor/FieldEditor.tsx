@@ -14,7 +14,7 @@ const BRUSHES: { ch: Brush; label: string; swatch: string }[] = [
   { ch: '^', label: 'HAZARD',   swatch: '#ff004d' },
 ];
 
-const THEMES: ThemeName[] = ['ember', 'mint', 'dusk'];
+const THEMES: ThemeName[] = ['office', 'ember', 'mint', 'dusk'];
 
 // Render colour for each tile on the editor canvas.
 const TILE_COLORS: Record<Brush, string> = {
@@ -447,7 +447,7 @@ function makeBlankLevel(id: string, w: number, h: number): LevelDef {
   return {
     id,
     name: 'Untitled',
-    theme: 'ember',
+    theme: 'office',
     width: w,
     height: h,
     rows,

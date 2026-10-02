@@ -23,6 +23,26 @@ export const CHAIN_BONUS        = 50;  // added per consecutive air-stomp
 
 // ─── Animation ──────────────────────────────────────────────────────────────
 export const WALK_ANIM_FPS      = 8;
+/** World pixels travelled per walk-cycle frame. Animation follows distance,
+ *  not time, so the feet don't slide at low speeds. */
+export const WALK_STRIDE_PX     = 14;
+/** How much of Player.scaleX/Y squash reaches the screen (0 = off, 1 = full).
+ *  Detailed art distorts badly at full strength. */
+export const SQUASH_STRENGTH    = 0.35;
+/** Vertical bob (world px) on each step of a walk cycle. */
+export const WALK_BOB_PX        = 1.5;
+/** Sprite scale while caffeinated (the "big" power-up). Matches the hitbox
+ *  growing from 28 to 44 px tall. */
+export const BIG_SPRITE_SCALE   = 1.5;
+
+// ─── Story ───────────────────────────────────────────────────────────────────
+/** Typewriter speed for story cards (characters per 60 Hz tick ≈ 45 chars/s). */
+export const STORY_CHARS_PER_TICK = 0.75;
+/** Play the typing blip every N revealed characters. */
+export const STORY_BLIP_EVERY     = 3;
+/** Ticks after a sequence opens during which advance/skip input is ignored,
+ *  so a jump pressed mid-run doesn't skip a story beat it walked into. */
+export const STORY_INPUT_GRACE    = 20;
 
 // ─── Viewport ───────────────────────────────────────────────────────────────
 export const VIEWPORT_W         = 480;

@@ -1,6 +1,8 @@
 // file: game/render/Renderer.ts
 
 import { drawBackground, updateBackground } from './Background';
+import { drawScenery } from './office/Scenery';
+import { VIEWPORT_W } from '../constants';
 import type { Tilemap } from '../level/Tilemap';
 import type { creaturesAndObjects } from '../creaturesAndObjects/creaturesAndObjects';
 import type { ParticleSystem } from '../ParticleSystem';
@@ -28,6 +30,7 @@ export class Renderer {
 
     updateBackground(camX);
     drawBackground(ctx);
+    drawScenery(ctx, camX, VIEWPORT_W);
     map.draw(ctx, camX);
 
     for (const e of entities) {

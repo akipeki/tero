@@ -9,6 +9,9 @@ export class InputHandler {
   private keyboardBits = 0;
   private mobileBits = 0;
   private justPressed = 0;     // set only for one frame
+  /** Keys pressed since the last tick — so a tap released before the tick
+   *  still registers as a press. */
+  private pressedSinceTick = 0;
 
   /** True for exactly one tick after a mute keybind is pressed. */
   muteJustPressed = false;
@@ -31,7 +34,8 @@ export class InputHandler {
   tick(): void {
     this.prevBits   = this.bits;
     this.bits       = this.keyboardBits | this.mobileBits;
-    this.justPressed = this.bits & ~this.prevBits;
+    this.justPressed = (this.bits & ~this.prevBits) | this.pressedSinceTick;
+    this.pressedSinceTick = 0;
     // mute one-shot is consumed by Game each frame
     if (!this.muteKeyDown) this.muteJustPressed = false;
   }
@@ -49,7 +53,7 @@ export class InputHandler {
 
   /** Mobile: called by React overlay buttons */
   setMobile(action: Action, down: boolean): void {
-    if (down) this.mobileBits |=  action;
+    if (down) { this.mobileBits |= action; this.pressedSinceTick |= action; }
     else      this.mobileBits &= ~action;
   }
 
@@ -83,7 +87,9 @@ export class InputHandler {
       this.muteJustPressed = true;
       return;
     }
-    this.keyboardBits |= keyToAction(e.key);
+    const action = keyToAction(e.key);
+    this.keyboardBits     |= action;
+    this.pressedSinceTick |= action;
   }
 
   private onKeyUp(e: KeyboardEvent): void {

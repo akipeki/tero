@@ -5,10 +5,13 @@ import { Tilemap } from './level/Tilemap';
 import { LEVELS, validateLevel as validateBuiltinLevel, type LevelDef } from './level/levels';
 import { buildLevel } from './level/buildLevel';
 import { contentStore } from './content/ContentStore';
-import type { LevelDef as PackLevelDef } from './content/types';
+import type { LevelDef as PackLevelDef, StoryCard } from './content/types';
+import { findMissingCardRefs } from './content/story/validate';
+import { StoryPlayer } from './StoryPlayer';
 import { Player } from './creaturesAndObjects/Player';
 import { Walker } from './creaturesAndObjects/Walker';
 import { Hopper } from './creaturesAndObjects/Hopper';
+import { enemyClass } from './creaturesAndObjects/enemyKinds';
 import { Mushroom } from './creaturesAndObjects/Mushroom';
 import { QuestionBlock } from './creaturesAndObjects/QuestionBlock';
 import { Goal } from './creaturesAndObjects/Goal';
@@ -22,12 +25,17 @@ import { InputHandler } from './InputHandler';
 import { AudioManager } from './AudioManager';
 import { Stats } from './Stats';
 import { saveSettings, loadSettings } from './Settings';
-import { GameState, Action } from './types';
-import { CHAIN_BONUS } from './constants';
+import { GameState, Action, PlayerState } from './types';
+import {
+  CHAIN_BONUS, SQUASH_STRENGTH, WALK_STRIDE_PX, WALK_BOB_PX, STORY_BLIP_EVERY,
+  STORY_INPUT_GRACE,
+} from './constants';
 import { updateBackground } from './render/Background';
-import { getPlayerFrame } from './render/sprites/PlayerSpriteAssets';
+import { layoutScenery, setScenery } from './render/office/Scenery';
+import { setDecor, isDecorId } from './render/office/decor';
+import { getPlayerFrame, framePaths } from './render/sprites/PlayerSpriteAssets';
 import type { creaturesAndObjects, UpdateCtx } from './creaturesAndObjects/creaturesAndObjects';
-import type { HudData, PlayerRenderData, RunStats } from './types';
+import type { HudData, PlayerRenderData, RunStats, StoryView } from './types';
 import { FIXED_DT, MAX_FRAME_TIME, VIEWPORT_W, VIEWPORT_H, STARTING_LIVES, TILE_SIZE } from './constants';
 
 interface EndScreenPayload {
@@ -47,6 +55,15 @@ export class Game {
   private particles: ParticleSystem;
   private shake: ScreenShake;
   private stats = new Stats();
+  private story = new StoryPlayer();
+  /** Last revealed-char count sent to the overlay (avoids redundant writes). */
+  private storyRevealSent = -1;
+  /** Ticks since the current sequence opened (for STORY_INPUT_GRACE). */
+  private storyAge = 0;
+  /** Pack definition of the current level — carries intro/outro/triggers. */
+  private levelPack: PackLevelDef | null = null;
+  /** Indices of mid-level triggers already played this attempt. */
+  private firedTriggers = new Set<number>();
 
   private map!: Tilemap;
   private camera!: Camera;
@@ -90,11 +107,16 @@ export class Game {
   onEndScreen?:    (data: EndScreenPayload | null) => void;
   onScore?:        (score: number) => void;
   onChain?:        (chainSize: number, bonus: number) => void;
+  /** New story card (or null when the sequence ends). */
+  onStory?:        (view: StoryView | null) => void;
+  /** Typewriter progress for the current card — fires every few ticks. */
+  onStoryReveal?:  (revealed: number) => void;
 
   private uiActionUnsub: (() => void) | null = null;
   private pendingEnter = false;
   private pendingRetry = false;
   private pendingQuit  = false;
+  private pendingSkip  = false;
 
   constructor(canvas: HTMLCanvasElement) {
     this.renderer = new Renderer(canvas);
@@ -108,6 +130,11 @@ export class Game {
       if (a === 'enter') this.pendingEnter = true;
       if (a === 'retry') this.pendingRetry = true;
     });
+
+    // Catch story typos (e.g. a deleted card still listed in a level) early.
+    for (const msg of findMissingCardRefs(contentStore().merged)) {
+      console.warn(`[Tero] missing story card: ${msg}`);
+    }
   }
 
   start(): void {
@@ -127,17 +154,18 @@ export class Game {
   }
 
   /** Called by React to trigger UI button → game-state transitions. */
-  signal(ui: 'enter' | 'retry' | 'quit'): void {
+  signal(ui: 'enter' | 'retry' | 'quit' | 'skip'): void {
     if (ui === 'enter') this.pendingEnter = true;
     if (ui === 'retry') this.pendingRetry = true;
     if (ui === 'quit')  this.pendingQuit  = true;
+    if (ui === 'skip')  this.pendingSkip  = true;
   }
 
   /** External: jump to a level by full pack ID (e.g. `b_level_1` or `u_level_xxx`). */
   selectLevel(id: string): void {
     if (!contentStore().getLevel(id)) return;
     this.currentLevelId = id;
-    this.enterPlaying();
+    this.enterPlaying(true);
   }
 
   // ─── Game loop ─────────────────────────────────────────────────────────────
@@ -153,7 +181,9 @@ export class Game {
       this.accumulator -= FIXED_DT;
     }
 
-    this.render();
+    // How far we are between the last update and the next one. Rendering at
+    // this fraction keeps motion smooth on displays faster than 60 Hz.
+    this.render(this.accumulator / FIXED_DT);
     this.rafId = requestAnimationFrame(this.loop);
   };
 
@@ -169,6 +199,7 @@ export class Game {
       case GameState.PAUSED:    return this.updatePaused();
       case GameState.GAME_OVER: return this.updateGameOver();
       case GameState.WIN:       return this.updateWin();
+      case GameState.STORY:     return this.updateStory();
     }
   }
 
@@ -184,7 +215,7 @@ export class Game {
       } else {
         this.currentLevelId = this.builtInPlaylist[0];
       }
-      this.enterPlaying();
+      this.enterPlaying(true);
     }
   }
 
@@ -225,7 +256,7 @@ export class Game {
       const idx = this.builtInPlaylist.indexOf(this.currentLevelId);
       if (idx >= 0 && idx < this.builtInPlaylist.length - 1) {
         this.currentLevelId = this.builtInPlaylist[idx + 1];
-        this.enterPlaying();
+        this.enterPlaying(true);
       } else {
         // User levels or the last built-in → back to the title.
         this.state = GameState.TITLE;
@@ -233,6 +264,74 @@ export class Game {
       }
     }
   }
+
+  private updateStory(): void {
+    if (this.storyAge++ < STORY_INPUT_GRACE) {
+      this.pendingEnter = this.pendingSkip = false;
+    } else if (this.input.pause || this.pendingSkip) {
+      this.pendingEnter = false;
+      this.pendingSkip = false;
+      this.story.skip();
+    } else if (this.pendingEnter || this.input.justPressedAction(Action.JUMP)) {
+      this.pendingEnter = false;
+      const before = this.story.index;
+      this.story.advance();
+      if (this.story.active && this.story.index !== before) this.emitStoryCard();
+    }
+    if (!this.story.active) return;
+
+    this.story.tick();
+    const n = this.story.revealed;
+    if (n !== this.storyRevealSent) {
+      if (Math.floor(n / STORY_BLIP_EVERY) !== Math.floor(this.storyRevealSent / STORY_BLIP_EVERY)) {
+        this.audio.play('text');
+      }
+      this.storyRevealSent = n;
+      this.onStoryReveal?.(n);
+    }
+  }
+
+  /** Shows `cardIds` over the frozen world, then runs `then`. The run timer
+   *  is paused for the duration. Missing ids are skipped. */
+  private playStory(cardIds: readonly string[] | undefined, then: () => void): void {
+    const store = contentStore();
+    const cards = (cardIds ?? [])
+      .map((id) => store.getCard(id))
+      .filter((c): c is StoryCard => c !== null);
+    if (cards.length === 0) { then(); return; }
+
+    this.stats.pause();
+    this.state = GameState.STORY;
+    this.storyAge = 0;
+    this.story.start(cards, () => {
+      this.onStory?.(null);
+      this.stats.resume();
+      then();
+      this.syncHud();
+    });
+    this.emitStoryCard();
+    this.syncHud();
+  }
+
+  private emitStoryCard(): void {
+    const card = this.story.card;
+    if (!card) return;
+    const portrait = card.portrait ? contentStore().getSprite(card.portrait) : null;
+    this.storyRevealSent = -1;
+    this.audio.play('plop');
+    this.onStory?.({
+      speaker: card.speaker,
+      portraitSrc: portrait?.dataUrl,
+      portraitFrames: portrait?.frames,
+      text: card.text,
+      index: this.story.index,
+      total: this.story.total,
+    });
+  }
+
+  private resumePlaying = (): void => {
+    this.state = GameState.PLAYING;
+  };
 
   private updatePlaying(): void {
     if (this.input.pause) {
@@ -319,13 +418,15 @@ export class Game {
     // Goal
     this.goal.update(ctx);
     if (this.goal.checkTrigger(this.player, ctx)) {
-      this.endRun('WIN');
+      this.stats.pause(); // stop the clock at the goal, not after the outro
+      this.playStory(this.levelPack?.outro, () => this.endRun('WIN'));
       return;
     }
 
     this.particles.update();
     this.shake.update();
     this.camera.follow(this.player.cx);
+    this.checkStoryTriggers();
 
     // Cull inactive
     this.walkers   = this.walkers.filter(w => w.active);
@@ -336,9 +437,21 @@ export class Game {
     this.syncHud();
   }
 
+  private checkStoryTriggers(): void {
+    const triggers = this.levelPack?.triggers;
+    if (!triggers || this.player.isDead) return;
+    for (let i = 0; i < triggers.length; i++) {
+      if (this.firedTriggers.has(i)) continue;
+      if (this.player.cx < triggers[i].tx * TILE_SIZE) continue;
+      this.firedTriggers.add(i);
+      this.playStory(triggers[i].cards, this.resumePlaying);
+      return; // one beat at a time; the next fires on a later tick
+    }
+  }
+
   // ─── Render ────────────────────────────────────────────────────────────────
 
-  private render(): void {
+  private render(alpha: number): void {
     const ctx = this.renderer.context;
     ctx.clearRect(0, 0, VIEWPORT_W, VIEWPORT_H);
 
@@ -355,47 +468,78 @@ export class Game {
 
     switch (this.state) {
       case GameState.TITLE:
-        updateBackground(this.camera?.x ?? 0);
+        updateBackground(Math.round(this.camera?.x ?? 0));
         this.renderer.drawTitleBackground();
         break;
       case GameState.PLAYING:
       case GameState.PAUSED:
       case GameState.GAME_OVER:
       case GameState.WIN:
-        this.renderer.render(this.camera.x, this.map, allEntities, this.particles, this.shake);
+      case GameState.STORY:
+        // The canvas is low-res pixel art, so the world scrolls in whole pixels.
+        this.renderer.render(Math.round(this.camera.at(alpha)), this.map, allEntities, this.particles, this.shake);
         break;
     }
 
-    this.syncPlayerOverlay();
+    this.syncPlayerOverlay(alpha);
   }
 
-  private syncPlayerOverlay(): void {
+  private syncPlayerOverlay(alpha: number): void {
     if (!this.onPlayerRender) return;
     const visible =
       this.player && this.camera && this.state !== GameState.TITLE;
     if (!visible) { this.onPlayerRender(null); return; }
-    const frame = getPlayerFrame(this.player.state);
+
+    const p = this.player;
+    // Freeze interpolation while the simulation is paused.
+    const a = this.state === GameState.PLAYING ? alpha : 1;
+    const camX = this.camera.at(a);
+    const footX = p.prevCx    + (p.cx     - p.prevCx)    * a;
+    const footY = p.prevFootY + (p.bottom - p.prevFootY) * a;
+
+    let frame = getPlayerFrame(p.state);
+    let frameIdx = 0;
+    let bobY = 0;
+    const walking = p.state === PlayerState.WALK || p.state === PlayerState.BIG_WALK;
+    if (walking) {
+      const stride = frame.stride ?? WALK_STRIDE_PX;
+      const step = Math.floor(p.walkDistance / stride);
+      if (frame.frames > 1) {
+        // A real walk cycle carries its own bob in the art.
+        frameIdx = step % frame.frames;
+      } else {
+        // Two-pose fallback: alternate the walk and idle images per stride,
+        // lifting on the passing pose of each step.
+        frame = step % 2 === 0 ? framePaths.walk : framePaths.idle;
+        bobY = -WALK_BOB_PX * Math.abs(Math.sin((Math.PI * p.walkDistance) / stride));
+      }
+    } else if (frame.frames > 1) {
+      frameIdx = Math.floor((performance.now() / 1000) * frame.fps) % frame.frames;
+    }
+
     this.onPlayerRender({
-      x: this.player.x,
-      y: this.player.y,
-      w: this.player.w,
-      h: this.player.h,
-      camX: this.camera.x,
-      facingRight: this.player.facingRight,
-      frameSrc: frame.src,
+      screenX: footX - camX + this.shake.offsetX,
+      screenY: footY + this.shake.offsetY,
+      bobY,
+      facingRight: p.facingRight,
+      src: frame.src,
       frames: frame.frames,
-      fps: frame.fps,
-      scaleX: this.player.scaleX,
-      scaleY: this.player.scaleY,
-      shouldFlash: this.player.shouldFlash,
+      frameIdx,
+      scaleX: 1 + (p.scaleX - 1) * SQUASH_STRENGTH,
+      scaleY: 1 + (p.scaleY - 1) * SQUASH_STRENGTH,
+      shouldFlash: p.shouldFlash,
+      big: p.isBig,
     });
   }
 
   // ─── Level setup ───────────────────────────────────────────────────────────
 
-  private enterPlaying(): void {
+  /** Loads the current level. `withIntro` plays the chapter/level intro
+   *  first — true when arriving fresh, false on retry/restart. */
+  private enterPlaying(withIntro = false): void {
     this.audio.init();
     this.audio.stopMusic();
+    if (this.story.active) { this.story.cancel(); this.onStory?.(null); }
     this.loadLevel();
     this.audio.startMusic();
     this.stats.reset();
@@ -403,7 +547,15 @@ export class Game {
     this.onEndScreen?.(null);
     saveSettings({ lastLevelId: this.currentLevelId });
     this.state = GameState.PLAYING;
+    if (withIntro) this.playStory(this.introCardIds(), this.resumePlaying);
     this.syncHud();
+  }
+
+  /** Chapter intro (if this level opens a chapter) followed by the level intro. */
+  private introCardIds(): string[] {
+    const chapter = contentStore().merged.story.chapters
+      .find((c) => c.levelIds[0] === this.currentLevelId);
+    return [...(chapter?.intro ?? []), ...(this.levelPack?.intro ?? [])];
   }
 
   private recordStomp(): void {
@@ -420,6 +572,8 @@ export class Game {
     const L = this.resolveCurrentLevel();
     validateBuiltinLevel(L);
     this.currentRuntimeLevel = L;
+    this.levelPack = contentStore().getLevel(this.currentLevelId);
+    this.firedTriggers.clear();
     setTheme(L.theme);
 
     this.map = new Tilemap([...L.tiles], L.width, L.height);
@@ -432,12 +586,14 @@ export class Game {
     this.player = new Player(spawnX, spawnY, STARTING_LIVES);
     this.player.spawnX = spawnX;
     this.player.spawnY = spawnY;
+    this.camera.snap(this.player.cx);
 
     this.walkers = [];
     this.hoppers = [];
     for (const s of L.spawns.enemies) {
-      if (s.type === 'walker') this.walkers.push(new Walker(s.tx, s.ty));
-      else if (s.type === 'hopper') this.hoppers.push(new Hopper(s.tx, s.ty));
+      const e = enemyClass(s.type);
+      if (e.cls === 'walker') this.walkers.push(new Walker(s.tx, s.ty, e.variant));
+      else this.hoppers.push(new Hopper(s.tx, s.ty, e.variant));
     }
 
     this.qblocks = L.spawns.blocks.map(s => new QuestionBlock(s.tx, s.ty));
@@ -448,6 +604,29 @@ export class Game {
 
     this.mushrooms = [];
     this.goal = new Goal(L.spawns.goal.tx, L.spawns.goal.ty);
+
+    // Each office floor has its own décor; unknown ids fall back to cubicles.
+    const decor = this.levelPack?.decor;
+    setDecor(decor && isDecorId(decor) ? decor : undefined);
+
+    // Office gags: authored story hints + seeded auto-fill. Kept clear of the
+    // elevator so the goal always reads.
+    setScenery(L.theme === 'office'
+      ? layoutScenery(this.map, {
+          levelId: L.id,
+          authored: this.levelPack?.scenery,
+          mood: this.levelPack?.gagMood,
+          density: this.levelPack?.gagDensity,
+          decor: decor && isDecorId(decor) ? decor : 'cubicles',
+          goalWriting: this.levelPack?.goalWriting
+            ? { gag: this.levelPack.goalWriting, centerX: this.goal.x + this.goal.w / 2 }
+            : undefined,
+          keepClear: [
+            [this.goal.x - 40, this.goal.x + this.goal.w + 40],
+            ...(this.levelPack?.quietZones ?? []).map(([a, b]): [number, number] => [a * TILE_SIZE, (b + 1) * TILE_SIZE]),
+          ],
+        })
+      : []);
   }
 
   private endRun(outcome: 'WIN' | 'GAME_OVER'): void {

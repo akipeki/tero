@@ -6,11 +6,15 @@
 // Built-in ids are prefixed `b_` so user ids (`u_`) never collide.
 
 import { LEVELS } from '../level/levels';
-import { framePaths } from '../render/sprites/PlayerSpriteAssets';
+import { framePaths, PLAYER_FRAME_PX } from '../render/sprites/PlayerSpriteAssets';
 import type {
   ContentPack, LevelDef, SpriteAsset, EntityDef, Chapter, StoryCard,
 } from './types';
 import { PACK_VERSION } from './types';
+import { STORY } from './story/script';
+import { compileStory } from './story/compile';
+
+const story = compileStory(STORY);
 
 // ─── Sprites: one per built-in player frame ──────────────────────────────────
 const sprites: Record<string, SpriteAsset> = Object.fromEntries(
@@ -20,14 +24,24 @@ const sprites: Record<string, SpriteAsset> = Object.fromEntries(
       id,
       name:    `Player · ${name}`,
       dataUrl: def.src,
-      // Source PNGs are 200×200; v1 doesn't try to introspect on disk.
-      width:   200,
-      height:  200,
+      width:   PLAYER_FRAME_PX,
+      height:  PLAYER_FRAME_PX,
       frames:  def.frames,
       fps:     def.fps,
     } satisfies SpriteAsset];
   }),
 );
+
+// Dad's portrait (single frame, rendered by `npm run sprites`).
+sprites.b_sprite_dad = {
+  id:      'b_sprite_dad',
+  name:    'Dad',
+  dataUrl: '/images/dragon/dad.png',
+  width:   PLAYER_FRAME_PX,
+  height:  PLAYER_FRAME_PX,
+  frames:  1,
+  fps:     1,
+};
 
 // ─── Entities: the six engine-supported bases ────────────────────────────────
 // Stats are left empty — the engine defaults take effect when stats are omitted.
@@ -80,18 +94,20 @@ const levels: Record<string, LevelDef> = Object.fromEntries(
       height: L.height,
       rows:   rowsFromTiles(L.tiles, L.width, L.height),
       spawns: L.spawns,
+      ...story.levels[id],
     } satisfies LevelDef];
   }),
 );
 
-// ─── Story: one default chapter listing the built-in levels ──────────────────
-const defaultChapter: Chapter = {
+// ─── Story: compiled from story/script.ts ─────────────────────────────────────
+// Falls back to one chapter listing every built-in level if the script has none.
+const chapters: Chapter[] = story.chapters.length > 0 ? story.chapters : [{
   id:       'b_chapter_main',
   name:     'The Journey',
   levelIds: Object.keys(levels),
-};
+}];
 
-const cards: Record<string, StoryCard> = {};
+const cards: Record<string, StoryCard> = story.cards;
 
 export const defaultPack: ContentPack = {
   meta: {
@@ -104,7 +120,7 @@ export const defaultPack: ContentPack = {
   entities,
   levels,
   story: {
-    chapters: [defaultChapter],
+    chapters,
     cards,
   },
 };

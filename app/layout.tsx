@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Press_Start_2P } from "next/font/google";
 import "./globals.css";
+import { criticalFrames } from "@/game/render/sprites/PlayerSpriteAssets";
+import { GAME_FULL_TITLE } from "@/game/title";
 
 const pressStart = Press_Start_2P({
   weight: "400",
@@ -10,17 +12,12 @@ const pressStart = Press_Start_2P({
 });
 
 export const metadata: Metadata = {
-  title: "Project TERO",
-  description: "Retro pixel platformer",
+  title: GAME_FULL_TITLE,
+  description: "A retro pixel platformer: a baby dragon storms his dad's office to bring him home.",
 };
 
 // Critical player frames — preload so the very first PLAY tap doesn't pop in.
-const PRELOAD = [
-  "/images/tero/Tero_Idle.png",
-  "/images/tero/Tero_Walk.png",
-  "/images/tero/Tero_Jump.png",
-  "/images/tero/Tero_Fall.png",
-];
+const PRELOAD = criticalFrames;
 
 export default function RootLayout({
   children,

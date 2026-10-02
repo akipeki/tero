@@ -1,3 +1,5 @@
+import type { EnemyType } from './creaturesAndObjects/enemyKinds';
+
 // ─── Game State ──────────────────────────────────────────────────────────────
 export const enum GameState {
   TITLE     = 'TITLE',
@@ -5,6 +7,8 @@ export const enum GameState {
   PAUSED    = 'PAUSED',
   GAME_OVER = 'GAME_OVER',
   WIN       = 'WIN',
+  /** A story sequence is on screen; the world is frozen behind it. */
+  STORY     = 'STORY',
 }
 
 // ─── Input ───────────────────────────────────────────────────────────────────
@@ -55,7 +59,7 @@ export const enum creaturesAndObjectsType {
 }
 
 // ─── Spawn definitions (in level data) ───────────────────────────────────────
-export interface EnemySpawn { type: 'walker' | 'hopper'; tx: number; ty: number }
+export interface EnemySpawn { type: EnemyType; tx: number; ty: number }
 export interface BlockSpawn  { type: 'question'; tx: number; ty: number }
 export interface GoalSpawn   { tx: number; ty: number }
 export interface PlayerSpawn { tx: number; ty: number }
@@ -97,19 +101,36 @@ export interface RunStats {
 
 // ─── Player render data (game → React DOM overlay) ───────────────────────────
 export interface PlayerRenderData {
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-  camX: number;
+  /** Foot-centre in viewport (game) pixels — interpolated, camera- and
+   *  shake-adjusted, NOT rounded. The overlay snaps to device pixels. */
+  screenX: number;
+  screenY: number;
+  /** Extra vertical offset (game px, negative = up) from the walk bob.
+   *  Kept separate so the UI can drop it under prefers-reduced-motion. */
+  bobY: number;
   facingRight: boolean;
-  /** Image path. For sprite sheets this is the strip; UI cycles via background-position. */
-  frameSrc: string;
-  /** Number of horizontal frames in `frameSrc`. 1 = static image. */
+  /** Image path. For sprite sheets this is the horizontal strip. */
+  src: string;
+  /** Number of horizontal frames in `src`. 1 = static image. */
   frames: number;
-  /** Cycle rate when frames > 1. */
-  fps: number;
+  /** Which cell of the strip to show (0 when frames === 1). */
+  frameIdx: number;
+  /** Squash/stretch, already damped by SQUASH_STRENGTH. */
   scaleX: number;
   scaleY: number;
   shouldFlash: boolean;
+  /** Caffeinated — drawn BIG_SPRITE_SCALE larger. */
+  big: boolean;
+}
+
+// ─── Story overlay (game → React) ────────────────────────────────────────────
+export interface StoryView {
+  speaker?: string;
+  /** Portrait image (first frame of a strip is shown). */
+  portraitSrc?: string;
+  portraitFrames?: number;
+  text: string;
+  /** 0-based position in the current sequence. */
+  index: number;
+  total: number;
 }
