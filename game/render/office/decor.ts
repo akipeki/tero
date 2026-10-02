@@ -36,6 +36,8 @@ export interface Decor {
   blinds: number;
   /** Window size multiplier (penthouse gets floor-to-ceiling glass). */
   windowScale: number;
+  /** 'barred' = small prison windows with metal bars and only black outside. */
+  windows?: 'view' | 'barred';
   sky: [string, string, string];
   /** The motivational poster + clock between windows. */
   poster: boolean;
@@ -55,7 +57,7 @@ export const DECORS: Record<DecorId, Decor> = {
     id: 'basement',
     wall: '#9a9a92', wallStripe: '#8e8e86', rail: '#5a5a54', railLight: '#74746c',
     wainscot: '#6e6e66', wainscotPanel: '#64645c', wainscotLight: '#7c7c74',
-    blinds: 0.55, windowScale: 0.6, sky: ['#1f2433', '#3a3f55', '#5a5a6a'], poster: false,
+    blinds: 0, windowScale: 0.6, windows: 'barred', sky: ['#000000', '#000000', '#000000'], poster: false,
     mid: 'shelving',
     carpet: ['#6b5a44', '#7d6a52', '#544634'], slab: ['#7a7a72', '#8e8e86', '#5e5e58'],
     desk: 'metal', ceiling: '#cfccc0', haze: 'rgba(120,120,112,0.30)',

@@ -67,7 +67,7 @@ export class Tilemap {
             break;
 
           case TileType.PLATFORM:
-            drawPlatformTile(ctx, sx, sy);
+            drawPlatformTile(ctx, sx, sy, tx);
             break;
 
           case TileType.HAZARD:

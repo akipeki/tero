@@ -42,6 +42,8 @@ export interface StoryScript<C extends string> {
     density?: GagDensity;
     /** The floor's look: wallpaper, carpet, desks, background. */
     decor?: DecorId;
+    /** Tile ranges [from, to] with no random gags — empty corridors. */
+    quiet?: [number, number][];
   }>;
 }
 
@@ -59,6 +61,7 @@ export interface LevelStory {
   goalWriting?: string;
   gagDensity?: GagDensity;
   decor?: string;
+  quietZones?: [number, number][];
 }
 
 export interface CompiledStory {
@@ -109,6 +112,7 @@ export function compileStory<C extends string>(script: StoryScript<C>): Compiled
       goalWriting: L.goalWriting,
       gagDensity: L.density,
       decor: L.decor,
+      quietZones: L.quiet,
     };
   }
 

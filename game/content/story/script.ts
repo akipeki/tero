@@ -18,6 +18,7 @@
 //                 goalWriting  Tero's crayon slogan above the elevator (his flagpole)
 //                 decor     the floor's look (render/office/decor.ts): basement,
 //                           cubicles, boardroom, legal, lab, security, executive, penthouse
+//                 quiet     [from, to] tile ranges the random gags leave empty
 //                 mood      'unhinged' lets the auto-fill use the weird tier-2 gags
 //                           (and use them first). Default is 'tame'.
 //
@@ -70,6 +71,7 @@ export const STORY = defineStory({
       goalWriting: 'crayon_power',
       intro: [
         { text: 'FLOOR 1 — THE MAILROOM.\nTHE PIPES HAVE BEEN LEAKING SINCE 1987.' },
+        { text: 'TIP: YELLOW-BLACK TAPE = YOU CAN STAND\nON IT. EVERYTHING ELSE IS JUST OFFICE.' },
         { who: 'tero', text: 'Dada? Dada!' },
       ],
       triggers: [
@@ -101,6 +103,7 @@ export const STORY = defineStory({
         { atTile: 34, gag: 'copier_slain' },
         { atTile: 40, gag: 'wet_floor_sign' },
         { atTile: 52, gag: 'vhs_archive' },
+        { atTile: 57, gag: 'grave_mark' },
         { atTile: 64, gag: 'wet_floor_sign' },
       ],
       outro: [
@@ -110,6 +113,8 @@ export const STORY = defineStory({
 
     '2': {
       decor: 'cubicles',
+      // a long, empty corridor after the opening: just the SYNERGY poster
+      quiet: [[18, 35]],
       density: 'sparse',
       goalWriting: 'crayon_want',
       intro: [
@@ -125,13 +130,13 @@ export const STORY = defineStory({
           ],
         },
         {
-          atTile: 32,
+          atTile: 50,
           lines: [
             { who: 'doris', text: 'Your father? Boardroom, sweetie.\nHave a bottle of coffee. Grow up fast.' },
           ],
         },
         {
-          atTile: 47,
+          atTile: 65,
           lines: [
             { who: 'tero', text: 'Das Kapital for Toddlers:\nWho owns our dadas?' },
           ],
@@ -139,11 +144,12 @@ export const STORY = defineStory({
       ],
       scenery: [
         { atTile: 11, gag: 'fridge_notes' },
+        { atTile: 25, gag: 'poster_synergy' },
         { atTile: 14, gag: 'dad_mug' },
-        { atTile: 46, gag: 'money_shrine' },
+        { atTile: 64, gag: 'money_shrine' },
         { atTile: 4,  gag: 'dead_xmas_tree' },
-        { atTile: 31, gag: 'water_dispenser' },
-        { atTile: 38, gag: 'vending_snacks' },
+        { atTile: 49, gag: 'water_dispenser' },
+        { atTile: 56, gag: 'vending_snacks' },
       ],
       outro: [
         { who: 'tero', text: 'Bottle good. More bottle.' },
@@ -277,6 +283,7 @@ export const STORY = defineStory({
         { atTile: 50, gag: 'intern_wheel' },
         { atTile: 58, gag: 'poodle_desk' },
         { atTile: 9,  gag: 'fax_machine' },
+        { atTile: 46, gag: 'poster_internet' },
         { atTile: 60, gag: 'room_motivate' },
       ],
       outro: [

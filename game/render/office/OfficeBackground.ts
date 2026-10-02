@@ -12,11 +12,12 @@ import { VIEWPORT_H, VIEWPORT_W } from '../../constants';
 import { Raster } from '../pixel/Raster';
 import { drawText, textWidth } from '../pixel/font';
 import { getDecor, type Decor, type DecorId } from './decor';
+import { mute } from './mute';
 
 const FAR_FACTOR = 0.15;
 const MID_FACTOR = 0.4;
-const FAR_W = 640;
-const MID_W = 512;
+const FAR_W = 960;   // two windows per 960px: long stretches of plain wall
+const MID_W = 768;
 const RAIL_Y = 168;
 const MID_TOP = 176;
 
@@ -91,15 +92,44 @@ function buildWall(d: Decor): HTMLCanvasElement {
 
 // ─── Windows strip ───────────────────────────────────────────────────────────
 
+/** Basement: small, high windows with prison bars and nothing but black outside. */
+function barredWindows(ctx: CanvasRenderingContext2D): void {
+  for (const wx of [70, 390]) {
+    const wy = 58, ww = 64, wh = 30;
+    rect(ctx, '#4e4e48', wx - 5, wy - 5, ww + 10, wh + 10);             // concrete recess
+    rect(ctx, '#64645c', wx - 5, wy - 5, ww + 10, 2);
+    rect(ctx, '#000000', wx, wy, ww, wh);
+    // bars: thick verticals, one crossbar, rust streaks below
+    for (let x = wx + 4; x < wx + ww; x += 8) {
+      rect(ctx, '#3a3f48', x, wy - 2, 3, wh + 4);
+      rect(ctx, '#6a707a', x, wy - 2, 1, wh + 4);
+      rect(ctx, '#7a4a2a', x + 1, wy + wh + 2, 1, 4 + (x % 3) * 2);
+    }
+    rect(ctx, '#3a3f48', wx - 2, wy + 12, ww + 4, 3);
+    rect(ctx, '#6a707a', wx - 2, wy + 12, ww + 4, 1);
+  }
+}
+
 function buildFar(d: Decor): HTMLCanvasElement {
   const [c, ctx] = canvas(FAR_W, VIEWPORT_H);
+  if (d.windows === 'barred') {
+    barredWindows(ctx);
+    const cx = 230, cy = 74;                                             // the 4:57 clock, even down here
+    circle(ctx, '#2b2b2b', cx, cy, 13); circle(ctx, '#f4f1e6', cx, cy, 11);
+    ctx.strokeStyle = '#1b1b1b'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + 5, cy + 3); ctx.stroke();
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx - 2, cy - 9); ctx.stroke();
+    for (let x = 20; x < FAR_W; x += 160) rect(ctx, 'rgba(255,250,220,0.25)', x, 0, 80, 3);
+    return c;
+  }
   const ww = Math.round(96 * d.windowScale);
   const wh = Math.round(92 * d.windowScale);
   const wy = Math.max(26, 44 - Math.round((wh - 92) / 2));
   const frame = d.id === 'penthouse' ? '#c9a24a' : d.id === 'boardroom' || d.id === 'legal' ? '#4a2e18' : '#8a8f96';
   const frameLight = d.id === 'penthouse' ? '#f0d27a' : '#b4b9bf';
 
-  for (const wx of [40, 360]) {
+  for (const wx of [60, 540]) {
     rect(ctx, frame, wx - 4, wy - 4, ww + 8, wh + 8);
     rect(ctx, frameLight, wx - 4, wy - 4, ww + 8, 2);
     const g = ctx.createLinearGradient(0, wy, 0, wy + wh);
@@ -131,17 +161,9 @@ function buildFar(d: Decor): HTMLCanvasElement {
     rect(ctx, frameLight, wx - 8, wy + wh + 4, ww + 16, 4);       // sill
   }
 
-  // between the windows
-  if (d.poster) {
-    const px = 214, py = 52;
-    rect(ctx, '#1b1b1b', px - 3, py - 3, 66, 82);
-    rect(ctx, '#0d0d0d', px, py, 60, 76);
-    ctx.fillStyle = '#4a5d8c';
-    ctx.beginPath(); ctx.moveTo(px + 4, py + 50); ctx.lineTo(px + 26, py + 14);
-    ctx.lineTo(px + 38, py + 32); ctx.lineTo(px + 46, py + 22); ctx.lineTo(px + 58, py + 50); ctx.fill();
-    rect(ctx, '#e8eef5', px + 22, py + 18, 8, 3);
-    text(ctx, 'SYNERGY', px + 17, py + 60, '#e9d9a6');
-  } else if (d.id === 'legal') {
+  // between the windows: one identity piece per floor (the SYNERGY poster is
+  // a placed gag now, so it doesn't repeat on every screen)
+  if (d.id === 'legal') {
     // portrait of the founding partner
     rect(ctx, '#c9a24a', 218, 48, 52, 66); rect(ctx, '#2a1f18', 222, 52, 44, 58);
     circle(ctx, '#a8b394', 244, 74, 10); rect(ctx, '#111111', 230, 88, 28, 22);
@@ -165,9 +187,9 @@ function buildFar(d: Decor): HTMLCanvasElement {
     text(ctx, 'CCTV', 237, 62, '#ffffff');
     text(ctx, 'ALWAYS ON', 227, 72, '#1b1620');
   }
-  if (d.poster || d.id === 'legal' || d.id === 'security' || d.id === 'basement') {
+  if (d.poster) {
     // the wall clock — forever 4:57
-    const cx = 302, cy = d.id === 'basement' ? 90 : 70;
+    const cx = 320, cy = 70;
     circle(ctx, '#2b2b2b', cx, cy, 13); circle(ctx, '#f4f1e6', cx, cy, 11);
     ctx.strokeStyle = '#1b1b1b'; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + 5, cy + 3); ctx.stroke();
@@ -217,20 +239,12 @@ function midCubicles(ctx: CanvasRenderingContext2D, top: number, bottom: number)
     rect(ctx, '#c9c6bb', x, top, 64, 4);
     rect(ctx, '#e0ddd2', x, top, 64, 1);
   }
-  for (const mx of [24, 176, 330, 440]) crt(ctx, mx, top - 22);
-  const fx = 110;
-  rect(ctx, '#8a4b2a', fx, top - 12, 16, 12);
-  for (const [lx, ly, r] of [[8, -22, 9], [2, -30, 7], [14, -32, 7], [8, -40, 6]]) {
-    circle(ctx, '#2f6e33', fx + lx, top + ly, r);
-    circle(ctx, '#4f9a48', fx + lx - 2, top + ly - 2, r - 3);
-  }
-  for (const [sx, n] of [[260, 4], [395, 6]]) {
-    for (let i = 0; i < n; i++) rect(ctx, i % 2 ? '#f4f1e6' : '#e3dfd2', sx + (i % 2), top - 2 - i * 2, 18, 2);
-  }
+  // one lonely monitor per stretch of cubicles
+  crt(ctx, 300, top - 22);
 }
 
 function midShelving(ctx: CanvasRenderingContext2D, top: number, bottom: number): void {
-  for (let x = 0; x < MID_W; x += 72) {
+  for (let x = 0; x < MID_W; x += 144) {
     rect(ctx, '#5a5f68', x + 2, top - 30, 3, bottom - top + 30);
     rect(ctx, '#5a5f68', x + 66, top - 30, 3, bottom - top + 30);
     for (const sy of [top - 30, top + 10, top + 50]) {
@@ -248,7 +262,8 @@ function midShelving(ctx: CanvasRenderingContext2D, top: number, bottom: number)
 }
 
 function midGlass(ctx: CanvasRenderingContext2D, top: number, bottom: number): void {
-  for (let x = 0; x < MID_W; x += 128) {
+  rect(ctx, '#7a5232', 0, top + 20, MID_W, bottom - top - 20);
+  for (let x = 0; x < MID_W; x += 256) {
     rect(ctx, '#3e2614', x, top - 40, 128, 4);
     rect(ctx, '#3e2614', x, top - 40, 4, bottom - top + 40);
     // tinted glass with a long table and empty chairs behind it
@@ -263,7 +278,7 @@ function midGlass(ctx: CanvasRenderingContext2D, top: number, bottom: number): v
 
 function midBinders(ctx: CanvasRenderingContext2D, top: number, bottom: number): void {
   const spines = ['#2c4a8a', '#c8323a', '#e8b72f', '#2f6e33', '#f4f1e6', '#1b1620'];
-  for (let x = 0; x < MID_W; x += 96) {
+  for (let x = 0; x < MID_W; x += 192) {
     rect(ctx, '#3e2614', x, top - 44, 96, bottom - top + 44);
     for (const sy of [top - 40, top - 10, top + 20, top + 50]) {
       rect(ctx, '#2a1a0e', x + 4, sy, 88, 26);
@@ -278,7 +293,7 @@ function midBinders(ctx: CanvasRenderingContext2D, top: number, bottom: number):
 }
 
 function midLab(ctx: CanvasRenderingContext2D, top: number, bottom: number): void {
-  for (let x = 0; x < MID_W; x += 128) {
+  for (let x = 0; x < MID_W; x += 384) {
     // whiteboard with an indecipherable plan
     rect(ctx, '#8a8f96', x + 8, top - 42, 70, 44);
     rect(ctx, '#ffffff', x + 10, top - 40, 66, 40);
@@ -299,9 +314,9 @@ function midLab(ctx: CanvasRenderingContext2D, top: number, bottom: number): voi
 }
 
 function midMonitors(ctx: CanvasRenderingContext2D, top: number, bottom: number): void {
-  rect(ctx, '#2a2e35', 0, top - 48, MID_W, bottom - top + 48);
+  rect(ctx, '#2a2e35', 0, top - 18, MID_W, bottom - top + 18);
   for (let x = 4; x < MID_W; x += 36) {
-    for (const y of [top - 44, top - 14]) {
+    for (const y of [top - 14]) {
       rect(ctx, '#111111', x, y, 32, 26);
       rect(ctx, '#3a4a3a', x + 2, y + 2, 28, 20);
       // grainy CCTV: an empty corridor, a desk, a figure
@@ -315,14 +330,14 @@ function midMonitors(ctx: CanvasRenderingContext2D, top: number, bottom: number)
 
 function midMemphis(ctx: CanvasRenderingContext2D, top: number, bottom: number): void {
   rect(ctx, '#1d1d24', 0, top, MID_W, bottom - top);
-  for (let x = 0; x < MID_W; x += 16) {
-    rect(ctx, '#ffd23f', x + 2, top + 6 + (x % 32 ? 0 : 4), 6, 2);
+  for (let x = 0; x < MID_W; x += 48) {
+    rect(ctx, '#ffd23f', x + 2, top + 6 + (x % 96 ? 0 : 4), 6, 2);
     rect(ctx, '#ff77a8', x + 8, top + 18, 2, 2);
     rect(ctx, '#2f8f8a', x + 4, top + 30 + ((x / 16) % 2) * 3, 8, 2);
   }
   rect(ctx, '#ff77a8', 0, top, MID_W, 3);
   // potted palms
-  for (const px of [60, 300]) {
+  for (const px of [300]) {
     rect(ctx, '#f4f1e6', px, top - 14, 14, 14);
     for (const [dx, dy] of [[-10, -26], [10, -28], [0, -34], [-14, -18], [16, -18]]) {
       ctx.strokeStyle = '#2f6e33'; ctx.lineWidth = 3;
@@ -344,7 +359,7 @@ function midMarble(ctx: CanvasRenderingContext2D, top: number, bottom: number): 
   }
   rect(ctx, '#f6f2e8', 0, top - 30, MID_W, 6);
   rect(ctx, '#c9a24a', 0, top - 30, MID_W, 1);
-  for (const ux of [100, 340]) {
+  for (const ux of [340]) {
     // gold urns
     circle(ctx, '#c9a24a', ux, top - 40, 8);
     rect(ctx, '#a07e2e', ux - 3, top - 32, 6, 2);
@@ -364,7 +379,12 @@ export function drawOfficeBackground(ctx: CanvasRenderingContext2D, camX: number
   const d = getDecor();
   let layers = cache.get(d.id);
   if (!layers) {
-    layers = { wall: buildWall(d), far: buildFar(d), mid: buildMid(d) };
+    // Scenery is muted so the bright gameplay layer pops (see mute.ts).
+    layers = {
+      wall: mute(buildWall(d), 0.45, d.wall, 0.12),
+      far:  mute(buildFar(d), 0.5, d.wall, 0.15),
+      mid:  mute(buildMid(d), 0.6, d.wall, 0.18),
+    };
     cache.set(d.id, layers);
   }
   ctx.drawImage(layers.wall, 0, 0);

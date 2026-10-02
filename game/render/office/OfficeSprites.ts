@@ -16,6 +16,7 @@ import type { CoinSpriteProps } from '../sprites/CoinSprite';
 import type { MushroomSpriteProps } from '../sprites/MushroomSprite';
 import type { QuestionBlockSpriteProps } from '../sprites/QuestionBlockSprite';
 import { QUESTION_MARK_GLYPH, drawGlyph } from '../sprites/glyphs';
+import { safetyEdge } from './OfficeTiles';
 
 // ─── Character cache ─────────────────────────────────────────────────────────
 
@@ -73,6 +74,13 @@ export function drawOfficeWalker(ctx: CanvasRenderingContext2D, p: WalkerSpriteP
 export function drawOfficeHopper(ctx: CanvasRenderingContext2D, p: HopperSpriteProps): void {
   const variant = p.variant ?? 'manager';
   const air = p.airborne && !p.dying;
+  if (air && p.groundY != null) {
+    // shadow on the floor below, shrinking the higher it hops
+    const height = p.groundY - (p.y + p.h);
+    const w = Math.max(6, Math.round(p.w - height / 4));
+    ctx.fillStyle = 'rgba(20,16,24,0.35)';
+    ctx.fillRect(Math.round(p.x - p.camX + p.w / 2 - w / 2), p.groundY - 2, w, 3);
+  }
   blitHuman(ctx, facings(`${variant}${air ? 1 : 0}`, () => HOPPER_ART[variant](air)), p);
 }
 
@@ -91,9 +99,12 @@ export function drawOfficeCoin(ctx: CanvasRenderingContext2D, p: CoinSpriteProps
   const y = sy + 1;
   const bob = Math.round(Math.sin(p.spinPhase * Math.PI * 2) * 1);
 
+  // pickup glow: a warm halo so floppies read as "collect me" on any floor
+  ctx.fillStyle = 'rgba(255,226,110,0.75)';
+  ctx.fillRect(x - 3, y - 3 + bob, w + 6, H + 6);
   ctx.fillStyle = '#141824';
   ctx.fillRect(x - 1, y - 1 + bob, w + 2, H + 2);
-  ctx.fillStyle = '#2b3f8c';
+  ctx.fillStyle = '#3f62d8';
   ctx.fillRect(x, y + bob, w, H);
   if (w >= 8) {
     const s = w / W;
@@ -109,6 +120,12 @@ export function drawOfficeCoin(ctx: CanvasRenderingContext2D, p: CoinSpriteProps
     ctx.fillRect(x + Math.round(3 * s), y + 9 + bob, Math.round(7 * s), 1);
     ctx.fillStyle = '#6b7280';
     ctx.fillRect(x + Math.round(3 * s), y + 11 + bob, Math.round(5 * s), 1);
+  }
+  // blinking sparkle
+  if (Math.floor(p.spinPhase * 4) % 2 === 0) {
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(sx + W + 1, sy - 2, 1, 3);
+    ctx.fillRect(sx + W, sy - 1, 3, 1);
   }
   ctx.globalAlpha = 1;
 }
@@ -147,53 +164,50 @@ export function drawOfficeMug(ctx: CanvasRenderingContext2D, p: MushroomSpritePr
   ctx.restore();
 }
 
-// ─── Computer "?" block ──────────────────────────────────────────────────────
+// ─── Mystery package box ("?" block) ─────────────────────────────────────────
 
-export function drawOfficeComputer(ctx: CanvasRenderingContext2D, p: QuestionBlockSpriteProps): void {
+/** A bright cardboard box with a shipping label: floppy-disk icon and a "?".
+ *  Bright on purpose — everything you can hit, stand on or collect is; the
+ *  office around it is muted. Once opened it's a dull, empty, torn box. */
+export function drawOfficeBox(ctx: CanvasRenderingContext2D, p: QuestionBlockSpriteProps): void {
   const S = TILE_SIZE;
   const sx = Math.floor(p.x - p.camX);
   const sy = Math.floor(p.y + p.bumpOffset);
+  const rect = (c: string, x: number, y: number, w: number, h: number) => {
+    ctx.fillStyle = c;
+    ctx.fillRect(sx + x, sy + y, w, h);
+  };
 
-  // beige case with bevel
-  ctx.fillStyle = '#1b1620';
-  ctx.fillRect(sx, sy, S, S);
-  ctx.fillStyle = '#d8cfb8';
-  ctx.fillRect(sx + 1, sy + 1, S - 2, S - 2);
-  ctx.fillStyle = '#efe8d4';
-  ctx.fillRect(sx + 1, sy + 1, S - 2, 2);
-  ctx.fillRect(sx + 1, sy + 1, 2, S - 2);
-  ctx.fillStyle = '#a99f86';
-  ctx.fillRect(sx + S - 3, sy + 2, 2, S - 3);
-  ctx.fillRect(sx + 2, sy + S - 3, S - 3, 2);
-
-  // screen
-  const open = p.state === 'open';
-  ctx.fillStyle = '#5a5446';
-  ctx.fillRect(sx + 4, sy + 4, S - 8, 18);
-  ctx.fillStyle = open ? '#1d3fa8' : '#10261a';
-  ctx.fillRect(sx + 5, sy + 5, S - 10, 16);
-
-  if (open) {
-    // blue screen of sadness  :(
-    ctx.fillStyle = '#f4f1e6';
-    ctx.fillRect(sx + 11, sy + 9, 2, 2);
-    ctx.fillRect(sx + 11, sy + 14, 2, 2);
-    ctx.fillRect(sx + 16, sy + 8, 2, 2);
-    ctx.fillRect(sx + 15, sy + 10, 2, 6);
-    ctx.fillRect(sx + 16, sy + 16, 2, 2);
-  } else {
-    const blink = p.animFrame === 3;
-    drawGlyph(ctx, QUESTION_MARK_GLYPH, sx + 11, sy + 6, 2, blink ? '#1f6b3a' : '#46e07a');
-    // scanlines
-    ctx.fillStyle = 'rgba(0,0,0,0.25)';
-    for (let y = sy + 6; y < sy + 21; y += 2) ctx.fillRect(sx + 5, y, S - 10, 1);
+  if (p.state === 'open') {
+    rect('#1b1620', 0, 0, S, S);
+    rect('#8a6a48', 1, 4, S - 2, S - 5);
+    rect('#6e5236', 1, S - 4, S - 2, 3);
+    // flaps torn open, nothing inside
+    rect('#7a5c3c', 1, 1, 12, 4);
+    rect('#7a5c3c', S - 13, 1, 12, 4);
+    rect('#3a2a1a', 4, 5, S - 8, 3);
+    return;
   }
 
-  // floppy slot + power LED
-  ctx.fillStyle = '#5a5446';
-  ctx.fillRect(sx + 6, sy + 25, 12, 2);
-  ctx.fillStyle = open ? '#8a846f' : '#46e07a';
-  ctx.fillRect(sx + 23, sy + 25, 3, 2);
+  rect('#1b1620', 0, 0, S, S);
+  rect('#e0a050', 1, 1, S - 2, S - 2);
+  rect('#f4c47a', 1, 1, S - 2, 2);
+  rect('#f4c47a', 1, 1, 2, S - 2);
+  rect('#b0743a', S - 3, 2, 2, S - 3);
+  rect('#b0743a', 2, S - 3, S - 3, 2);
+  rect('#b0743a', S / 2, 4, 1, 4);                    // flap seam
+
+  // shipping label: floppy disk + a "?" that pulses
+  const pulse = p.animFrame === 3 ? 1 : 0;
+  rect('#1b1620', 6, 9 - pulse, 20, 16);
+  rect('#ffffff', 7, 10 - pulse, 18, 14);
+  rect('#2b3f8c', 9, 12 - pulse, 7, 8);               // disk
+  rect('#c9ced6', 10, 12 - pulse, 5, 3);
+  rect('#f4f1e6', 10, 16 - pulse, 5, 3);
+  drawGlyph(ctx, QUESTION_MARK_GLYPH, sx + 18, sy + 13 - pulse, 1, '#e8323a');
+
+  // the same safety tape as every standable surface
+  safetyEdge(ctx, sx, sy, S, Math.floor(p.x / S));
 }
 
 // ─── Water cooler (checkpoint) ───────────────────────────────────────────────

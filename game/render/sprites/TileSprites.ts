@@ -61,8 +61,9 @@ export function drawPlatformTile(
   ctx: CanvasRenderingContext2D,
   sx: number,
   sy: number,
+  tx = 0,
 ): void {
-  if (isOffice()) return drawOfficePlatform(ctx, sx, sy);
+  if (isOffice()) return drawOfficePlatform(ctx, sx, sy, tx);
   const theme = getTheme();
   const S = TILE_SIZE;
   const cfg = tileConfig.platform;

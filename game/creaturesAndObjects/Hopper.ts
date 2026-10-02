@@ -17,6 +17,8 @@ export class Hopper extends creaturesAndObjects {
   private dying = false;
   private dyingTimer = 0;
   scaleY = 1;
+  /** World y of the floor under an airborne hopper (for its shadow). */
+  private groundY: number | null = null;
   readonly variant: HopperVariant;
   private spec: HopperSpec;
 
@@ -55,6 +57,15 @@ export class Hopper extends creaturesAndObjects {
     }
 
     stepBody(this, ctx.map);
+
+    // Find the floor below while airborne, so the sprite can drop a shadow
+    // there — makes a hop read as a hop, not as floating.
+    this.groundY = null;
+    if (!this.onGround) {
+      for (let y = this.bottom; y < this.bottom + TILE_SIZE * 6; y += 2) {
+        if (ctx.map.solidAt(this.cx, y)) { this.groundY = Math.floor(y / TILE_SIZE) * TILE_SIZE; break; }
+      }
+    }
   }
 
   checkPlayerInteraction(player: Player, ctx: UpdateCtx): boolean {
@@ -96,6 +107,7 @@ export class Hopper extends creaturesAndObjects {
       dying: this.dying,
       scaleY: this.scaleY,
       variant: this.variant,
+      groundY: this.groundY,
     });
   }
 }

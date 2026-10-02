@@ -15,6 +15,7 @@ import type { SceneryPlacement, GagMood, GagDensity } from '../../content/types'
 import type { DecorId } from './decor';
 import type { Raster } from '../pixel/Raster';
 import { GAGS, GAG_IDS, isGagId, type Gag, type GagId } from './gags';
+import { mute } from './mute';
 
 export interface PlacedGag {
   id: GagId;
@@ -25,11 +26,13 @@ export interface PlacedGag {
 
 /** Spacing between auto-placed gags, in world px, per density. */
 const FILL: Record<GagDensity, [number, number]> = {
-  normal: [150, 230],
-  sparse: [300, 420],
+  normal: [300, 440],
+  sparse: [460, 640],
 };
 /** Gap auto gags keep from authored gags of the same kind (world px). */
 const AUTHORED_GAP = 24;
+/** How far floor props sit back from the carpet edge (world px). */
+export const WALL_SETBACK = 4;
 /** Rows the floor props may stand on (the visible ground band). */
 const FLOOR_ROWS = [6, 7, 8];
 
@@ -46,7 +49,13 @@ function raster(id: GagId): Raster {
 
 function canvas(id: GagId): HTMLCanvasElement {
   let c = canvases.get(id);
-  if (!c) { c = raster(id).toCanvas(); canvases.set(id, c); }
+  if (!c) {
+    c = raster(id).toCanvas();
+    // Props are scenery: muted so platforms and pickups stand out. Tero's
+    // crayon slogans stay bright — they mark the exit.
+    if (!id.startsWith('crayon_')) mute(c, 0.7, '#a8a294', 0.2);
+    canvases.set(id, c);
+  }
   return c;
 }
 
@@ -68,7 +77,9 @@ function floorSpot(map: Tilemap, id: GagId, x: number): { x: number; y: number }
   const row = floorRow(map, t0);
   if (row < 0) return null;
   for (let tx = t0 + 1; tx <= t1; tx++) if (floorRow(map, tx) !== row) return null;
-  return { x, y: row * TILE_SIZE - r.h };
+  // Stand a few px back from the carpet's front edge: reads as "against the
+  // wall", i.e. scenery, not something in Tero's path.
+  return { x, y: row * TILE_SIZE - r.h - WALL_SETBACK };
 }
 
 function hangSpot(map: Tilemap, x: number): { x: number; y: number } {

@@ -5,7 +5,7 @@
 
 type SfxName =
   | 'jump' | 'stomp' | 'powerup' | 'hurt' | 'death'
-  | 'goal' | 'block' | 'coin' | 'checkpoint' | 'text';
+  | 'goal' | 'block' | 'coin' | 'checkpoint' | 'text' | 'plop';
 
 interface ToneSpec {
   freq: number;
@@ -27,6 +27,7 @@ const SFX_TONES: Record<SfxName, ToneSpec> = {
   coin:       { freq: 988, duration: 0.07, type: 'square', freqs: [988, 1319] },
   checkpoint: { freq: 660, duration: 0.10, type: 'square', freqs: [660, 880, 990] },
   text:       { freq: 1400, duration: 0.015, type: 'square', gain: 0.05 },
+  plop:       { freq: 660, duration: 0.035, type: 'sine', freqs: [660, 440], gain: 0.18 },
 };
 
 export class AudioManager {
@@ -61,7 +62,7 @@ export class AudioManager {
     if (spec.freqs) {
       spec.freqs.forEach((f, i) => {
         const t = this.ac!.currentTime + i * spec.duration;
-        this.playTone(f, spec.duration * 0.9, spec.type, 0.18, t);
+        this.playTone(f, spec.duration * 0.9, spec.type, spec.gain ?? 0.18, t);
       });
     } else {
       this.playTone(spec.freq, spec.duration, spec.type, spec.gain ?? 0.2);

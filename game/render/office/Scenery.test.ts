@@ -3,7 +3,7 @@ import { Tilemap } from '../../level/Tilemap';
 import { buildLevel } from '../../level/buildLevel';
 import { TILE_SIZE } from '../../constants';
 import { TileType } from '../../types';
-import { layoutScenery } from './Scenery';
+import { layoutScenery, WALL_SETBACK } from './Scenery';
 import { GAGS, GAG_IDS } from './gags';
 import { LEVELS } from '../../level/levels';
 import { defaultPack } from '../../content/defaultPack';
@@ -38,7 +38,7 @@ describe('layoutScenery', () => {
       for (const g of a.filter((g) => GAGS[g.id].kind === 'floor')) {
         const w = GAGS[g.id].draw().w;
         const h = GAGS[g.id].draw().h;
-        const row = (g.y + h) / TILE_SIZE;
+        const row = (g.y + h + WALL_SETBACK) / TILE_SIZE;
         expect(Number.isInteger(row), g.id).toBe(true);
         for (let tx = Math.floor(g.x / TILE_SIZE); tx <= Math.floor((g.x + w - 1) / TILE_SIZE); tx++) {
           expect(map.tileAt(tx, row), `${g.id} @${tx}`).toBe(TileType.SOLID);

@@ -15,6 +15,8 @@ export interface HopperSpriteProps {
   dying: boolean;
   scaleY: number;
   variant?: HopperVariant;
+  /** Floor under an airborne hopper, for a drop shadow. */
+  groundY?: number | null;
 }
 
 export function drawHopperSprite(

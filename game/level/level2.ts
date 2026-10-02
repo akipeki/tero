@@ -1,16 +1,17 @@
 // file: game/level/level2.ts
 //
-// Cubicle Farm (was Mint Meadow) — 70 × 15. Vertical layout with stacked platforms.
+// Cubicle Farm — 88 × 15. Stacked platforms, then a long empty corridor
+// (cols 18–35) to let the eye rest, then the rest of the floor.
 
 import type { LevelSpawns } from '../types';
 import { buildLevel } from './buildLevel';
 
-const SURFACE = '########..########..^^####....######.######^^########...########......';
-const UNDER   = '########..########..######....######.################...########......';
-const HI_PLAT = '.............===........===..............===.........===..............';
-const PLAT    = '.....===..........===.......===.....===.........===.......===.........';
-const AIR     = '......................................................................';
-const TOP     = '######################################################################';
+const SURFACE = '########..##########################..^^####....######.######^^########...##############';
+const UNDER   = '########..##########################..######....######.################...##############';
+const HI_PLAT = '.............===..........................===..............===.........===..............';
+const PLAT    = '.....===............................===.......===.....===.........===.......===.........';
+const AIR     = '........................................................................................';
+const TOP     = '########################################################################################';
 
 const ROWS = [
   TOP,     // 0
@@ -40,25 +41,25 @@ export const level2Spawns: LevelSpawns = {
   player: { tx: 2, ty: 7 },
   enemies: [
     { type: 'hopper', tx: 12, ty: 7 },
-    { type: 'walker', tx: 23, ty: 7 },
-    { type: 'walker', tx: 40, ty: 7 },
-    { type: 'hopper', tx: 57, ty: 7 },
+    { type: 'walker', tx: 41, ty: 7 },
+    { type: 'walker', tx: 58, ty: 7 },
+    { type: 'hopper', tx: 75, ty: 7 },
   ],
   blocks: [
     { type: 'question', tx: 8,  ty: 4 },
-    { type: 'question', tx: 30, ty: 4 },
+    { type: 'question', tx: 48, ty: 4 },
   ],
   coins: [
     { tx: 6,  ty: 4 },
     { tx: 14, ty: 2 },
-    { tx: 25, ty: 2 },
-    { tx: 32, ty: 4 },
+    { tx: 43, ty: 2 },
     { tx: 50, ty: 4 },
-    { tx: 18, ty: 7 },
-    { tx: 45, ty: 7 },
+    { tx: 68, ty: 4 },
+    { tx: 36, ty: 7 },
+    { tx: 63, ty: 7 },
   ],
   checkpoints: [
-    { tx: 32, ty: 6 },
+    { tx: 50, ty: 6 },
   ],
-  goal: { tx: 65, ty: 2 },
+  goal: { tx: 83, ty: 2 },
 };

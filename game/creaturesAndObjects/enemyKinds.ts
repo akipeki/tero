@@ -39,7 +39,7 @@ export const WALKERS: Record<WalkerVariant, WalkerSpec> = {
 };
 
 export const HOPPERS: Record<HopperVariant, HopperSpec> = {
-  manager: { w: 24, h: 24, interval: 70, vy: -8.5,  vx: 1.8, burst: ['#ff77a8', '#7f0026'] },
+  manager: { w: 24, h: 24, interval: 70, vy: -6.8,  vx: 2.0, burst: ['#ff77a8', '#7f0026'] },
   gorilla: { w: 28, h: 28, interval: 90, vy: -10.5, vx: 2.4, burst: ['#3b3a40', '#ff3b3b'] },
   vampire: { w: 24, h: 26, interval: 55, vy: -7.5,  vx: 3.0, burst: ['#1d1d24', '#9c1f2b'] },
 };

@@ -146,15 +146,15 @@ type RoomScene = 'review' | 'motivate' | 'team' | 'feedback' | null;
  *  blinds, a door. With a scene, the room is lit and you can just make out
  *  what's happening through the slats. */
 function meetingRoom(line1: string, line2: string, scene: RoomScene): Raster {
-  const r = new Raster(104, 100);
+  const r = new Raster(112, 100);
   const fl = 99;
   const lit = scene !== null;
   const shadow = '#2a1a10';
   // frame + plaque
-  box(r, 2, fl - 84, 98, 84, '#8a8f96');
-  r.rect(4, fl - 84, 94, 14, C.navy);
-  drawTextCentered(r, line1, 4, 94, fl - 82, C.white);
-  drawTextCentered(r, line2, 4, 94, fl - 76, C.yellow);
+  box(r, 2, fl - 84, 106, 84, '#8a8f96');
+  r.rect(4, fl - 84, 102, 14, C.navy);
+  drawTextCentered(r, line1, 4, 102, fl - 82, C.white);
+  drawTextCentered(r, line2, 4, 102, fl - 76, C.yellow);
   // window
   const wx = 6, wy = fl - 66, ww = 64, wh = 60;
   r.rect(wx, wy, ww, wh, lit ? '#ffcf70' : '#d8d4c4');
@@ -218,12 +218,12 @@ function meetingRoom(line1: string, line2: string, scene: RoomScene): Raster {
     r.rect(wx, y, ww, lit ? 1 : 2, lit ? '#f4ecd2' : '#e8e4d6');
   }
   r.rect(wx, wy, ww, 1, '#5a5f68');
-  // door with a glow underneath
-  box(r, 74, fl - 66, 24, 66, '#6e4a2c');
-  r.rect(76, fl - 62, 20, 26, '#7e5a3a');
-  r.rect(76, fl - 32, 20, 26, '#7e5a3a');
-  r.rect(77, fl - 36, 3, 2, C.gold);
-  if (lit) r.rect(74, fl - 1, 24, 1, '#ffcf70');
+  // wide door with a glow underneath
+  box(r, 74, fl - 66, 32, 66, '#6e4a2c');
+  r.rect(77, fl - 62, 26, 26, '#7e5a3a');
+  r.rect(77, fl - 32, 26, 26, '#7e5a3a');
+  r.rect(78, fl - 36, 3, 2, C.gold);
+  if (lit) r.rect(74, fl - 1, 32, 1, '#ffcf70');
   return r;
 }
 
@@ -319,6 +319,33 @@ function hostess(hair: Hair): Raster {
   return r;
 }
 
+/** Wall calendar on a nail, turned to JULY: a beach photo on top, the
+ *  month's grid underneath. */
+function wallCalendar(r: Raster, x: number, y: number): void {
+  const w = 34;
+  r.line(x + w / 2, y, x + w / 2, y + 3, C.greyDark);
+  box(r, x, y + 3, w, 52, C.paper);
+  // photo: sky, sun, sea, sand, palm, someone sunbathing on a towel
+  r.rect(x, y + 3, w, 14, '#7fc8f0');
+  r.part(C.flame, (t) => t.ellipse(x + 27, y + 7, 2.5, 2.5, C.yellow));
+  r.rect(x, y + 17, w, 4, '#3f7fd8');
+  r.rect(x, y + 21, w, 6, '#f0d8a0');
+  r.line(x + 6, y + 21, x + 8, y + 9, C.brown);
+  r.tri(x + 8, y + 9, x + 1, y + 12, x + 8, y + 11, C.green);
+  r.tri(x + 8, y + 9, x + 15, y + 12, x + 8, y + 11, C.green);
+  r.rect(x + 16, y + 23, 12, 3, C.red);                                // towel
+  r.rect(x + 17, y + 22, 9, 2, '#f1c9a5');                              // sunbather
+  r.rect(x + 20, y + 22, 2, 2, C.pink); r.rect(x + 24, y + 22, 1, 2, C.pink);
+  r.ellipse(x + 26, y + 22, 1.5, 1.5, '#f1c9a5');
+  r.px(x + 27, y + 22, C.ink);                                          // sunglasses
+  // month
+  r.rect(x, y + 27, w, 7, C.red);
+  drawTextCentered(r, 'JULY', x, w, y + 28, C.white);
+  for (let row = 0; row < 3; row++) for (let col = 0; col < 6; col++) {
+    r.rect(x + 3 + col * 5, y + 37 + row * 5, 3, 3, (row * 6 + col) % 7 === 3 ? C.red : C.greyLight);
+  }
+}
+
 /** Party balloon on a string; `sad` ones are half deflated and sag. */
 function balloon(r: Raster, x: number, y: number, color: string, sad: boolean): void {
   r.part(C.ink, (t) => (sad ? t.ellipse(x, y + 4, 3, 2, color) : t.ellipse(x, y, 3.5, 4.5, color)));
@@ -373,22 +400,22 @@ const ROOM_FLOORS: DecorId[] = ['boardroom', 'legal', 'lab', 'security', 'execut
 const CRAYON = { purple: '#7b3fb8', red: '#d8323a', orange: '#f07a1a', blue: '#2f62d8', green: '#2f9a3a' } as const;
 
 export const GAGS = {
-  banner_synergy:   hang(() => banner(['SYNERGY IS NOT OPTIONAL'], C.navy, C.yellow)),
+  banner_synergy:   hang(() => banner(['SYNERGY: MANDATORY'], C.navy, C.yellow)),
   banner_mondays:   hang(() => banner(['WE ♥ MONDAYS'], C.red, C.white)),
-  banner_blame:     hang(() => banner(['TEAMWORK:', 'BLAME SOMEONE ELSE'], C.teal, C.white)),
-  banner_meetings:  hang(() => banner(['MEETINGS ARE OUR PRODUCT'], C.paper, C.navy)),
-  banner_ideas:     hang(() => banner(['100% SYNERGY', '0% IDEAS'], C.yellow, C.ink)),
-  banner_pivot:     hang(() => banner(['LEVERAGE. ALIGN.', 'PIVOT. NAP.'], C.purple, C.yellow)),
+  banner_blame:     hang(() => banner(['TEAMWORK = BLAME'], C.teal, C.white)),
+  banner_meetings:  hang(() => banner(['WE MAKE MEETINGS'], C.paper, C.navy)),
+  banner_ideas:     hang(() => banner(['0% IDEAS'], C.yellow, C.ink)),
+  banner_pivot:     hang(() => banner(['PIVOT. NAP.'], C.purple, C.yellow)),
   banner_q4:        hang(() => banner(['Q4 IS COMING'], C.ink, C.red)),
-  banner_fun:       hang(() => banner(['MANDATORY FUN', 'FRIDAY 4:55 PM'], C.pink, C.ink)),
+  banner_fun:       hang(() => banner(['MANDATORY FUN'], C.pink, C.ink)),
   banner_retire:    hang(() => banner(['HAPPY RETIREMENT', 'BOB'], C.paper, C.navy, (r, w) => {
     // BOB crossed out, "DAVE?" scrawled next to it
     const bx = 1 + Math.floor((w - textWidth('BOB')) / 2);
     r.line(bx - 1, 18, bx + textWidth('BOB'), 18, C.red);
     drawText(r, 'DAVE?', bx + textWidth('BOB') + 3, 15, C.red);
   })),
-  sign_incident:    hang(() => signBoard('SAFETY FIRST', ['DAYS WITHOUT', 'INCIDENT: 0'], C.red)),
-  sign_hr:          hang(() => signBoard('HR', ['NOW CLOSED', 'FOREVER'], C.navy)),
+  sign_incident:    hang(() => signBoard('SAFETY', ['INCIDENTS: 0', 'DAYS AGO'], C.red)),
+  sign_hr:          hang(() => signBoard('HR', ['CLOSED'], C.navy)),
 
   // ─── Floor props ───────────────────────────────────────────────────────────
 
@@ -419,7 +446,7 @@ export const GAGS = {
     });
     // smoke + sticky note
     r.part(C.greyDark, (t) => { t.ellipse(18, fl - 34, 3, 2, C.greyLight); t.ellipse(22, fl - 38, 2, 2, C.greyLight); });
-    stickyNote(r, 2, fl - 42, 'OUT OF ORDER');
+    stickyNote(r, 9, fl - 25, 'R.I.P.', C.sticky);
     return r;
   }),
 
@@ -428,10 +455,10 @@ export const GAGS = {
     const r = new Raster(72, 64);
     const fl = 63;
     // pedestal + idol
-    box(r, 23, fl - 16, 26, 16, C.greyLight);
-    r.rect(23, fl - 16, 26, 2, C.white);
-    drawTextCentered(r, 'PRAISE', 23, 26, fl - 12, C.ink);
-    drawTextCentered(r, 'Q4', 23, 26, fl - 6, C.red);
+    box(r, 21, fl - 16, 30, 16, C.greyLight);
+    r.rect(21, fl - 16, 30, 2, C.white);
+    drawTextCentered(r, 'PRAISE', 21, 30, fl - 12, C.ink);
+    drawTextCentered(r, 'Q4', 21, 30, fl - 6, C.red);
     r.part(C.goldDark, (t) => {
       drawText(t, 'S', 30, fl - 46, C.gold, 4);
       t.rect(35, fl - 50, 2, 28, C.gold);
@@ -472,7 +499,6 @@ export const GAGS = {
     r.rect(33, fl - 24, 4, 1, C.red);
     r.rect(33, fl - 22, 4, 1, C.red);
     // "do not disturb" hanger and a dropped tie
-    stickyNote(r, 13, fl - 36, 'BUSY', C.pink);
     r.capsule(41, fl - 1, 48, fl - 2, 0.8, C.red);
     // floating hearts
     for (const [hx, hy] of [[42, fl - 46], [45, fl - 54]]) {
@@ -498,9 +524,8 @@ export const GAGS = {
     r.line(48, fl - 26, 49, fl - 21, C.paper);
     // the sign (taped on, then amended)
     box(r, 1, fl - 50, 56, 14, C.paper);
-    drawTextCentered(r, 'DO NOT SIT', 1, 56, fl - 48, C.red);
-    drawTextCentered(r, 'ON THE COPIER', 1, 56, fl - 42, C.red);
-    stickyNote(r, 8, fl - 34, 'AGAIN!!', C.sticky);
+    drawTextCentered(r, 'DO NOT', 1, 56, fl - 48, C.red);
+    drawTextCentered(r, 'SIT ON ME', 1, 56, fl - 42, C.red);
     return r;
   }),
 
@@ -508,16 +533,22 @@ export const GAGS = {
   party_aftermath: floor(() => {
     const r = new Raster(72, 44);
     const fl = 43;
-    // bottles
-    for (const [bx, color] of [[4, C.bottle], [10, C.brown], [16, C.bottle]] as const) {
-      box(r, bx, fl - 10, 4, 10, color);
-      r.rect(bx + 1, fl - 14, 2, 4, color);
-      r.rect(bx + 1, fl - 7, 2, 3, C.paper);
-    }
-    r.part(C.ink, (t) => t.capsule(22, fl - 2, 32, fl - 2, 1.6, C.bottle));   // one rolled away
-    // red cups
-    box(r, 36, fl - 5, 4, 5, C.red);
-    r.part(C.ink, (t) => t.rect(42, fl - 3, 6, 3, C.red));
+    // a tall green wine bottle, slim neck, cream label
+    r.part(C.ink, (t) => { t.rect(3, fl - 11, 5, 11, C.bottle); t.rect(4, fl - 17, 3, 6, C.bottle); t.rect(4, fl - 18, 3, 1, C.red); });
+    r.rect(3, fl - 7, 5, 3, C.paper);
+    r.px(4, fl - 10, '#5cb85c');
+    // a square whisky bottle, amber, black label
+    r.part(C.ink, (t) => { t.rect(11, fl - 9, 6, 9, '#c8862a'); t.rect(13, fl - 12, 2, 3, '#c8862a'); t.rect(13, fl - 13, 2, 1, C.ink); });
+    r.rect(11, fl - 6, 6, 3, C.ink);
+    r.px(12, fl - 8, '#f0c070');
+    // one fallen over, rolled away
+    r.part(C.ink, (t) => { t.capsule(20, fl - 2, 28, fl - 2, 1.8, C.brown); t.rect(29, fl - 3, 4, 2, C.brown); });
+    r.rect(23, fl - 3, 3, 2, C.paper);
+    // two beer cans: one standing red, one crushed silver-blue
+    r.part(C.ink, (t) => t.rect(35, fl - 7, 4, 7, C.red));
+    r.rect(35, fl - 7, 4, 1, C.greyLight); r.rect(35, fl - 4, 4, 1, C.white);
+    r.part(C.ink, (t) => t.tri(41, fl, 48, fl, 45, fl - 4, '#c9ced6'));
+    r.rect(42, fl - 2, 4, 1, '#3f7fd8');
     // lampshade somebody wore
     r.part(C.ink, (t) => t.tri(52, fl, 66, fl, 59, fl - 12, C.beigeLight));
     r.rect(56, fl - 6, 7, 1, C.beigeDark);
@@ -526,8 +557,8 @@ export const GAGS = {
     r.line(30, fl - 27, 28, fl - 6, C.greyDark);
     drawText(r, '40', 27, fl - 32, C.yellow);
     // party hat
-    r.part(C.ink, (t) => t.tri(44, fl - 8, 52, fl - 8, 48, fl - 18, C.yellow));
-    r.px(48, fl - 19, C.pink);
+    r.part(C.ink, (t) => t.tri(62, fl, 70, fl, 66, fl - 10, C.yellow));
+    r.px(66, fl - 11, C.pink);
     return r;
   }),
 
@@ -540,16 +571,15 @@ export const GAGS = {
     r.rect(4, fl - 2, 10, 2, C.ink); r.rect(62, fl - 2, 10, 2, C.ink);
     box(r, 2, fl - 62, 72, 42, C.white);
     r.rect(2, fl - 62, 72, 2, C.greyLight);
-    drawTextCentered(r, 'STRATEGY 1993', 2, 72, fl - 58, C.navy);
+    drawTextCentered(r, 'STRATEGY', 2, 72, fl - 58, C.navy);
     // the graph
     r.line(8, fl - 26, 8, fl - 50, C.ink); r.line(8, fl - 26, 34, fl - 26, C.ink);
     r.line(9, fl - 48, 16, fl - 40, C.red); r.line(16, fl - 40, 22, fl - 44, C.red); r.line(22, fl - 44, 32, fl - 28, C.red);
-    drawText(r, 'MORALE', 12, fl - 33, C.red);
+    drawText(r, 'JOY', 11, fl - 32, C.red);
     // the plan
     drawText(r, '1. MEET', 38, fl - 50, C.ink);
     drawText(r, '2. ???', 38, fl - 43, C.ink);
     drawText(r, '3. PROFIT', 38, fl - 36, C.green);
-    drawText(r, 'PIVOT!', 40, fl - 28, C.red);
     return r;
   }),
 
@@ -572,20 +602,18 @@ export const GAGS = {
 
   /** The office fridge and its passive-aggressive notes. */
   fridge_notes: floor(() => {
-    const r = new Raster(44, 66);
-    const fl = 65;
-    box(r, 4, fl - 62, 30, 62, C.paper);
-    r.rect(4, fl - 40, 30, 1, C.beigeDark);
-    r.rect(30, fl - 56, 2, 10, C.greyDark);
-    r.rect(30, fl - 34, 2, 14, C.greyDark);
-    stickyNote(r, 1, fl - 60, 'WHO ATE', C.sticky);
-    stickyNote(r, 1, fl - 52, 'MY YOGURT', C.sticky);
-    stickyNote(r, 6, fl - 36, 'LABEL', C.pink);
-    stickyNote(r, 6, fl - 28, 'YOUR FOOD', C.pink);
-    stickyNote(r, 10, fl - 18, '!!!', '#9fe3ff');
-    // a mysterious smell
-    r.line(36, fl - 14, 38, fl - 18, C.green); r.line(38, fl - 18, 36, fl - 22, C.green);
-    r.line(40, fl - 10, 42, fl - 14, C.green); r.line(42, fl - 14, 40, fl - 18, C.green);
+    const r = new Raster(56, 82);
+    const fl = 81;
+    box(r, 4, fl - 78, 46, 78, C.paper);
+    r.rect(46, fl - 78, 4, 78, C.paperDim);
+    r.rect(4, fl - 52, 46, 1, C.beigeDark);                            // freezer door
+    r.rect(42, fl - 72, 2, 14, C.greyDark);
+    r.rect(42, fl - 46, 2, 18, C.greyDark);
+    // one note, two lines: who ate my sushi?
+    r.rect(9, fl - 44, 30, 16, C.sticky);
+    r.rect(9, fl - 29, 30, 1, C.beigeDark);
+    drawTextCentered(r, 'WHO ATE', 9, 30, fl - 42, C.ink);
+    drawTextCentered(r, 'MY SUSHI?', 9, 30, fl - 35, C.red);
     return r;
   }),
 
@@ -595,15 +623,15 @@ export const GAGS = {
     const fl = 65;
     // easel
     r.line(14, fl, 22, fl - 30, C.woodDark); r.line(46, fl, 38, fl - 30, C.woodDark); r.line(30, fl, 30, fl - 30, C.woodDark);
-    box(r, 3, fl - 64, 54, 40, C.gold);
-    box(r, 11, fl - 58, 38, 22, C.teal);
+    box(r, 3, fl - 64, 54, 44, C.gold);
+    box(r, 11, fl - 60, 38, 22, C.teal);
     // the stapler, proudly
     r.part(C.ink, (t) => {
-      t.rect(17, fl - 44, 26, 4, C.red);
-      t.rect(17, fl - 49, 24, 4, C.redDark);
-      t.rect(39, fl - 48, 4, 4, C.greyLight);
+      t.rect(17, fl - 46, 26, 4, C.red);
+      t.rect(17, fl - 51, 24, 4, C.redDark);
+      t.rect(39, fl - 50, 4, 4, C.greyLight);
     });
-    drawTextCentered(r, 'EMPLOYEE', 3, 54, fl - 34, C.ink);
+    drawTextCentered(r, 'EMPLOYEE', 3, 54, fl - 35, C.ink);
     drawTextCentered(r, 'OF THE MONTH', 3, 54, fl - 28, C.ink);
     return r;
   }),
@@ -640,8 +668,8 @@ export const GAGS = {
     // paper strips spilling out
     for (let i = 0; i < 7; i++) r.rect(4 + i * 4, fl - 3 - (i % 3), 2, 3 + (i % 2), C.paper);
     // folder going in
-    box(r, 1, fl - 44, 32, 16, '#e3b55c');
-    drawTextCentered(r, 'EVIDENCE', 1, 32, fl - 40, C.red);
+    box(r, 0, fl - 44, 34, 16, '#e3b55c');
+    drawTextCentered(r, 'EVIDENCE', 0, 34, fl - 40, C.red);
     r.rect(6, fl - 28, 22, 2, C.ink);
     return r;
   }),
@@ -650,10 +678,10 @@ export const GAGS = {
 
   banner_capitalism: hang2(() => banner(['CAPITALISM IS 4 EVER'], C.ink, C.gold)),
   banner_growth:     hang2(() => banner(['♥ ENDLESS GROWTH ♥'], C.pink, C.redDark)),
-  banner_family:     hang2(() => banner(['WE ARE A FAMILY*', '*TERMS APPLY'], C.paper, C.navy)),
+  banner_family:     hang2(() => banner(['WE ARE FAMILY*'], C.paper, C.navy)),
   banner_layoffs:    hang2(() => banner(['LAYOFFS = SELF-CARE'], C.teal, C.paper)),
   banner_soul:       hang2(() => banner(['YOUR SOUL IS A KPI'], C.purple, C.paper)),
-  banner_crush:      hang2(() => banner(['CRUSH Q4.', 'CRUSH HOPE.'], C.red, C.ink)),
+  banner_crush:      hang2(() => banner(['CRUSH HOPE'], C.red, C.ink)),
 
   /** Party garland that outlived the party. */
   banner_fun_lasted: hang2(() => {
@@ -663,12 +691,12 @@ export const GAGS = {
     // balloons dangling from each end: one proud, one deflated
     balloon(out, 6, r.h + 4, C.red, false);
     balloon(out, 14, r.h + 10, C.teal, false);
-    balloon(out, out.w - 8, r.h + 12, C.purple, true);
+    balloon(out, out.w - 14, r.h + 4, C.purple, true);
     return out;
   }),
 
   sign_shareholders: hang2(() => {
-    const r = signBoard('NOTICE', ['THE SHAREHOLDERS', 'ARE WATCHING', ''], C.ink);
+    const r = signBoard('NOTICE', ['WE SEE YOU', ''], C.ink);
     // an eye on the blank last line
     const cx = Math.floor(r.w / 2), cy = r.h - 7;
     r.part(C.ink, (t) => t.ellipse(cx, cy, 6, 2.5, C.white));
@@ -678,25 +706,21 @@ export const GAGS = {
 
   /** The business plan nobody should have written down. */
   orphan_plan: floor2(() => {
-    const r = new Raster(96, 70);
+    const r = new Raster(112, 70);
     const fl = 69;
     // flip chart on an easel
-    r.line(18, fl, 28, fl - 30, C.woodDark); r.line(78, fl, 68, fl - 30, C.woodDark);
-    box(r, 4, fl - 68, 88, 46, C.white);
-    r.rect(4, fl - 68, 88, 3, C.greyDark);
-    drawTextCentered(r, 'PROJECT ORPHANAGE', 4, 88, fl - 63, C.red);
+    r.line(22, fl, 32, fl - 30, C.woodDark); r.line(90, fl, 80, fl - 30, C.woodDark);
+    box(r, 4, fl - 68, 104, 46, C.white);
+    r.rect(4, fl - 68, 104, 3, C.greyDark);
+    drawTextCentered(r, 'PROJECT ORPHANAGE', 4, 76, fl - 63, C.red);
     drawText(r, '1. BUY ORPHANAGE', 8, fl - 55, C.ink);
     drawText(r, '2. EVICT ORPHANS', 8, fl - 48, C.ink);
     drawText(r, '3. LUXURY CONDOS', 8, fl - 41, C.ink);
     drawText(r, '4. $$$', 8, fl - 34, C.green);
     // the tiny house, crossed out
-    box(r, 76, fl - 52, 9, 7, C.paper);
-    r.tri(75, fl - 52, 86, fl - 52, 80, fl - 57, C.red);
-    r.line(74, fl - 58, 87, fl - 43, C.red); r.line(74, fl - 43, 87, fl - 58, C.red);
-    // profit arrow
-    r.line(40, fl - 30, 86, fl - 39, C.green);
-    r.line(86, fl - 39, 82, fl - 39, C.green); r.line(86, fl - 39, 84, fl - 35, C.green);
-    stickyNote(r, 2, fl - 18, 'GREAT IDEA!', C.sticky);
+    box(r, 86, fl - 56, 13, 9, C.paper);
+    r.tri(84, fl - 56, 101, fl - 56, 92, fl - 63, C.red);
+    r.line(83, fl - 64, 102, fl - 43, C.red); r.line(83, fl - 43, 102, fl - 64, C.red);
     return r;
   }),
 
@@ -740,8 +764,8 @@ export const GAGS = {
     r.rect(56, fl - 1, 6, 1, C.brown);
     // chair on its side
     r.part(C.ink, (t) => { t.rect(58, fl - 14, 10, 3, C.greyDark); t.rect(62, fl - 22, 3, 9, C.greyDark); });
-    stickyNote(r, 14, fl - 30, 'I QUIT', C.red);
-    drawText(r, 'I QUIT', 16, fl - 28, C.white);
+    stickyNote(r, 14, fl - 9, 'I QUIT', C.red);
+    drawText(r, 'I QUIT', 16, fl - 7, C.white);
     return r;
   }),
 
@@ -855,9 +879,9 @@ export const GAGS = {
     r.part(C.ink, (t) => { t.rect(18, fl - 26, 12, 26, C.woodDark); t.rect(12, fl - 2, 24, 2, C.woodDark); });
     r.part(C.ink, (t) => t.tri(4, fl - 30, 44, fl - 36, 44, fl - 26, C.woodLight));
     // the contract
-    box(r, 8, fl - 56, 32, 24, C.paper);
-    drawTextCentered(r, 'SOUL', 8, 32, fl - 53, C.ink);
-    drawTextCentered(r, 'TRANSFER', 8, 32, fl - 47, C.ink);
+    box(r, 5, fl - 56, 38, 24, C.paper);
+    drawTextCentered(r, 'SOUL', 5, 38, fl - 53, C.ink);
+    drawTextCentered(r, 'TRANSFER', 5, 38, fl - 47, C.ink);
     r.rect(12, fl - 41, 24, 1, C.greyDark);
     drawText(r, 'SIGN', 12, fl - 39, C.red);
     r.rect(30, fl - 39, 1, 4, C.red); r.rect(30, fl - 35, 2, 1, C.red);   // the drip
@@ -903,7 +927,6 @@ export const GAGS = {
     r.line(11, fl - 46, 26, fl - 20, C.brown);
     // empty office chair waiting
     r.part(C.ink, (t) => { t.rect(22, fl - 22, 12, 3, C.greyDark); t.rect(31, fl - 34, 3, 12, C.greyDark); t.rect(27, fl - 19, 2, 17, C.greyDark); });
-    stickyNote(r, 0, fl - 40, '24/7', C.sticky);
     return r;
   }),
 
@@ -930,7 +953,7 @@ export const GAGS = {
   }),
 
   banner_loan: hang2(() => banner(
-    ['WORK HARD FOR 30 YEARS', 'AND YOU MIGHT PAY OFF', 'YOUR STUDENT LOAN'], C.teal, C.paper)),
+    ['30 YEARS OF WORK', '= 1 STUDENT LOAN'], C.teal, C.paper)),
 
   /** A cheerful IT poster. Read the two big words together. */
   poster_skynet: hang2(() => {
@@ -998,23 +1021,23 @@ export const GAGS = {
     return r;
   }),
 
-  banner_pto:         hang2(() => banner(['UNLIMITED PTO*', '*NEVER APPROVED'], C.yellow, C.ink)),
-  banner_ceo:         hang2(() => banner(['THE CEO EARNS 400X YOU.', 'BE GRATEFUL.'], C.navy, C.paper)),
-  banner_replaceable: hang2(() => banner(['YOU ARE REPLACEABLE ♥'], C.pink, C.navy)),
-  banner_grind:       hang2(() => banner(['RISE AND GRIND.', 'GRIND. GRIND. GRIND.'], C.ink, C.yellow)),
-  banner_pizza:       hang2(() => banner(['PIZZA FRIDAY', 'IS YOUR RAISE'], C.red, C.yellow)),
-  banner_overtime:    hang2(() => banner(['OVERTIME IS ITS', 'OWN REWARD'], C.purple, C.paper)),
+  banner_pto:         hang2(() => banner(['UNLIMITED PTO*'], C.yellow, C.ink)),
+  banner_ceo:         hang2(() => banner(['CEO PAY: 400X YOU'], C.navy, C.paper)),
+  banner_replaceable: hang2(() => banner(['YOU ARE REPLACEABLE'], C.pink, C.navy)),
+  banner_grind:       hang2(() => banner(['GRIND. GRIND.'], C.ink, C.yellow)),
+  banner_pizza:       hang2(() => banner(['PIZZA = RAISE'], C.red, C.yellow)),
+  banner_overtime:    hang2(() => banner(['OVERTIME = LOVE'], C.purple, C.paper)),
 
   /** Here lies the pension. */
   pension_grave: floor2(() => {
     const r = new Raster(44, 50);
     const fl = 49;
-    r.part(C.ink, (t) => { t.rect(8, fl - 34, 28, 34, C.greyLight); t.ellipse(22, fl - 34, 14, 8, C.greyLight); });
-    r.rect(8, fl - 30, 2, 30, C.grey);
-    drawTextCentered(r, 'R.I.P.', 8, 28, fl - 36, C.greyDark);
-    drawTextCentered(r, 'PENSION', 8, 28, fl - 28, C.ink);
-    drawTextCentered(r, '1950-', 8, 28, fl - 20, C.greyDark);
-    drawTextCentered(r, '1993', 8, 28, fl - 13, C.greyDark);
+    r.part(C.ink, (t) => { t.rect(5, fl - 34, 34, 34, C.greyLight); t.ellipse(22, fl - 34, 17, 8, C.greyLight); });
+    r.rect(5, fl - 30, 2, 30, C.grey);
+    drawTextCentered(r, 'R.I.P.', 5, 34, fl - 37, C.greyDark);
+    drawTextCentered(r, 'PENSION', 5, 34, fl - 28, C.ink);
+    drawTextCentered(r, '1950-', 5, 34, fl - 20, C.greyDark);
+    drawTextCentered(r, '1993', 5, 34, fl - 13, C.greyDark);
     // wilted flowers + grass
     r.line(38, fl, 41, fl - 7, C.greenDark); r.px(41, fl - 8, C.brown); r.px(42, fl - 7, C.brown);
     for (let x = 2; x < 44; x += 3) r.px(x, fl, C.green);
@@ -1076,7 +1099,6 @@ export const GAGS = {
     box(r, 2, fl - 20, 28, 12, C.paper);
     drawTextCentered(r, 'TRICKLE', 2, 28, fl - 19, C.ink);
     drawTextCentered(r, 'DOWN', 2, 28, fl - 13, C.ink);
-    stickyNote(r, 30, fl - 30, 'ANY DAY NOW', C.sticky);
     return r;
   }),
 
@@ -1127,32 +1149,51 @@ export const GAGS = {
     for (let y = fl - 58; y < fl - 47; y += 3) r.rect(34, y, 4, 1, C.greyDark);
     r.rect(34, fl - 42, 4, 2, C.ink);
     box(r, 8, fl - 14, 20, 6, C.ink);
-    stickyNote(r, 1, fl - 20, 'NO REFUNDS', C.sticky);
+    stickyNote(r, 4, fl - 20, 'NO REFUND', C.sticky);
     return r;
   }),
 
-  /** Christmas was months ago. Nobody took the tree down. */
+  /** Christmas was months ago. Nobody took the tree down. All that's left
+   *  is a brown skeleton, a few ornaments and a carpet of fallen needles. */
   dead_xmas_tree: floor(() => {
-    const r = new Raster(44, 66);
-    const fl = 65;
-    const dead = '#8a5a2a', deadDark = '#5e3b1f', dry = '#b07a3a';
-    r.part(C.ink, (t) => {
-      t.tri(22, fl - 60, 8, fl - 38, 36, fl - 38, dead);
-      t.tri(22, fl - 48, 5, fl - 22, 39, fl - 22, dead);
-      t.tri(22, fl - 36, 3, fl - 8, 41, fl - 8, dead);
+    const r = new Raster(96, 72);
+    const fl = 71;
+    const bark = '#5e3b1f', twig = '#7a5232', needle = '#9a6a32', needleDark = '#6e4a22';
+    // thin trunk
+    r.line(24, fl - 6, 24, fl - 62, bark);
+    r.line(25, fl - 6, 25, fl - 50, bark);
+    // bare branches in tiers, drooping at the tips
+    const tiers: [number, number][] = [[fl - 56, 6], [fl - 48, 9], [fl - 40, 12], [fl - 32, 15], [fl - 24, 17], [fl - 16, 19]];
+    tiers.forEach(([y, reach], i) => {
+      for (const dir of [-1, 1]) {
+        const tipX = 24 + dir * reach, tipY = y + 3 + (i % 2);
+        r.line(24, y, tipX, tipY, twig);
+        r.line(tipX, tipY, tipX + dir, tipY + 2, twig);              // droop
+        // the odd needle still clinging on
+        if ((i + (dir > 0 ? 1 : 0)) % 2 === 0) r.px(24 + dir * Math.round(reach / 2), y + 2, needle);
+      }
     });
-    for (let i = 0; i < 18; i++) r.px(6 + ((i * 7) % 32), fl - 54 + ((i * 11) % 44), i % 2 ? deadDark : dry);
-    // droopy star, sad ornaments, half the tinsel
-    r.part(C.ink, (t) => t.tri(20, fl - 62, 27, fl - 60, 22, fl - 66, C.yellow));
-    for (const [x, y, c] of [[14, fl - 30, C.red], [28, fl - 20, '#3f7fd8'], [20, fl - 44, C.gold], [32, fl - 34, C.red]] as const) {
+    // ornaments hanging off bare twigs, tinsel sagging
+    for (const [x, y, c] of [[14, fl - 36, C.red], [33, fl - 28, '#3f7fd8'], [10, fl - 20, C.gold], [37, fl - 44, C.red]] as const) {
+      r.line(x, y - 3, x, y - 1, C.greyDark);
       r.part(C.ink, (t) => t.ellipse(x, y, 1.6, 1.6, c));
     }
-    r.line(10, fl - 26, 30, fl - 32, C.greyLight);
-    // trunk, pot, needles on the floor
-    r.rect(19, fl - 8, 6, 3, deadDark);
-    box(r, 14, fl - 6, 16, 6, C.red);
-    for (let x = 0; x < 44; x += 3) r.px(x, fl, x % 2 ? dry : deadDark);
-    stickyNote(r, 0, fl - 18, "IT'S JULY", C.sticky);
+    r.line(12, fl - 30, 24, fl - 26, C.greyLight);
+    r.line(24, fl - 26, 36, fl - 33, C.greyLight);
+    // the star, slumped sideways
+    r.part(C.ink, (t) => t.tri(24, fl - 62, 30, fl - 61, 26, fl - 66, C.yellow));
+    // stand + a carpet of fallen needles
+    box(r, 18, fl - 6, 14, 6, C.red);
+    for (let i = 0; i < 110; i++) {
+      // heaped around the stand, thinning out towards the edges
+      const spread = 6 + (i % 5) * 4;
+      const x = 25 + Math.round(Math.sin(i * 12.9898) * spread);
+      const y = fl - Math.floor(Math.abs(Math.cos(i * 78.233)) * (3 - Math.abs(x - 25) / 10));
+      if (x < 0 || x > 47 || (x > 17 && x < 33 && y < fl - 1)) continue;
+      r.px(x, y, i % 3 ? needle : needleDark);
+    }
+    // …and on the wall beside it, the calendar explains everything: JULY.
+    wallCalendar(r, 58, fl - 66);
     return r;
   }),
 
@@ -1160,8 +1201,8 @@ export const GAGS = {
   dead_plant: floor(() => {
     const r = new Raster(38, 46);
     const fl = 45;
-    box(r, 8, fl - 12, 14, 12, '#8a4b2a');
-    r.rect(8, fl - 12, 14, 2, '#a65f37');
+    box(r, 1, fl - 13, 34, 13, '#8a4b2a');
+    r.rect(1, fl - 13, 34, 2, '#a65f37');
     // drooping brown stalks
     for (const [x1, y1, x2, y2] of [[15, fl - 12, 6, fl - 26], [15, fl - 12, 15, fl - 34], [15, fl - 12, 24, fl - 24], [15, fl - 12, 21, fl - 30]]) {
       r.line(x1, y1, x2, y2, '#7a5a2a');
@@ -1170,7 +1211,7 @@ export const GAGS = {
       r.part(C.ink, (t) => t.ellipse(x, y, 2, 1.2, '#9a7a3a'));
     }
     r.px(9, fl, '#9a7a3a'); r.px(23, fl, '#9a7a3a');
-    stickyNote(r, 2, fl - 8, 'WATER ME', C.paperDim);
+    stickyNote(r, 1, fl - 10, 'WATER ME', C.paperDim);
     return r;
   }),
 
@@ -1188,7 +1229,7 @@ export const GAGS = {
   }),
 
   /** Meeting room, blinds shut, door shut, since forever. */
-  room_closed: { ...floor(() => meetingRoom('MEETING IN PROGRESS', 'SINCE 1991', null)), floors: ROOM_FLOORS },
+  room_closed: { ...floor(() => meetingRoom('MEETING', 'SINCE 1991', null)), floors: ROOM_FLOORS },
 
   // ═══ 90s office tech ══════════════════════════════════════════════════════
 
@@ -1209,7 +1250,6 @@ export const GAGS = {
     r.rect(20, fl - 47, 8, 5, '#9fd09f');                             // green LCD
     drawText(r, '12', 21, fl - 47, '#2a4a2a');
     for (let y = fl - 40; y < fl - 28; y += 3) for (let x = 20; x < 28; x += 3) r.rect(x, y, 2, 2, C.greyLight);
-    stickyNote(r, 32, fl - 34, 'CEO', C.sticky);
     return r;
   }),
 
@@ -1226,9 +1266,9 @@ export const GAGS = {
     // handset on the side
     r.part(C.ink, (t) => t.capsule(6, fl - 26, 12, fl - 34, 2, C.beige));
     // paper curling out of the top: URGENT
-    r.part(C.ink, (t) => { t.rect(20, fl - 48, 16, 16, C.white); t.rect(36, fl - 40, 6, 8, C.white); });
-    drawText(r, 'URGENT', 18 + 2, fl - 45, C.red);
-    for (let y = fl - 38; y < fl - 33; y += 2) r.line(22, y, 34, y, C.greyLight);
+    r.part(C.ink, (t) => { t.rect(16, fl - 48, 28, 16, C.white); t.rect(44, fl - 40, 6, 8, C.white); });
+    drawTextCentered(r, 'URGENT', 16, 28, fl - 45, C.red);
+    for (let y = fl - 38; y < fl - 33; y += 2) r.line(19, y, 41, y, C.greyLight);
     return r;
   }),
 
@@ -1252,11 +1292,11 @@ export const GAGS = {
 
   /** Where the 1980s go to wait for a VCR. */
   vhs_archive: { floors: ['basement', 'boardroom', 'legal', 'lab', 'security'], ...floor(() => {
-    const r = new Raster(96, 100);
+    const r = new Raster(100, 100);
     const fl = 99;
-    box(r, 2, fl - 84, 80, 84, '#8a8f96');
-    r.rect(4, fl - 84, 76, 12, C.ink);
-    drawTextCentered(r, 'VHS ARCHIVE', 4, 76, fl - 81, C.yellow);
+    box(r, 2, fl - 84, 94, 84, '#8a8f96');
+    r.rect(4, fl - 84, 90, 12, C.ink);
+    drawTextCentered(r, 'VHS ARCHIVE', 4, 90, fl - 81, C.yellow);
     // open door showing shelves of tapes
     r.rect(6, fl - 70, 50, 70, '#2a2e35');
     const labels = [C.white, C.yellow, C.red, '#3f7fd8', C.paperDim];
@@ -1268,10 +1308,10 @@ export const GAGS = {
       }
     }
     // the door, swung open
-    box(r, 58, fl - 70, 20, 70, '#6e4a2c');
+    box(r, 58, fl - 70, 36, 70, '#6e4a2c');
     r.rect(60, fl - 36, 2, 3, C.gold);
     stickyNote(r, 59, fl - 62, 'BE KIND', C.sticky);
-    stickyNote(r, 59, fl - 54, 'REWIND', C.sticky);
+    stickyNote(r, 61, fl - 53, 'REWIND', C.sticky);
     return r;
   }) },
 
@@ -1290,9 +1330,9 @@ export const GAGS = {
   // ═══ Later floors — what is going on in there? ════════════════════════════
 
   room_review: { ...floor2(() => meetingRoom('PERFORMANCE', 'REVIEW', 'review')), floors: ROOM_FLOORS },
-  room_motivate: { ...floor2(() => meetingRoom('MOTIVATION', 'ROOM', 'motivate')), floors: ROOM_FLOORS },
+  room_motivate: { ...floor2(() => meetingRoom('MOTIVATION', '', 'motivate')), floors: ROOM_FLOORS },
   room_team: { ...floor2(() => meetingRoom('TEAM', 'BUILDING', 'team')), floors: ROOM_FLOORS },
-  room_feedback: { ...floor2(() => meetingRoom('360', 'FEEDBACK', 'feedback')), floors: ROOM_FLOORS },
+  room_feedback: { ...floor2(() => meetingRoom('FEEDBACK', '', 'feedback')), floors: ROOM_FLOORS },
 
   // ═══ The money floors — executive wing & penthouse ════════════════════════
 
@@ -1406,6 +1446,53 @@ export const GAGS = {
   hostess_blonde:   { ...floor(() => hostess('blonde')),   floors: ['penthouse'] },
   hostess_brunette: { ...floor(() => hostess('brunette')), floors: ['penthouse'] },
   hostess_redhead:  { ...floor(() => hostess('redhead')),  floors: ['penthouse'] },
+
+  /** In memory of Mark. */
+  grave_mark: floor(() => {
+    const r = new Raster(60, 56);
+    const fl = 55;
+    r.part(C.ink, (t) => { t.rect(4, fl - 40, 50, 40, C.greyLight); t.ellipse(29, fl - 40, 25, 10, C.greyLight); });
+    r.rect(4, fl - 36, 2, 36, C.grey);
+    drawTextCentered(r, 'R.I.P. MARK', 4, 50, fl - 39, C.ink);
+    drawTextCentered(r, 'WORKED HERE', 4, 50, fl - 29, C.greyDark);
+    drawTextCentered(r, '1981-1992', 4, 50, fl - 21, C.greyDark);
+    r.rect(16, fl - 12, 26, 1, C.grey);
+    // a single dead flower and some carpet-grass
+    r.line(54, fl, 57, fl - 6, C.greenDark); r.px(57, fl - 7, C.brown); r.px(58, fl - 6, C.brown);
+    for (let x = 2; x < 58; x += 3) r.px(x, fl, C.green);
+    return r;
+  }),
+
+  /** Pure 1994 optimism. */
+  poster_internet: hang(() => {
+    const r = new Raster(64, 70);
+    r.line(32, 0, 32, 6, C.greyDark);
+    box(r, 3, 6, 58, 60, '#1d2440');
+    // a CRT with a spinning-globe vibe, a cursor and a lightning bolt
+    box(r, 16, 12, 32, 24, C.beige);
+    r.rect(19, 15, 26, 17, '#3f7fd8');
+    r.part('#1f3f98', (t) => t.ellipse(32, 23, 6, 6, '#46e07a'));
+    r.line(26, 23, 38, 23, '#2f9a3a'); r.line(32, 17, 32, 29, '#2f9a3a');
+    r.tri(40, 26, 44, 30, 41, 31, C.white);
+    r.rect(28, 36, 8, 3, C.beigeDark);
+    drawTextCentered(r, 'INTERNET', 3, 58, 45, C.yellow);
+    drawTextCentered(r, 'IS COOL', 3, 58, 53, '#ff77a8');
+    return r;
+  }),
+
+  /** The SYNERGY poster: mountain, sky, one word. Placed by the story. */
+  poster_synergy: clueHang(() => {
+    const r = new Raster(66, 92);
+    r.line(33, 0, 33, 8, C.greyDark);
+    box(r, 3, 8, 60, 80, '#0d0d0d');
+    r.rect(3, 8, 60, 2, '#2a2a2a');
+    r.tri(7, 66, 29, 26, 41, 46, '#4a5d8c');
+    r.tri(29, 26, 49, 36, 61, 66, '#4a5d8c');
+    r.tri(7, 66, 41, 46, 61, 66, '#4a5d8c');
+    r.rect(25, 30, 8, 3, '#e8eef5');
+    drawTextCentered(r, 'SYNERGY', 3, 60, 74, '#e9d9a6');
+    return r;
+  }),
 
   // ═══ Tero's crayon on the walls — story-only ══════════════════════════════
 

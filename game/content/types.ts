@@ -120,6 +120,9 @@ export interface LevelDef {
   gagDensity?: GagDensity;
   /** Office décor for this floor (render/office/decor.ts). Default 'cubicles'. */
   decor?: string;
+  /** Tile-column ranges [from, to] the gag auto-fill leaves empty — long,
+   *  monotonous corridors that let the eye rest. Authored gags still show. */
+  quietZones?: [number, number][];
 }
 
 export type GagDensity = 'sparse' | 'normal';

@@ -115,6 +115,15 @@ Executive Wing → marble-and-gold penthouse. A level picks one with
 `decor:` in the story script. Gags can be limited to some floors with
 `floors: [...]` (e.g. the Ferrari only parks in the penthouse).
 
+### Readability rule: scenery muted, gameplay bright
+
+Background layers and gag props are desaturated once when cached
+(`render/office/mute.ts`). Everything the player interacts with is drawn at
+full colour: every surface you can stand on (desks, cabinets, mystery boxes)
+carries the same yellow-and-black safety tape; "?" blocks are bright
+cardboard boxes with a floppy-and-? shipping label; floppy pickups glow and
+sparkle. Keep new gameplay objects bright and new scenery muted.
+
 ### Background gags
 
 The office is a parody, so every screen should have something dumb on it.

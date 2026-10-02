@@ -318,6 +318,7 @@ export class Game {
     if (!card) return;
     const portrait = card.portrait ? contentStore().getSprite(card.portrait) : null;
     this.storyRevealSent = -1;
+    this.audio.play('plop');
     this.onStory?.({
       speaker: card.speaker,
       portraitSrc: portrait?.dataUrl,
@@ -620,7 +621,10 @@ export class Game {
           goalWriting: this.levelPack?.goalWriting
             ? { gag: this.levelPack.goalWriting, centerX: this.goal.x + this.goal.w / 2 }
             : undefined,
-          keepClear: [[this.goal.x - 40, this.goal.x + this.goal.w + 40]],
+          keepClear: [
+            [this.goal.x - 40, this.goal.x + this.goal.w + 40],
+            ...(this.levelPack?.quietZones ?? []).map(([a, b]): [number, number] => [a * TILE_SIZE, (b + 1) * TILE_SIZE]),
+          ],
         })
       : []);
   }

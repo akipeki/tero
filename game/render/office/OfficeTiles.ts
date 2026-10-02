@@ -36,9 +36,29 @@ export interface SolidNeighbours {
   openBelow: boolean;
 }
 
+/** Yellow-and-black safety tape along a surface you can stand on — the one
+ *  bright cue every floor shares. Stripes are aligned to world tiles (`tx`)
+ *  so they don't crawl while the camera scrolls. */
+export function safetyEdge(ctx: CanvasRenderingContext2D, sx: number, sy: number, w: number, tx: number): void {
+  ctx.fillStyle = '#ffd23f';
+  ctx.fillRect(sx, sy, w, 3);
+  ctx.fillStyle = '#1b1620';
+  const offset = (tx * S) % 8;
+  for (let x = -offset; x < w; x += 8) {
+    const x0 = Math.max(0, x), x1 = Math.min(w, x + 4);
+    if (x1 > x0) ctx.fillRect(sx + x0, sy, x1 - x0, 3);
+  }
+  ctx.fillStyle = 'rgba(255,255,255,0.6)';
+  ctx.fillRect(sx, sy, w, 1);
+}
+
 export function drawOfficeSolid(ctx: CanvasRenderingContext2D, sx: number, sy: number, n: SolidNeighbours): void {
   if (n.ty === 0) return drawCeiling(ctx, sx, sy, n.tx);
-  if (n.openAbove && n.openBelow) return drawCabinet(ctx, sx, sy);
+  if (n.openAbove && n.openBelow) {
+    drawCabinet(ctx, sx, sy);
+    safetyEdge(ctx, sx, sy, S, n.tx);
+    return;
+  }
 
   const d = getDecor();
   const [slab, slabLight, slabDark] = d.slab;
@@ -123,7 +143,7 @@ const DESKS: Record<DeskStyle, { top: string; light: string; dark: string; panel
   marble:   { top: '#f2ede2', light: '#ffffff', dark: '#c9c2b2', panel: '#c9a24a', panelDark: '#a07e2e' },
 };
 
-export function drawOfficePlatform(ctx: CanvasRenderingContext2D, sx: number, sy: number): void {
+export function drawOfficePlatform(ctx: CanvasRenderingContext2D, sx: number, sy: number, tx = 0): void {
   const style = getDecor().desk;
   const D = DESKS[style];
   // desk top
@@ -172,6 +192,7 @@ export function drawOfficePlatform(ctx: CanvasRenderingContext2D, sx: number, sy
       ctx.fillRect(sx + 1, sy + 14, S - 2, 2);
       ctx.fillRect(sx + S / 2, sy + 6, 1, 8);
   }
+  safetyEdge(ctx, sx, sy, S, tx);
 }
 
 /** Basement hazard: a pool of leaked water under a broken, dripping pipe. */

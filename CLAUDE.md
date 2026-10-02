@@ -23,6 +23,8 @@
   sprite/tile drawer delegates there when `isOffice()`
 - Per-floor décor (wallpaper, carpet, desks, blinds, background strip) →
   `render/office/decor.ts`, set from `decor:` in the story script
+- Readability: scenery muted via `render/office/mute.ts`; standable surfaces
+  get `safetyEdge()` (yellow/black tape) in `OfficeTiles.ts`
 - Background gags → `render/office/gags.ts` (library) + `Scenery.ts`
   (authored `scenery` from the story script + seeded auto-fill)
 - Palettes → `game/render/Theme.ts`; backgrounds cached to offscreen canvases.

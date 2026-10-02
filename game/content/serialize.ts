@@ -100,6 +100,16 @@ export function validatePack(raw: unknown): ContentPack {
     }
     if (L.goalWriting !== undefined) ensureString(L.goalWriting, `levels.${k}.goalWriting`);
     if (L.decor !== undefined) ensureString(L.decor, `levels.${k}.decor`);
+    if (L.quietZones !== undefined) {
+      if (!Array.isArray(L.quietZones)) {
+        throw new PackValidationError('quietZones must be [from, to][]', `levels.${k}.quietZones`);
+      }
+      L.quietZones.forEach((z: unknown, i: number) => {
+        if (!Array.isArray(z) || z.length !== 2 || z.some((n) => typeof n !== 'number')) {
+          throw new PackValidationError('expected [from, to]', `levels.${k}.quietZones.${i}`);
+        }
+      });
+    }
     if (L.gagDensity !== undefined && L.gagDensity !== 'sparse' && L.gagDensity !== 'normal') {
       throw new PackValidationError("gagDensity must be 'sparse' or 'normal'", `levels.${k}.gagDensity`);
     }
