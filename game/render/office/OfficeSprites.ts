@@ -31,11 +31,35 @@ function facings(key: string, make: () => Raster): Facings {
   let f = cache.get(k);
   if (!f) {
     const r = make();
-    f = { right: r.toCanvas(), left: r.flipX().toCanvas() };
+    f = { right: rim(r.toCanvas()), left: rim(r.flipX().toCanvas()) };
     if (cf) f = { right: recolor(f.right, HAWAII_SWAP), left: recolor(f.left, HAWAII_SWAP) };
     cache.set(k, f);
   }
   return f;
+}
+
+/** A 1px soft light edge around the sprite's outline, so dark characters
+ *  (vampires, gorillas, rats) still read on the darker floors. Invisible
+ *  on light walls, which is the point. */
+function rim(src: HTMLCanvasElement): HTMLCanvasElement {
+  const w = src.width, h = src.height;
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  const g = c.getContext('2d')!;
+  g.drawImage(src, 0, 0);
+  const img = g.getImageData(0, 0, w, h);
+  const d = img.data;
+  const solid = (x: number, y: number) => x >= 0 && y >= 0 && x < w && y < h && d[(y * w + x) * 4 + 3] > 0;
+  const add: number[] = [];
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      if (solid(x, y)) continue;
+      if (solid(x - 1, y) || solid(x + 1, y) || solid(x, y - 1) || solid(x, y + 1)) add.push((y * w + x) * 4);
+    }
+  }
+  for (const i of add) { d[i] = 255; d[i + 1] = 246; d[i + 2] = 224; d[i + 3] = 70; }
+  g.putImageData(img, 0, 0);
+  return c;
 }
 
 /** CASUAL FRIDAY: suit fabric → a loud Hawaiian print (the three shades of
@@ -46,6 +70,7 @@ const HAWAII_SWAP: Record<string, string> = {
   '#2c3a66': '#3fd84a', '#3f5090': '#ffd23f', '#1d2647': '#d83b3b',   // guards
   '#26305a': '#ff77a8', '#34407a': '#fff0a0', '#181e3c': '#2f9a8a',   // Halvorsen
   '#1d1d24': '#7b3fb8', '#33333f': '#ffd23f', '#101014': '#2f9a8a',   // vampires
+  '#343a4e': '#3fd8c8', '#4c5470': '#ff77a8', '#22263a': '#7b3fb8',   // gorillas
 };
 
 // ─── Freed: colour comes back ────────────────────────────────────────────────

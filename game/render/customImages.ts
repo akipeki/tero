@@ -37,7 +37,7 @@ function load(src: string, opts: CustomAnim): Promise<StripImage> {
 
 /** Default fps per player animation (used when the list doesn't give one). */
 const PLAYER_FPS: Record<PlayerFrameName, number> = {
-  idle: 6, walk: 12, jump: 12, fall: 12, duck: 1, hurt: 14, lose: 1, win: 8,
+  idle: 6, walk: 12, jump: 12, fall: 12, duck: 1, hurt: 14, lose: 1, win: 8, breathe: 14, glide: 6,
 };
 
 /** Starts loading every listed image. Safe to call more than once. */

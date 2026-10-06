@@ -265,16 +265,16 @@ export function drawPlant(open: boolean): Raster {
 
 export function drawGorilla(airborne: boolean): Raster {
   const r = new Raster(F, F);
-  const fur = '#3b3a40', face = '#7a6f6a';
+  const fur = '#57525e', face = '#9a8a80';
   const { nx, ny } = biped(r, {
-    f: -1, suit: { base: '#20222a', light: '#363a46', dark: '#121318' }, tie: C.red, hand: fur,
+    f: -1, suit: { base: '#343a4e', light: '#4c5470', dark: '#22263a' }, tie: C.red, hand: fur,
     rx: 10, ry: 7, legH: airborne ? 4 : 5, legW: 4, arms: airborne ? 'up' : 'down', armLen: 10,
     bob: airborne ? -2 : 0,
   });
   const hx = nx, hy = ny - 5;
-  r.part(INK, (t) => t.shadedEllipse(hx, hy, 7, 6, fur, '#55545c', '#24232a'));
+  r.part(INK, (t) => t.shadedEllipse(hx, hy, 7, 6, fur, '#77717e', '#3a3640'));
   r.part(INK, (t) => t.ellipse(hx + 3, hy + 2, 4.5, 3.5, face));
-  r.rect(hx - 1, hy - 3, 9, 2, '#24232a');                               // brow ridge
+  r.rect(hx - 1, hy - 3, 9, 2, '#3a3640');                               // brow ridge
   r.px(hx + 2, hy - 1, C.glow); r.px(hx + 6, hy - 1, C.glow);            // angry eyes
   r.rect(hx + 3, hy + 3, 4, 1, INK);
   if (airborne) { r.rect(hx + 3, hy + 3, 4, 2, '#3a0a10'); r.px(hx + 4, hy + 3, C.white); }

@@ -37,7 +37,7 @@ const BABY_PALETTE = {
   blush:     '#ff8ea0',
   mouth:     '#5a1f2b',
   tongue:    '#ff6f86',
-  tie:       '#2d4f9e',
+  tie:       '#3d6be0',
   tieStripe: '#ffd23f',
   tooth:     '#ffffff',
   smoke:     '#c9ccd1',
@@ -516,11 +516,12 @@ function walkCycle(n: number): DragonPose[] {
     const p = (i / n) * TAU;
     const s = Math.sin(p), c = Math.cos(p);
     return {
-      backFoot:  { dx: Math.round(-5 * c), lift: Math.round(Math.max(0, s) * 3) },
-      frontFoot: { dx: Math.round(5 * c),  lift: Math.round(Math.max(0, -s) * 3) },
+      // big toddler steps: the feet swing well clear of the diaper
+      backFoot:  { dx: Math.round(-7 * c), lift: Math.round(Math.max(0, s) * 5) },
+      frontFoot: { dx: Math.round(7 * c),  lift: Math.round(Math.max(0, -s) * 5) },
       // up on the passing pose, down on contact — a bouncy waddle
-      bob: Math.abs(c) > 0.7 ? 1 : 0,
-      headX: Math.round(c),
+      bob: Math.abs(c) > 0.7 ? 1 : -1,
+      headX: Math.round(c * 1.5),
       backArm: 0.4 + 0.5 * c,
       frontArm: 0.4 - 0.5 * c,
       tail: Math.round(s),
@@ -565,6 +566,26 @@ export const DRAGON_ANIMS = {
     poses: [
       { eyes: 'squeeze', mouth: 'o', headX: -1, backArm: -1.2, frontArm: -1.2, tail: 1 },
       { eyes: 'squeeze', mouth: 'o', headX: 1, backArm: -1.0, frontArm: -1.4, tail: -1 },
+    ],
+  },
+  // Fire: head thrown forward, mouth wide, wings up, arms back for power
+  breathe: {
+    fps: 14,
+    poses: [
+      { eyes: 'squeeze', mouth: 'open', headX: 2, headY: 1, backArm: 2.4, frontArm: 2.2, wing: 1, tail: -1,
+        backFoot: { dx: -3 }, frontFoot: { dx: 4 } },
+      { eyes: 'squeeze', mouth: 'open', headX: 3, headY: 0, backArm: 2.2, frontArm: 2.5, wing: 0.6, tail: 1,
+        backFoot: { dx: -3 }, frontFoot: { dx: 4 } },
+    ],
+  },
+  // Golden parachute: both arms up holding the strings, feet dangling
+  glide: {
+    fps: 6,
+    poses: [
+      { eyes: 'happy', mouth: 'o', backArm: -1.5, frontArm: -1.7, wing: 0.4, tieUp: 0.5,
+        backFoot: { dx: -1, lift: 3 }, frontFoot: { dx: 2, lift: 2 }, tail: 1 },
+      { eyes: 'happy', mouth: 'o', backArm: -1.7, frontArm: -1.5, wing: 0.7, tieUp: 0.7,
+        backFoot: { dx: -1, lift: 2 }, frontFoot: { dx: 2, lift: 3 }, tail: 0 },
     ],
   },
   lose: {

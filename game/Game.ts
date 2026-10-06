@@ -922,6 +922,10 @@ export class Game {
     const footY = p.prevFootY + (p.bottom - p.prevFootY) * a;
 
     let frame = getPlayerFrame(p.state);
+    // Fire and the parachute have their own poses.
+    const breathing = p.isTantrum || p.puffCooldown > PUFF_COOLDOWN - 10;
+    if (!p.isDead && breathing && !p.ducking) frame = framePaths.breathe;
+    else if (p.gliding) frame = framePaths.glide;
     let frameIdx = 0;
     let bobY = 0;
     const walking = p.state === PlayerState.WALK || p.state === PlayerState.BIG_WALK;

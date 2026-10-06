@@ -17,7 +17,7 @@
 import { PlayerState } from '../../types';
 
 export type PlayerFrameName =
-  | 'idle' | 'walk' | 'jump' | 'fall' | 'duck' | 'hurt' | 'lose' | 'win';
+  | 'idle' | 'walk' | 'jump' | 'fall' | 'duck' | 'hurt' | 'lose' | 'win' | 'breathe' | 'glide';
 
 export interface FrameDef {
   /** Path to image (single PNG or horizontal sprite sheet). */
@@ -44,6 +44,8 @@ export const framePaths: Record<PlayerFrameName, FrameDef> = {
   hurt: { src: '/images/dragon/hurt.png', frames: 2, fps: 14 },
   lose: { src: '/images/dragon/lose.png', frames: 1, fps: 1 },
   win:  { src: '/images/dragon/win.png',  frames: 4, fps: 8 },
+  breathe: { src: '/images/dragon/breathe.png', frames: 2, fps: 14 },
+  glide:   { src: '/images/dragon/glide.png',   frames: 2, fps: 6 },
 };
 
 /** Critical frames worth preloading via <link rel="preload"> in the page head. */
