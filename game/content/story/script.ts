@@ -67,12 +67,23 @@ export const STORY = defineStory({
       decor: 'basement',
       density: 'sparse',
       goalWriting: 'crayon_power',
+      // The Monday rush and the leak crossing stay readable: no random gags there.
+      quiet: [[19, 31], [49, 56]],
       triggers: [
         {
-          atTile: 17,
+          // Dad's old desk. This is what makes Tero angry enough to breathe fire.
+          atTile: 12,
           lines: [
             { text: 'DAD\'S OLD DESK. HIS FACE IN THE PHOTO\nHAS BEEN REPLACED BY A STICKY NOTE.' },
             { who: 'tero', text: 'Dada... T. B. D.?' },
+            { who: 'tero', text: '...GRRRRR.' },
+          ],
+          effect: 'tantrum',
+        },
+        {
+          atTile: 33,
+          lines: [
+            { text: 'TIP: X = FIRE. NOT ANGRY ENOUGH?\nEVEN A TINY PUFF BURNS PAPERWORK.' },
           ],
         },
         {
@@ -82,24 +93,24 @@ export const STORY = defineStory({
           ],
         },
         {
-          atTile: 41,
+          atTile: 40,
           lines: [
             { who: 'it', text: 'A baby dragon? In the mailroom?\nOh. You\'re #4471\'s kid.' },
-            { who: 'it', text: 'He got moved up. Floor 6.\nAccounts did the copier, by the way.' },
+            { who: 'it', text: 'You sent Brenda HOME? She\'s been\nhere since 1987. Your dad\'s on 6.' },
           ],
         },
       ],
       scenery: [
         { atTile: 1,  gag: 'memo_more' },
-        { atTile: 3,  gag: 'party_aftermath' },
+        { atTile: 0,  gag: 'party_aftermath' },
         { atTile: 6,  gag: 'sign_tape' },
-        { atTile: 15, gag: 'banner_mondays' },
-        { atTile: 17, gag: 'dad_photo' },
-        { atTile: 34, gag: 'copier_slain' },
-        { atTile: 40, gag: 'wet_floor_sign' },
-        { atTile: 52, gag: 'vhs_archive' },
-        { atTile: 57, gag: 'grave_mark' },
-        { atTile: 64, gag: 'wet_floor_sign' },
+        { atTile: 11, gag: 'dad_photo' },
+        { atTile: 21, gag: 'banner_mondays' },
+        { atTile: 36, gag: 'copier_slain' },
+        { atTile: 45, gag: 'wet_floor_sign' },
+        { atTile: 59, gag: 'sign_incident' },
+        { atTile: 66, gag: 'grave_mark' },
+        { atTile: 71, gag: 'vhs_archive' },
       ],
       outro: [
         { who: 'tero', text: 'Up! UP!' },

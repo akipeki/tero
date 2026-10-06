@@ -16,6 +16,9 @@ export interface WalkerSpec {
   speed: number;
   /** False = landing on it hurts (piranha-plant rules). */
   stompable: boolean;
+  /** True = a person (or corporate creature) under the suit: defeating it
+   *  sends it home. False = robots and plants, which just break or burn. */
+  freeable: boolean;
   /** Stomp particle colours. */
   burst: [string, string];
 }
@@ -30,12 +33,12 @@ export interface HopperSpec {
 }
 
 export const WALKERS: Record<WalkerVariant, WalkerSpec> = {
-  clerk: { w: 24, h: 24, speed: ENEMY_SPEED, stompable: true,  burst: ['#ff004d', '#7f0026'] },
-  guard: { w: 24, h: 26, speed: 1.7, stompable: true,  burst: ['#3f5090', '#1d2647'] },
-  rat:   { w: 20, h: 18, speed: 2.4, stompable: true,  burst: ['#8e8a94', '#f2a0b0'] },
-  pig:   { w: 28, h: 26, speed: 0.8, stompable: true,  burst: ['#f0a0a8', '#e8b72f'] },
-  robot: { w: 24, h: 28, speed: 1.0, stompable: true,  burst: ['#a9b3bd', '#ff3b3b'] },
-  plant: { w: 22, h: 28, speed: 0,   stompable: false, burst: ['#3f9a48', '#c8323a'] },
+  clerk: { w: 24, h: 24, speed: ENEMY_SPEED, stompable: true,  freeable: true,  burst: ['#ff004d', '#7f0026'] },
+  guard: { w: 24, h: 26, speed: 1.7, stompable: true,  freeable: true,  burst: ['#3f5090', '#1d2647'] },
+  rat:   { w: 20, h: 18, speed: 2.4, stompable: true,  freeable: true,  burst: ['#8e8a94', '#f2a0b0'] },
+  pig:   { w: 28, h: 26, speed: 0.8, stompable: true,  freeable: true,  burst: ['#f0a0a8', '#e8b72f'] },
+  robot: { w: 24, h: 28, speed: 1.0, stompable: true,  freeable: false, burst: ['#a9b3bd', '#ff3b3b'] },
+  plant: { w: 22, h: 28, speed: 0,   stompable: false, freeable: false, burst: ['#3f9a48', '#c8323a'] },
 };
 
 export const HOPPERS: Record<HopperVariant, HopperSpec> = {

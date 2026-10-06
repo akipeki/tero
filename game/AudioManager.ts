@@ -6,13 +6,16 @@
 // Music: four voices (lead, arpeggio, bass, noise drums) plus Tero's
 // synthesized "da" for the hook, scheduled ahead with a look-ahead timer.
 // `setFloorMood(0..1)` makes the muzak sadder the higher you climb: slower,
-// warbly like a stretched tape, overdriven and muffled.
+// warbly like a stretched tape, overdriven and muffled. `setTantrum(true)`
+// bolts a distorted power-chord guitar and double kick onto whatever is
+// playing: the muzak turns into metal while Tero rages.
 
 import { BPM, CHORDS, DRUMS, MELODY, chordTones, hz, midi } from './music';
 
 type SfxName =
   | 'jump' | 'stomp' | 'powerup' | 'hurt' | 'death'
-  | 'goal' | 'block' | 'coin' | 'checkpoint' | 'text' | 'plop' | 'dada';
+  | 'goal' | 'block' | 'coin' | 'checkpoint' | 'text' | 'plop' | 'dada'
+  | 'puff' | 'fire' | 'burn' | 'free' | 'ready' | 'roar';
 
 interface ToneSpec {
   freq: number;
@@ -23,11 +26,15 @@ interface ToneSpec {
   slideTo?: number;
   /** Add a short noise burst (impacts). */
   noise?: number;
+  /** Highpass for the noise burst (Hz). Default 1800. */
+  noiseHz?: number;
+  /** Noise only, no tone (whooshes). */
+  noiseOnly?: boolean;
   /** Per-tone gain; defaults to 0.2. */
   gain?: number;
 }
 
-const SFX_TONES: Record<Exclude<SfxName, 'dada'>, ToneSpec> = {
+const SFX_TONES: Record<Exclude<SfxName, 'dada' | 'roar'>, ToneSpec> = {
   jump:       { freq: 330, duration: 0.12, type: 'square', slideTo: 700, gain: 0.14 },
   stomp:      { freq: 300, duration: 0.14, type: 'square', slideTo: 70, noise: 0.08 },
   powerup:    { freq: 260, duration: 0.08, type: 'square', freqs: [260, 330, 392, 523, 659, 784] },
@@ -39,6 +46,12 @@ const SFX_TONES: Record<Exclude<SfxName, 'dada'>, ToneSpec> = {
   checkpoint: { freq: 660, duration: 0.10, type: 'square', freqs: [660, 880, 990] },
   text:       { freq: 1400, duration: 0.015, type: 'square', gain: 0.05 },
   plop:       { freq: 660, duration: 0.035, type: 'sine', freqs: [660, 440], gain: 0.18 },
+  // Fire. The puff is a toddler failing to breathe fire: "pff… hic".
+  puff:       { freq: 900, duration: 0.06, type: 'square', slideTo: 520, gain: 0.07, noise: 0.07, noiseHz: 1200 },
+  fire:       { freq: 0, duration: 0.14, type: 'square', noise: 0.14, noiseHz: 350, noiseOnly: true, gain: 0.16 },
+  burn:       { freq: 140, duration: 0.18, type: 'square', slideTo: 60, gain: 0.1, noise: 0.22, noiseHz: 2500 },
+  free:       { freq: 784, duration: 0.06, type: 'square', freqs: [784, 988, 1175, 1568], gain: 0.1 },
+  ready:      { freq: 523, duration: 0.07, type: 'triangle', freqs: [523, 659, 784, 1047, 784, 1047], gain: 0.24 },
 };
 
 /** Music bus level before the volume slider. */
@@ -55,6 +68,9 @@ export class AudioManager {
   // Music graph: voices → bus → drive → muffle → musicGain → out
   private musicGain: GainNode | null = null;
   private bus: GainNode | null = null;
+  /** Input of the metal guitar's own distortion (bypasses the muffle). */
+  private metal: WaveShaperNode | null = null;
+  private tantrum = false;
   private lfoDepth: GainNode | null = null;
   private musicNodes = new Set<AudioScheduledSourceNode>();
   private timerId: ReturnType<typeof setInterval> | null = null;
@@ -82,6 +98,12 @@ export class AudioManager {
   play(name: SfxName): void {
     if (this.muted || !this.ac) return;
     const now = this.ac.currentTime;
+    if (name === 'roar') {
+      // "RAAAAH" — Tero's war cry, sliding down an octave
+      this.voice(hz(midi('G5')), now, 0.75, this.ac.destination, 0.9, true, hz(midi('G4')));
+      this.noise(now, 0.4, 0.15, this.ac.destination, 600);
+      return;
+    }
     if (name === 'dada') {
       // "Da-da?" — rising, like the title
       this.voice(hz(midi('E5')), now, 0.22, this.ac.destination, 0.8, false);
@@ -95,10 +117,13 @@ export class AudioManager {
       spec.freqs.forEach((f, i) => {
         this.playTone(f, spec.duration * 0.9, spec.type, gain, now + i * spec.duration);
       });
-    } else {
+    } else if (!spec.noiseOnly) {
       this.playTone(spec.freq, spec.duration, spec.type, gain, now, spec.slideTo);
     }
-    if (spec.noise) this.noise(now, spec.noise, 0.25, this.ac.destination, 1800);
+    if (spec.noise) {
+      const noiseGain = spec.noiseOnly ? gain : 0.25;
+      this.noise(now, spec.noise, noiseGain, this.ac.destination, spec.noiseHz ?? 1800);
+    }
   }
 
   toggleMute(): void {
@@ -118,6 +143,11 @@ export class AudioManager {
 
   get isMuted(): boolean { return this.muted; }
 
+  /** Metal mode on/off — applies from the next eighth note. */
+  setTantrum(on: boolean): void {
+    this.tantrum = on;
+  }
+
   /** 0 = ground floor muzak, 1 = the penthouse, where the tape is melting.
    *  Takes effect on the next `startMusic()`. */
   setFloorMood(mood: number): void {
@@ -136,6 +166,7 @@ export class AudioManager {
     try { this.musicGain?.disconnect(); } catch { /* ignore */ }
     this.musicGain = null;
     this.bus = null;
+    this.metal = null;
     this.lfoDepth = null;
   }
 
@@ -166,6 +197,15 @@ export class AudioManager {
     bus.gain.value = 1 - m * 0.35;   // drive adds loudness back
     bus.connect(drive);
     this.bus = bus;
+
+    // The tantrum guitar: its own heavy fuzz, straight to the output.
+    const metal = ac.createWaveShaper();
+    metal.curve = driveCurve(70);
+    const metalLevel = ac.createGain();
+    metalLevel.gain.value = 0.55;
+    metal.connect(metalLevel);
+    metalLevel.connect(out);
+    this.metal = metal;
 
     // Tape warble: one slow LFO bends every pitched voice.
     const lfo = ac.createOscillator();
@@ -249,6 +289,14 @@ export class AudioManager {
     const arp = [0, 1, 2, 1][beat % 4];
     this.pitched(hz(chord[arp] + 24), t, sd * 0.5, 'square', 0.07, bus, 0.003);
 
+    // Tantrum: fuzz power chords on every eighth and a double kick.
+    if (this.tantrum && this.metal) {
+      const root = chord[0];   // same register as the bass
+      this.pitched(hz(root), t, sd * 0.85, 'sawtooth', 0.35, this.metal, 0.003);
+      this.pitched(hz(root + 7), t, sd * 0.85, 'sawtooth', 0.3, this.metal, 0.003);
+      if (DRUMS[beat] !== 'k') this.kick(t, bus);
+    }
+
     // Drums
     switch (DRUMS[beat]) {
       case 'k': this.kick(t, bus); break;
@@ -319,12 +367,15 @@ export class AudioManager {
   /** Tero sings "da": a buzzy source through three formant filters for an
    *  "ah" vowel, with the formants sliding in from a "d" at the start.
    *  `wobble` adds the little vibrato a toddler holds the last note with. */
-  private voice(freq: number, t: number, dur: number, dest: AudioNode, gain: number, wobble: boolean): void {
+  private voice(
+    freq: number, t: number, dur: number, dest: AudioNode, gain: number, wobble: boolean, glideTo?: number,
+  ): void {
     const ac = this.ac!;
     const src = ac.createOscillator();
     src.type = 'sawtooth';
     src.frequency.setValueAtTime(freq * 1.04, t);
     src.frequency.exponentialRampToValueAtTime(freq, t + 0.06);
+    if (glideTo) src.frequency.exponentialRampToValueAtTime(glideTo, t + dur);
     const lfo = dest === this.bus ? this.lfoDepth : null;
     lfo?.connect(src.detune);
 

@@ -16,10 +16,33 @@ export const JUMP_BUFFER        = 8;      // frames
 export const INVINCIBLE_FRAMES  = 90;
 export const ENEMY_SPEED        = 1.2;
 
+// ─── Tantrum ────────────────────────────────────────────────────────────────
+// Tero's anger fills a meter; when it's full, FIRE starts a TANTRUM: a
+// stream of baby fire that turns workers back into people and sends them home.
+export const TANTRUM_MAX        = 100;
+export const RAGE_HURT          = 35;   // getting hurt is unfair
+export const RAGE_DEATH         = 50;   // dying is very unfair (so struggling players get help)
+export const RAGE_STOMP         = 12;
+export const RAGE_COIN          = 3;
+export const RAGE_PAPER         = 2;
+export const TANTRUM_FRAMES     = 300;  // 5 s
+export const TANTRUM_SPEED      = 1.3;  // walk-speed multiplier while raging
+export const FLAME_EVERY        = 2;    // ticks between flames in the stream
+export const FLAME_SPEED        = 5.5;
+export const FLAME_LIFE         = 24;   // ≈ 4 tiles of reach
+export const PUFF_LIFE          = 9;    // the little hiccup puff: ≈ 1.5 tiles
+export const PUFF_SPEED         = 4.5;
+export const PUFF_COOLDOWN      = 20;
+// Hit-stop: the world freezes for a few ticks so hits land.
+export const HITSTOP_STOMP      = 4;
+export const HITSTOP_FREE       = 2;
+export const HITSTOP_HURT       = 6;
+
 // Score values
 export const COIN_VALUE         = 10;
 export const STOMP_VALUE        = 100;
 export const CHAIN_BONUS        = 50;  // added per consecutive air-stomp
+export const SENT_HOME_VALUE    = 150; // a freed worker is worth more than a squashed one
 
 // ─── Animation ──────────────────────────────────────────────────────────────
 export const WALK_ANIM_FPS      = 8;

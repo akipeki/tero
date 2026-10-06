@@ -10,6 +10,7 @@ import { TILE_SIZE } from '../constants';
 import { drawHopperSprite } from '../render/sprites/HopperSprite';
 import type { Player } from './Player';
 import { HOPPERS, type HopperSpec, type HopperVariant } from './enemyKinds';
+import { FreedMotion, TIE_COLORS, drawFreedBubble } from './freed';
 
 export class Hopper extends creaturesAndObjects {
   facingRight = false;
@@ -21,6 +22,9 @@ export class Hopper extends creaturesAndObjects {
   private groundY: number | null = null;
   readonly variant: HopperVariant;
   private spec: HopperSpec;
+  private freed: FreedMotion | null = null;
+  /** Set on the tick this worker is sent home; Game counts it and clears it. */
+  sentHome = false;
 
   constructor(tx: number, ty: number, variant: HopperVariant = 'manager') {
     const spec = HOPPERS[variant];
@@ -30,7 +34,16 @@ export class Hopper extends creaturesAndObjects {
     this.cooldown = 30 + Math.floor(Math.random() * 40);
   }
 
+  /** Can still be stomped, burnt or bumped into. */
+  get hittable(): boolean { return this.active && !this.dying && !this.freed; }
+
   update(ctx: UpdateCtx): void {
+    if (this.freed) {
+      this.freed.update(this, ctx);
+      this.groundY = null;
+      if (this.freed.done) this.active = false;
+      return;
+    }
     if (this.dying) {
       this.dyingTimer--;
       this.scaleY = Math.max(0.05, this.scaleY - 0.12);
@@ -69,7 +82,13 @@ export class Hopper extends creaturesAndObjects {
   }
 
   checkPlayerInteraction(player: Player, ctx: UpdateCtx): boolean {
-    if (this.dying || !this.active) return false;
+    if (!this.hittable) return false;
+
+    // A raging toddler just bowls you over.
+    if (player.isTantrum && overlaps(player, this)) {
+      this.free(ctx);
+      return false;
+    }
 
     if (player.vy > 0 && stompOverlap(
       { x: player.x, y: player.y, w: player.w, h: player.h },
@@ -90,24 +109,44 @@ export class Hopper extends creaturesAndObjects {
   }
 
   private stomp(ctx: UpdateCtx, player: Player): void {
-    this.dying = true;
-    this.dyingTimer = 20;
-    this.scaleY = 0.3;
     player.bounce();
-    ctx.particles.burst(this.cx, this.cy, 8, this.spec.burst[0], this.spec.burst[1]);
-    ctx.shake.trigger(3);
+    ctx.shake.trigger(4);
     ctx.audio.play('stomp');
+    this.free(ctx);
+  }
+
+  /** Hit by tantrum fire. */
+  burn(ctx: UpdateCtx): void {
+    if (!this.hittable) return;
+    ctx.particles.burst(this.cx, this.cy, 6, '#ffb347', '#6b6470');
+    this.free(ctx);
+  }
+
+  /** Every hopper is a person (or a corporate creature) — they all go home. */
+  private free(ctx: UpdateCtx): void {
+    this.freed = new FreedMotion(this.variant);
+    this.sentHome = true;
+    this.facingRight = false;
+    ctx.particles.burst(this.cx, this.y + 8, 6, TIE_COLORS[0], TIE_COLORS[1]);
+    ctx.audio.play('free');
   }
 
   draw(ctx: CanvasRenderingContext2D, camX: number): void {
+    const freed = this.freed;
+    if (freed) ctx.globalAlpha = freed.alpha;
     drawHopperSprite(ctx, {
-      x: this.x, y: this.y, w: this.w, h: this.h, camX,
+      x: this.x, y: this.y + (freed?.hop ?? 0), w: this.w, h: this.h, camX,
+      freed: freed !== null,
       facingRight: this.facingRight,
-      airborne: !this.onGround,
+      airborne: !this.onGround && !freed,
       dying: this.dying,
       scaleY: this.scaleY,
       variant: this.variant,
       groundY: this.groundY,
     });
+    if (freed) {
+      drawFreedBubble(ctx, freed, this, camX);
+      ctx.globalAlpha = 1;
+    }
   }
 }

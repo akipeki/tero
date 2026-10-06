@@ -248,3 +248,37 @@ export function drawOfficeHazard(ctx: CanvasRenderingContext2D, sx: number, sy: 
     ctx.fillRect(px, sy, 1, 1);                // tip
   }
 }
+
+/** A wall of paperwork: bright (it's gameplay — fire burns it), with
+ *  slightly crooked sheets, twine and a red URGENT stamp. */
+export function drawPaperTile(ctx: CanvasRenderingContext2D, sx: number, sy: number, tx: number, ty: number): void {
+  // shadowy gap behind the stack
+  ctx.fillStyle = '#4a4438';
+  ctx.fillRect(sx, sy, S, S);
+  // four bundles of sheets, each nudged sideways a little
+  for (let b = 0; b < 4; b++) {
+    const nudge = ((tx * 7 + ty * 3 + b * 5) % 5) - 2;
+    const y = sy + b * 8;
+    ctx.fillStyle = '#fbf8ee';
+    ctx.fillRect(sx + 2 + nudge, y, S - 4, 7);
+    ctx.fillStyle = '#d9d2bd';
+    ctx.fillRect(sx + 2 + nudge, y + 6, S - 4, 1);
+    // page edges
+    ctx.fillStyle = '#e8e2cf';
+    ctx.fillRect(sx + 2 + nudge, y + 2, S - 4, 1);
+    ctx.fillRect(sx + 2 + nudge, y + 4, S - 4, 1);
+  }
+  // twine
+  ctx.fillStyle = '#b07a3a';
+  ctx.fillRect(sx + 15, sy, 2, S);
+  // URGENT stamp on alternate tiles
+  if ((tx + ty) % 2 === 0) {
+    ctx.fillStyle = '#d83b3b';
+    ctx.fillRect(sx + 5, sy + 11, 9, 5);
+    ctx.fillStyle = '#fbf8ee';
+    ctx.fillRect(sx + 6, sy + 12, 7, 1);
+    ctx.fillRect(sx + 6, sy + 14, 5, 1);
+  }
+  ctx.fillStyle = '#1b1620';
+  ctx.fillRect(sx, sy + S - 1, S, 1);
+}

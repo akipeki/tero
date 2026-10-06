@@ -3,7 +3,7 @@
 // Lightweight aggregator for run stats — score, coins, enemies stomped,
 // best time persisted per level.
 
-import { COIN_VALUE, STOMP_VALUE, CHAIN_BONUS } from './constants';
+import { COIN_VALUE, STOMP_VALUE, CHAIN_BONUS, SENT_HOME_VALUE } from './constants';
 
 const BEST_KEY = 'tero:best';
 
@@ -11,6 +11,8 @@ export class Stats {
   score = 0;
   coins = 0;
   enemiesStomped = 0;
+  /** Workers turned back into people. */
+  sentHome = 0;
   startTime = 0;
   pausedAt: number | null = null;
   pausedDelta = 0;
@@ -19,6 +21,7 @@ export class Stats {
     this.score = 0;
     this.coins = 0;
     this.enemiesStomped = 0;
+    this.sentHome = 0;
     this.startTime = performance.now();
     this.pausedAt = null;
     this.pausedDelta = 0;
@@ -33,6 +36,11 @@ export class Stats {
     this.enemiesStomped++;
     const bonus = Math.max(0, airChain - 1) * CHAIN_BONUS;
     this.score += STOMP_VALUE + bonus;
+  }
+
+  addSentHome(): void {
+    this.sentHome++;
+    this.score += SENT_HOME_VALUE;
   }
 
   pause(): void {

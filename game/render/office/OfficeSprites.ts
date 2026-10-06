@@ -34,6 +34,49 @@ function facings(key: string, make: () => Raster): Facings {
   return f;
 }
 
+// ─── Freed: colour comes back ────────────────────────────────────────────────
+// Zombie greys → warm skin; glowing red eye sockets → ordinary eyes.
+const FREED_SWAP: Record<string, string> = {
+  '#a8b394': '#f2c29b', '#c9d1b4': '#ffdcbc', '#76826a': '#c98d66',   // human skin
+  '#e6e2ea': '#f2c29b', '#b8b0c4': '#c98d66',                         // vampire pallor
+  '#3b2a3f': '#c98d66', '#ff4848': '#1b1620', '#ffd0c0': '#ffffff',   // eyes
+};
+
+function hex(r: number, g: number, b: number): string {
+  return '#' + ((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1);
+}
+
+function recolor(src: HTMLCanvasElement): HTMLCanvasElement {
+  const c = document.createElement('canvas');
+  c.width = src.width;
+  c.height = src.height;
+  const g = c.getContext('2d')!;
+  g.drawImage(src, 0, 0);
+  const img = g.getImageData(0, 0, c.width, c.height);
+  const d = img.data;
+  for (let i = 0; i < d.length; i += 4) {
+    if (d[i + 3] === 0) continue;
+    const to = FREED_SWAP[hex(d[i], d[i + 1], d[i + 2])];
+    if (!to) continue;
+    d[i]     = parseInt(to.slice(1, 3), 16);
+    d[i + 1] = parseInt(to.slice(3, 5), 16);
+    d[i + 2] = parseInt(to.slice(5, 7), 16);
+  }
+  g.putImageData(img, 0, 0);
+  return c;
+}
+
+function freedFacings(key: string, make: () => Raster): Facings {
+  const k = `freed:${key}`;
+  let f = cache.get(k);
+  if (!f) {
+    const base = facings(key, make);
+    f = { right: recolor(base.right), left: recolor(base.left) };
+    cache.set(k, f);
+  }
+  return f;
+}
+
 /** Draws a 32×32 human frame with its feet on the hitbox's bottom-centre. */
 function blitHuman(
   ctx: CanvasRenderingContext2D, img: Facings, p: { x: number; y: number; w: number; h: number; camX: number; facingRight: boolean; scaleY: number },
@@ -87,7 +130,8 @@ export function drawOfficeWalker(ctx: CanvasRenderingContext2D, p: WalkerSpriteP
     : Math.floor(Math.abs(p.x) / 6) % 4;
   const custom = customEnemy(variant);
   if (custom) return blitCustom(ctx, custom, f, p);
-  blitHuman(ctx, facings(`${variant}${f}`, () => WALKER_ART[variant](f)), p);
+  const pick = p.freed ? freedFacings : facings;
+  blitHuman(ctx, pick(`${variant}${f}`, () => WALKER_ART[variant](f)), p);
 }
 
 export function drawOfficeHopper(ctx: CanvasRenderingContext2D, p: HopperSpriteProps): void {
@@ -102,7 +146,8 @@ export function drawOfficeHopper(ctx: CanvasRenderingContext2D, p: HopperSpriteP
   }
   const custom = customEnemy(variant);
   if (custom) return blitCustom(ctx, custom, air ? Math.min(1, custom.frames - 1) : 0, p);
-  blitHuman(ctx, facings(`${variant}${air ? 1 : 0}`, () => HOPPER_ART[variant](air)), p);
+  const pick = p.freed ? freedFacings : facings;
+  blitHuman(ctx, pick(`${variant}${air ? 1 : 0}`, () => HOPPER_ART[variant](air)), p);
 }
 
 // ─── Floppy disk (coin) ──────────────────────────────────────────────────────

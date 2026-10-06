@@ -9,6 +9,7 @@
 //   #  = SOLID   (1)
 //   =  = PLATFORM (2)
 //   ^  = HAZARD  (3)
+//   %  = PAPER   (6)  solid paperwork; Tero's fire burns it away
 //
 // Example:
 //   const TILES = buildLevel(['..###..', '..^^^..', '#######']);
@@ -20,6 +21,7 @@ const CHAR_TO_TILE: Record<string, number> = {
   '#': TileType.SOLID,
   '=': TileType.PLATFORM,
   '^': TileType.HAZARD,
+  '%': TileType.PAPER,
 };
 
 export interface BuiltLevel {

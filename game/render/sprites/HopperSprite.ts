@@ -14,6 +14,8 @@ export interface HopperSpriteProps {
   airborne: boolean;
   dying: boolean;
   scaleY: number;
+  /** Sent home: drawn with the colour back in their face. */
+  freed?: boolean;
   variant?: HopperVariant;
   /** Floor under an airborne hopper, for a drop shadow. */
   groundY?: number | null;

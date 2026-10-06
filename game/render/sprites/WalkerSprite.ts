@@ -14,6 +14,8 @@ export interface WalkerSpriteProps {
   animFrame: number;
   dying: boolean;
   scaleY: number;
+  /** Sent home: drawn with the colour back in their face. */
+  freed?: boolean;
   variant?: WalkerVariant;
   /** Ticks since spawn — drives animations that don't follow movement. */
   animTick?: number;

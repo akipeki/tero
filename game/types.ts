@@ -18,6 +18,8 @@ export const enum Action {
   JUMP  = 1 << 2,
   PAUSE = 1 << 3,
   DOWN  = 1 << 4,
+  /** Breathe fire: a little puff, or the full TANTRUM when the meter is full. */
+  FIRE  = 1 << 5,
 }
 
 // ─── Tiles ───────────────────────────────────────────────────────────────────
@@ -28,6 +30,8 @@ export const enum TileType {
   HAZARD     = 3,
   CHECKPOINT = 4,
   COIN       = 5,
+  /** A stack of paperwork: solid until Tero's fire burns it away. */
+  PAPER      = 6,
 }
 
 // ─── Player state ────────────────────────────────────────────────────────────
@@ -90,12 +94,20 @@ export interface HudData {
   isBig:    boolean;
   coins:    number;
   state:    GameState;
+  /** Tantrum meter, 0..TANTRUM_MAX. During a tantrum: the time left. */
+  rage:     number;
+  /** True while the tantrum is running. */
+  tantrum:  boolean;
+  /** Workers freed this run — the "sent home" counter. */
+  sentHome: number;
 }
 
 // ─── End-of-run stats shown on Game Over / Win screens ───────────────────────
 export interface RunStats {
   coins:        number;
   enemiesStomped: number;
+  /** Workers turned back into people and sent home to their kids. */
+  sentHome:     number;
   timeMs:       number;
 }
 
@@ -121,6 +133,8 @@ export interface PlayerRenderData {
   shouldFlash: boolean;
   /** Caffeinated — drawn BIG_SPRITE_SCALE larger. */
   big: boolean;
+  /** Mid-tantrum: the overlay glows red and trembles. */
+  tantrum: boolean;
 }
 
 // ─── Story overlay (game → React) ────────────────────────────────────────────

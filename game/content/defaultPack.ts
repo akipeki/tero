@@ -69,6 +69,7 @@ const TILE_TO_CHAR: Record<number, string> = {
   [TileType.SOLID]:    '#',
   [TileType.PLATFORM]: '=',
   [TileType.HAZARD]:   '^',
+  [TileType.PAPER]:    '%',
 };
 
 function rowsFromTiles(tiles: number[], width: number, height: number): string[] {

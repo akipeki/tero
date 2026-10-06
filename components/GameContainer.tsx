@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { Game } from '@/game/Game';
 import { GameState, Action } from '@/game/types';
-import { VIEWPORT_W, VIEWPORT_H, TILE_SIZE, STARTING_LIVES, BIG_SPRITE_SCALE } from '@/game/constants';
+import { VIEWPORT_W, VIEWPORT_H, TILE_SIZE, STARTING_LIVES, BIG_SPRITE_SCALE, TANTRUM_MAX } from '@/game/constants';
 import type { HudData, PlayerRenderData, RunStats, StoryView } from '@/game/types';
 import StoryBox from './StoryBox';
 import { GAME_SUBTITLE, GAME_TITLE_LINES } from '@/game/title';
@@ -73,7 +73,10 @@ export default function GameContainer() {
 
   const [hud, setHud] = useState<HudData>({
     lives: STARTING_LIVES, maxLives: STARTING_LIVES, isBig: false, coins: 0, state: GameState.TITLE,
+    rage: 0, tantrum: false, sentHome: 0,
   });
+  /** Big centre-screen shout ("TANTRUM!!"); the key restarts the animation. */
+  const [callout, setCallout] = useState<{ id: number; text: string } | null>(null);
   const initialSettings = useMemo(() => loadSettings(), []);
   const [muted, setMuted]   = useState(initialSettings.muted);
   const [volume, setVolume] = useState(initialSettings.volume);
@@ -104,6 +107,13 @@ export default function GameContainer() {
     game.onStoryReveal = (n) => storyRevealRef.current?.(n);
     game.onChain = (chainSize, bonus) => {
       if (bonus > 0) pushFloater(`+${bonus} CHAIN×${chainSize}`);
+    };
+    let calloutTimer: ReturnType<typeof setTimeout> | null = null;
+    game.onCallout = (text) => {
+      const id = Date.now();
+      setCallout({ id, text });
+      if (calloutTimer) clearTimeout(calloutTimer);
+      calloutTimer = setTimeout(() => setCallout(null), 1600);
     };
 
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -148,6 +158,10 @@ export default function GameContainer() {
       div.style.width   = `${spriteSize}px`;
       div.style.height  = `${spriteSize}px`;
       div.style.opacity = shouldFlash ? '0.65' : '1';
+      // Tantrum: red-hot glow (static under reduced motion — no flicker).
+      div.style.filter = data.tantrum
+        ? `drop-shadow(0 0 ${still ? 3 : 2 + Math.round(Math.random() * 3)}px #ff3b1f) saturate(1.5) brightness(1.08)`
+        : '';
       div.style.display = 'block';
 
       // Single images and strips share one path: a strip is just frames > 1.
@@ -268,7 +282,7 @@ export default function GameContainer() {
     else await wrap.requestFullscreen?.();
   }, []);
 
-  const { state, lives, maxLives, isBig, coins } = hud;
+  const { state, lives, maxLives, isBig, coins, rage, tantrum, sentHome } = hud;
   const isPlaying  = state === GameState.PLAYING;
   const isPaused   = state === GameState.PAUSED;
   const isTitle    = state === GameState.TITLE;
@@ -305,6 +319,37 @@ export default function GameContainer() {
           aria-label="player"
         />
 
+        {/* ── TANTRUM ── red edges while Tero rages */}
+        {tantrum && (
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              boxShadow: 'inset 0 0 60px 12px rgba(255,40,20,0.55)',
+              animation: 'tero-pulse 0.35s ease-in-out infinite alternate',
+            }}
+          />
+        )}
+
+        {/* ── CALLOUT ── "TANTRUM READY!", "TANTRUM!!", "...hic." */}
+        {callout && (
+          <p
+            key={callout.id}
+            className="absolute left-0 right-0 text-center pointer-events-none select-none"
+            role="status"
+            style={{
+              top: '22%',
+              fontFamily: 'var(--font-pixel, monospace)',
+              fontSize: callout.text.startsWith('TANTRUM!!') ? 'clamp(20px, 5vw, 52px)' : 'clamp(11px, 2.4vw, 24px)',
+              color: callout.text.startsWith('...') ? '#fff1e8' : '#ffd23f',
+              textShadow: '3px 3px 0 #d83b3b, 5px 5px 0 #000',
+              animation: 'tero-callout 1.5s ease-out',
+              margin: 0,
+            }}
+          >
+            {callout.text}
+          </p>
+        )}
+
         {/* ── STORY ── inside the viewport so the box sits on the game area */}
         {story && (
           <StoryBox
@@ -325,7 +370,7 @@ export default function GameContainer() {
           <p className="pixel-sub mt-3" style={{ color: '#ffd23f', letterSpacing: '0.2em' }}>{GAME_SUBTITLE}</p>
           <p className="pixel-sub mt-6" style={{ color: '#fff1e8' }}>PRESS ENTER OR TAP TO PLAY</p>
           <p className="pixel-hint mt-4" style={{ color: '#a7f070' }}>
-            ARROWS / WASD &nbsp;|&nbsp; SPACE = JUMP &nbsp;|&nbsp; DOWN = DUCK &nbsp;|&nbsp; M = MUTE
+            ARROWS / WASD &nbsp;|&nbsp; SPACE = JUMP &nbsp;|&nbsp; DOWN = DUCK &nbsp;|&nbsp; X = FIRE &nbsp;|&nbsp; M = MUTE
           </p>
           <button className="pixel-btn mt-10" onClick={handleStart} aria-label="Start game">▶ PLAY</button>
         </PixelOverlay>
@@ -405,6 +450,8 @@ export default function GameContainer() {
             </span>
             <span style={{ color: '#ffcd75' }}>● {coins}</span>
             <span style={{ color: '#fff1e8' }}>{score.toString().padStart(5, '0')}</span>
+            <TantrumMeter rage={rage} tantrum={tantrum} />
+            <span style={{ color: '#a7f070' }} title="Workers sent home to their kids">⌂ {sentHome}</span>
           </div>
 
           {/* Chain bonus floaters */}
@@ -460,6 +507,7 @@ export default function GameContainer() {
           </div>
           <div className="absolute bottom-5 right-4 flex gap-2 select-none">
             <MobileBtn onDown={handlePauseToggle} onUp={() => {}}>‖</MobileBtn>
+            <MobileBtn onDown={() => mobileDown(Action.FIRE)} onUp={() => mobileUp(Action.FIRE)}>🔥</MobileBtn>
             <MobileBtn large onDown={() => mobileDown(Action.JUMP)} onUp={() => mobileUp(Action.JUMP)}>▲</MobileBtn>
           </div>
         </>
@@ -505,7 +553,12 @@ function StatsBlock({
         TIME&nbsp;{formatTime(stats.timeMs)}
       </p>
       <p className="pixel-sub mt-2" style={{ color: '#ffcd75' }}>
-        ● {stats.coins} &nbsp;|&nbsp; KO {stats.enemiesStomped}
+        ● {stats.coins} &nbsp;|&nbsp; ⌂ {stats.sentHome}
+      </p>
+      <p className="pixel-hint mt-2" style={{ color: '#a7f070' }}>
+        {stats.sentHome === 0 ? 'NOBODY WENT HOME.'
+          : stats.sentHome === 1 ? '1 WORKER SENT HOME TO THEIR KIDS.'
+          : `${stats.sentHome} WORKERS SENT HOME TO THEIR KIDS.`}
       </p>
       {best && (
         <p className="pixel-hint mt-3" style={{ color: '#c2c3c7' }}>
@@ -513,6 +566,32 @@ function StatsBlock({
         </p>
       )}
     </div>
+  );
+}
+
+// ─── Tantrum meter ────────────────────────────────────────────────────────────
+function TantrumMeter({ rage, tantrum }: { rage: number; tantrum: boolean }) {
+  const full = rage >= TANTRUM_MAX;
+  const pct = Math.round((rage / TANTRUM_MAX) * 100);
+  return (
+    <span className="flex items-center gap-1" aria-label={`Tantrum meter ${pct} percent`}>
+      <span style={{ color: full || tantrum ? '#ff3b1f' : '#c2c3c7' }}>{tantrum ? 'RAAH' : full ? 'X!' : 'GRR'}</span>
+      <span
+        style={{
+          display: 'inline-block', width: '5.5em', height: '0.8em',
+          border: '2px solid #fff1e8', background: '#1b1620', position: 'relative',
+          animation: full && !tantrum ? 'tero-pulse 0.3s steps(2) infinite alternate' : undefined,
+        }}
+      >
+        <span
+          style={{
+            position: 'absolute', left: 0, top: 0, bottom: 0, width: `${pct}%`,
+            background: tantrum || full ? '#ff3b1f' : '#ef7d57',
+            transition: 'width 120ms linear',
+          }}
+        />
+      </span>
+    </span>
   );
 }
 

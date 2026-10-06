@@ -23,6 +23,7 @@ npm run dev
 |--------------|--------------------------------|---------------|
 | Move L/R     | Arrow Left/Right · A/D         | D-pad         |
 | Duck         | Arrow Down · S                 | ▼             |
+| Fire / TANTRUM | X · F · Shift                | 🔥            |
 | Jump         | Arrow Up · W · Space           | ▲             |
 | Pause/Resume | Esc · P                        | ‖             |
 | Mute         | M                              | 🔊 button     |
@@ -49,7 +50,7 @@ game/
   Camera.ts            — Smooth horizontal follow w/ clamp
   ScreenShake.ts       — Decaying random offset
   level/
-    level1.ts          — The Mailroom
+    level1.ts          — The Mailroom (showcase floor: Monday rush, paper wall, secret stash)
     level2.ts          — Cubicle Farm (more vertical)
     level3.ts          — The Boardroom (hazard-dense)
     level4–8.ts        — Chapter 2 in play order: Legal (4), R&D (5),
@@ -173,7 +174,9 @@ can swap in detailed art without re-tuning collisions.
 ### Adding a level
 
 1. Copy `game/level/level1.ts` to `game/level/level4.ts`.
-2. Edit the `RAW` tile array (0=air, 1=solid, 2=platform, 3=hazard).
+2. Edit the rows (`.` air, `#` solid, `=` desk/one-way platform,
+   `^` hazard, `%` paperwork that fire burns away). The camera shows rows
+   0–8; `game/level/level1.ts` is the example to copy.
 3. Add spawns (`player`, `enemies`, `blocks`, `coins`, `checkpoints`, `goal`).
 4. Register it in `game/level/levels.ts` with a theme (`ember`/`mint`/`dusk`).
 5. The validator runs on import in development.
@@ -204,6 +207,29 @@ levels: {
 The script compiles into the pack's `StoryCard` / `Chapter` data
 (`story/compile.ts`), so user packs can carry story too; dangling card
 references are logged at startup (`story/validate.ts`).
+
+### Tantrum: the core verb
+
+Tero is a baby dragon, so he breathes fire. Anger fills the **tantrum
+meter** (HUD: GRR → X!): getting hurt, dying (so struggling players get
+help), stomping, floppies and burning paperwork. Story triggers can fill it
+outright (`effect: 'tantrum'`; on Floor 1 it's Dad's desk with a sticky
+note where his face was).
+
+- **FIRE with a full meter** starts a 5-second TANTRUM: a stream of fire,
+  invincibility, faster feet, red screen edges, and the muzak turns into
+  metal (`AudioManager.setTantrum`).
+- **FIRE otherwise** is a tiny hiccup puff. It only burns paperwork.
+- **Paperwork** (`%` in level rows, `TileType.PAPER`) is solid until fire
+  touches it, which makes it good for walls, shortcuts and secret stashes.
+- **Workers are freed, not killed.** Stomping, burning or tantrum-bumping a
+  worker brings the colour back to their face; they drop the tie, shout
+  something ("IS IT 5?") and skip off home. The HUD's ⌂ counts them and the
+  results screen reports how many went home to their kids. Robots and
+  plants aren't people, so they just break. See `creaturesAndObjects/freed.ts`.
+- Hits land with **hit-stop** (a few frozen frames) and screen shake.
+
+All the numbers are in the Tantrum section of `game/constants.ts`.
 
 ### Music
 

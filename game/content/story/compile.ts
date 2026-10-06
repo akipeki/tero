@@ -4,7 +4,7 @@
 // StoryCard / Chapter / per-level fields. Card ids are generated from where
 // the line sits, e.g. `b_card_level_2_trigger_0_1`.
 
-import type { Chapter, StoryCard, StoryTrigger, SpriteId, SceneryPlacement, GagMood, GagDensity } from '../types';
+import type { Chapter, StoryCard, StoryTrigger, SpriteId, SceneryPlacement, GagMood, GagDensity, TriggerEffect } from '../types';
 import type { GagId } from '../../render/office/gags';
 import type { DecorId } from '../../render/office/decor';
 
@@ -31,7 +31,8 @@ export interface StoryScript<C extends string> {
   levels: Record<string, {
     intro?: Line<C>[];
     outro?: Line<C>[];
-    triggers?: { atTile: number; lines: Line<C>[] }[];
+    /** `effect: 'tantrum'` fills Tero's tantrum meter once the lines finish. */
+    triggers?: { atTile: number; lines: Line<C>[]; effect?: TriggerEffect }[];
     /** Background gags at fixed spots — hints about what happened here. */
     scenery?: { atTile: number; gag: GagId }[];
     /** 'unhinged' fills the level with the weirder tier-2 gags first. */
@@ -106,6 +107,7 @@ export function compileStory<C extends string>(script: StoryScript<C>): Compiled
       triggers: L.triggers?.map((t, i) => ({
         tx: t.atTile,
         cards: emit(`${base}_trigger_${i}`, t.lines) ?? [],
+        ...(t.effect ? { effect: t.effect } : {}),
       })),
       scenery: L.scenery?.map((g) => ({ tx: g.atTile, gag: g.gag })),
       gagMood: L.mood,

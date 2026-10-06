@@ -148,7 +148,11 @@ export interface StoryCard {
 export interface StoryTrigger {
   tx:    number;
   cards: StoryCardId[];
+  /** Something that happens when the cards finish: 'tantrum' fills Tero's meter. */
+  effect?: TriggerEffect;
 }
+
+export type TriggerEffect = 'tantrum';
 
 export interface Chapter {
   id:       ChapterId;

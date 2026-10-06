@@ -11,6 +11,7 @@ import {
   TILE_SIZE, GRAVITY, WALK_SPEED, RUN_ACCEL, FRICTION, AIR_FRICTION,
   JUMP_FORCE, JUMP_CUT, STOMP_BOUNCE, COYOTE_TIME, JUMP_BUFFER,
   INVINCIBLE_FRAMES, VIEWPORT_H, DEAD_TIMER_FRAMES,
+  TANTRUM_MAX, TANTRUM_FRAMES, TANTRUM_SPEED, RAGE_HURT, RAGE_DEATH,
 } from '../constants';
 import { PlayerState, Action } from '../types';
 
@@ -59,6 +60,18 @@ export class Player extends creaturesAndObjects {
   /** True for exactly one frame when player's head hits a ceiling tile */
   hitCeiling = false;
 
+  // ── Tantrum ──
+  /** Anger, 0..TANTRUM_MAX. Full = the next FIRE press starts a tantrum. */
+  rage = 0;
+  /** Ticks of tantrum left (0 = calm). */
+  tantrumFrames = 0;
+  /** Ticks until the next hiccup puff is allowed. */
+  puffCooldown = 0;
+  /** Set for one tick when the meter first fills, so Game can announce it. */
+  rageJustFilled = false;
+  /** Set when Tero takes a hit (or dies); Game reads it for hit-stop. */
+  justHurt = false;
+
   // Respawn anchor — re-pointed by checkpoints
   spawnX = 0;
   spawnY = 0;
@@ -80,10 +93,32 @@ export class Player extends creaturesAndObjects {
   get isWin()         { return this.state === PlayerState.WIN; }
   get isInvincible()  { return this.invincible > 0; }
   get shouldFlash()   { return this.invincible > 0 && Math.floor(this.invincible / 4) % 2 === 0; }
+  get isTantrum()     { return this.tantrumFrames > 0; }
+  get rageFull()      { return this.rage >= TANTRUM_MAX; }
+
+  addRage(amount: number): void {
+    if (this.isTantrum) return;   // the meter refills only after the tantrum
+    const wasFull = this.rageFull;
+    this.rage = Math.min(TANTRUM_MAX, this.rage + amount);
+    if (!wasFull && this.rageFull) this.rageJustFilled = true;
+  }
+
+  /** Spend a full meter. Returns false if it isn't full. */
+  startTantrum(): boolean {
+    if (!this.rageFull || this.isTantrum || this.isDead) return false;
+    this.tantrumFrames = TANTRUM_FRAMES;
+    this.rage = 0;
+    this.scaleX = 1.3;
+    this.scaleY = 0.75;
+    this.squashTimer = 10;
+    return true;
+  }
 
   /** Called by Game when player touches enemy (side/top from above enemy) */
   hurt(ctx: UpdateCtx): void {
-    if (this.invincible > 0) return;
+    if (this.invincible > 0 || this.isTantrum) return;
+    this.justHurt = true;
+    this.addRage(RAGE_HURT);
     if (this.isBig) {
       this.shrink();
       ctx.shake.trigger(4);
@@ -126,6 +161,9 @@ export class Player extends creaturesAndObjects {
 
   die(ctx: UpdateCtx): void {
     this.lives--;
+    this.tantrumFrames = 0;
+    this.justHurt = true;
+    this.addRage(RAGE_DEATH);
     this.state = PlayerState.DEAD;
     // Snap to spawn so the death bounce plays on solid ground and is visible.
     this.x = this.spawnX;
@@ -201,6 +239,8 @@ export class Player extends creaturesAndObjects {
 
   private updateTimers(): void {
     if (this.invincible > 0) this.invincible--;
+    if (this.tantrumFrames > 0) this.tantrumFrames--;
+    if (this.puffCooldown > 0) this.puffCooldown--;
   }
 
   private updateInput(): void {
@@ -211,7 +251,9 @@ export class Player extends creaturesAndObjects {
     this.setDucking(wantsDuck);
 
     // Horizontal — ducking halves walk speed
-    const maxSpeed = this.ducking ? WALK_SPEED * 0.4 : WALK_SPEED;
+    const maxSpeed = this.ducking ? WALK_SPEED * 0.4
+      : this.isTantrum ? WALK_SPEED * TANTRUM_SPEED
+      : WALK_SPEED;
 
     if (a & Action.LEFT) {
       this.vx = Math.max(this.vx - RUN_ACCEL, -maxSpeed);
@@ -271,12 +313,15 @@ export class Player extends creaturesAndObjects {
     if (hitCeiling && this.vy < 0) this.vy = 0;
 
     // Hazard probe at both foot corners (single-point probe missed straddle cases).
+    if (this.y > VIEWPORT_H + 48) {
+      this.die(ctx);   // a pit is fatal, big or raging
+      return;
+    }
     const footY = this.bottom - 1;
     if (
       ctx.map.hazardAt(this.left + 2, footY) ||
       ctx.map.hazardAt(this.right - 2, footY) ||
-      ctx.map.hazardAt(this.cx, footY) ||
-      this.y > VIEWPORT_H + 48
+      ctx.map.hazardAt(this.cx, footY)
     ) {
       this.hurt(ctx);
     }

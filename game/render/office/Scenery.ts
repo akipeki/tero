@@ -87,7 +87,7 @@ function floorRow(map: Tilemap, tx: number): number {
   for (const ty of FLOOR_ROWS) {
     const t = map.tileAt(tx, ty);
     if (t === TileType.SOLID) return ty;
-    if (t === TileType.HAZARD) return -1;
+    if (t === TileType.HAZARD || t === TileType.PAPER) return -1;   // paper burns away
   }
   return -1;
 }

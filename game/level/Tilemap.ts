@@ -3,6 +3,12 @@
 import { TILE_SIZE, VIEWPORT_W } from '../constants';
 import { TileType } from '../types';
 import { drawHazardTile, drawPlatformTile, drawSolidTile } from '../render/sprites/TileSprites';
+import { drawPaperTile } from '../render/office/OfficeTiles';
+
+/** Tiles that block movement from every side. Paperwork is solid until burnt. */
+export function isSolidTile(t: TileType): boolean {
+  return t === TileType.SOLID || t === TileType.PAPER;
+}
 
 export class Tilemap {
   readonly width: number;
@@ -33,7 +39,7 @@ export class Tilemap {
 
   solidAt(wx: number, wy: number): boolean {
     const t = this.tileAtWorld(wx, wy);
-    return t === TileType.SOLID || t === TileType.PLATFORM;
+    return isSolidTile(t) || t === TileType.PLATFORM;
   }
 
   hazardAt(wx: number, wy: number): boolean {
@@ -72,6 +78,10 @@ export class Tilemap {
 
           case TileType.HAZARD:
             drawHazardTile(ctx, sx, sy, tx);
+            break;
+
+          case TileType.PAPER:
+            drawPaperTile(ctx, sx, sy, tx, ty);
             break;
         }
       }

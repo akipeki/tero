@@ -60,7 +60,7 @@ export function validateLevel(level: LevelDef): void {
   }
   for (let i = 0; i < level.tiles.length; i++) {
     const t = level.tiles[i];
-    if (t < 0 || t > 5 || !Number.isInteger(t)) {
+    if (t < 0 || t > 6 || !Number.isInteger(t)) {
       const tx = i % level.width;
       const ty = Math.floor(i / level.width);
       throw new Error(`Level "${level.name}" invalid tile ${t} at (${tx}, ${ty})`);

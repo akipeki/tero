@@ -17,6 +17,8 @@ import { QuestionBlock } from './creaturesAndObjects/QuestionBlock';
 import { Goal } from './creaturesAndObjects/Goal';
 import { Coin } from './creaturesAndObjects/Coin';
 import { Checkpoint } from './creaturesAndObjects/Checkpoint';
+import { Flame } from './creaturesAndObjects/Flame';
+import { overlaps } from './physics/AABB';
 import { Camera } from './Camera';
 import { ParticleSystem } from './ParticleSystem';
 import { ScreenShake } from './ScreenShake';
@@ -28,7 +30,9 @@ import { saveSettings, loadSettings } from './Settings';
 import { GameState, Action, PlayerState } from './types';
 import {
   CHAIN_BONUS, SQUASH_STRENGTH, WALK_STRIDE_PX, WALK_BOB_PX, STORY_BLIP_EVERY,
-  STORY_INPUT_GRACE,
+  STORY_INPUT_GRACE, TANTRUM_MAX, TANTRUM_FRAMES, RAGE_STOMP, RAGE_COIN, FLAME_EVERY, FLAME_SPEED,
+  FLAME_LIFE, PUFF_LIFE, PUFF_SPEED, PUFF_COOLDOWN, HITSTOP_STOMP, HITSTOP_FREE,
+  HITSTOP_HURT,
 } from './constants';
 import { updateBackground } from './render/Background';
 import { layoutScenery, setScenery } from './render/office/Scenery';
@@ -74,7 +78,12 @@ export class Game {
   private mushrooms: Mushroom[] = [];
   private coins:    Coin[] = [];
   private checkpoints: Checkpoint[] = [];
+  private flames:   Flame[] = [];
   private goal!: Goal;
+  /** Ticks the world stays frozen so a hit lands (hit-stop). */
+  private hitStop = 0;
+  /** Tantrum state last tick — to catch the moment it ends. */
+  private wasTantrum = false;
 
   private state: GameState = GameState.TITLE;
   private accumulator = 0;
@@ -111,6 +120,8 @@ export class Game {
   onStory?:        (view: StoryView | null) => void;
   /** Typewriter progress for the current card — fires every few ticks. */
   onStoryReveal?:  (revealed: number) => void;
+  /** Big centre-screen shout: "TANTRUM READY!", "TANTRUM!!", "...hic." */
+  onCallout?:      (text: string) => void;
 
   private uiActionUnsub: (() => void) | null = null;
   private pendingEnter = false;
@@ -341,6 +352,13 @@ export class Game {
       return;
     }
 
+    // Hit-stop: everything holds still for a beat; only the shake keeps going.
+    if (this.hitStop > 0) {
+      this.hitStop--;
+      this.shake.update();
+      return;
+    }
+
     const ctx: UpdateCtx = {
       map: this.map,
       particles: this.particles,
@@ -355,6 +373,7 @@ export class Game {
     this.player.jumpHeld        = this.input.jump;
 
     this.player.update(ctx);
+    this.updateFire();
 
     // Death → respawn or game over
     if (this.player.deadTimerDone) {
@@ -383,6 +402,17 @@ export class Game {
       if (stomped) this.recordStomp();
     }
 
+    // Flames burn paper and (tantrum flames) free whoever they touch.
+    for (const f of this.flames) {
+      f.update(ctx);
+      if (f.rageEarned) this.player.addRage(f.rageEarned);
+      if (!f.frees || !f.active) continue;
+      for (const e of [...this.walkers, ...this.hoppers]) {
+        if (e.hittable && overlaps(f, e)) e.burn(ctx);
+      }
+    }
+    this.countSentHome();
+
     // ? blocks
     for (const qb of this.qblocks) {
       qb.update(ctx);
@@ -405,6 +435,7 @@ export class Game {
       c.update(ctx);
       if (c.checkCollect(this.player, ctx)) {
         this.stats.addCoin();
+        this.player.addRage(RAGE_COIN);
         this.onScore?.(this.stats.score);
       }
     }
@@ -423,6 +454,11 @@ export class Game {
       return;
     }
 
+    if (this.player.justHurt) {
+      this.player.justHurt = false;
+      this.hitStop = HITSTOP_HURT;
+    }
+
     this.particles.update();
     this.shake.update();
     this.camera.follow(this.player.cx);
@@ -433,8 +469,70 @@ export class Game {
     this.hoppers   = this.hoppers.filter(h => h.active);
     this.mushrooms = this.mushrooms.filter(m => m.active);
     this.coins     = this.coins.filter(c => c.active);
+    this.flames    = this.flames.filter(f => f.active);
 
     this.syncHud();
+  }
+
+  // ─── Fire & tantrum ────────────────────────────────────────────────────────
+
+  /** FIRE: full meter → TANTRUM; otherwise a tiny hiccup puff that only
+   *  singes paper. During the tantrum Tero breathes a stream of fire. */
+  private updateFire(): void {
+    const p = this.player;
+    if (p.rageJustFilled) {
+      p.rageJustFilled = false;
+      this.audio.play('ready');
+      this.onCallout?.('TANTRUM READY!  PRESS X');
+    }
+
+    if (this.input.firePressed && !p.isDead && !p.isWin) {
+      if (p.startTantrum()) {
+        this.audio.play('roar');
+        this.audio.setTantrum(true);
+        this.shake.trigger(8);
+        this.hitStop = 8;
+        this.onCallout?.('TANTRUM!!');
+      } else if (!p.isTantrum && p.puffCooldown === 0) {
+        p.puffCooldown = PUFF_COOLDOWN;
+        this.breathe(PUFF_SPEED, PUFF_LIFE, false);
+        this.audio.play('puff');
+      }
+    }
+
+    if (p.isTantrum) {
+      if (p.tantrumFrames % FLAME_EVERY === 0) this.breathe(FLAME_SPEED, FLAME_LIFE, true);
+      if (p.tantrumFrames % 9 === 0) this.audio.play('fire');
+      this.shake.trigger(1.5);
+    } else if (this.wasTantrum) {
+      this.audio.setTantrum(false);
+      if (!p.isDead) this.onCallout?.('...hic.');
+    }
+    this.wasTantrum = p.isTantrum;
+  }
+
+  /** One flame from Tero's mouth, in the direction he faces. */
+  private breathe(speed: number, life: number, frees: boolean): void {
+    const p = this.player;
+    const dir = p.facingRight ? 1 : -1;
+    const mouthX = p.facingRight ? p.right + 2 : p.left - 2;
+    const mouthY = p.top + p.h * (p.ducking ? 0.5 : 0.35);
+    const jitter = frees ? (Math.random() - 0.5) * 1.2 : 0;
+    this.flames.push(new Flame(mouthX, mouthY, dir * speed + p.vx * 0.5, jitter, life, frees));
+  }
+
+  /** Workers freed this tick (by stomp, fire or tantrum body-slam). */
+  private countSentHome(): void {
+    let n = 0;
+    for (const e of [...this.walkers, ...this.hoppers]) {
+      if (!e.sentHome) continue;
+      e.sentHome = false;
+      this.stats.addSentHome();
+      n++;
+    }
+    if (n === 0) return;
+    this.hitStop = Math.max(this.hitStop, HITSTOP_FREE);
+    this.onScore?.(this.stats.score);
   }
 
   private checkStoryTriggers(): void {
@@ -444,7 +542,11 @@ export class Game {
       if (this.firedTriggers.has(i)) continue;
       if (this.player.cx < triggers[i].tx * TILE_SIZE) continue;
       this.firedTriggers.add(i);
-      this.playStory(triggers[i].cards, this.resumePlaying);
+      const effect = triggers[i].effect;
+      this.playStory(triggers[i].cards, () => {
+        if (effect === 'tantrum') this.player.addRage(TANTRUM_MAX);
+        this.resumePlaying();
+      });
       return; // one beat at a time; the next fires on a later tick
     }
   }
@@ -464,6 +566,7 @@ export class Game {
       ...this.mushrooms,
       ...this.walkers,
       ...this.hoppers,
+      ...this.flames,
     ].filter(Boolean);
 
     switch (this.state) {
@@ -529,6 +632,7 @@ export class Game {
       scaleY: 1 + (p.scaleY - 1) * SQUASH_STRENGTH,
       shouldFlash: p.shouldFlash,
       big: p.isBig,
+      tantrum: p.isTantrum,
     });
   }
 
@@ -542,6 +646,9 @@ export class Game {
     if (this.story.active) { this.story.cancel(); this.onStory?.(null); }
     this.loadLevel();
     this.audio.setFloorMood(this.floorMood());
+    this.audio.setTantrum(false);
+    this.wasTantrum = false;
+    this.hitStop = 0;
     this.audio.startMusic();
     this.stats.reset();
     this.onScore?.(this.stats.score);
@@ -572,6 +679,8 @@ export class Game {
   }
 
   private recordStomp(): void {
+    this.hitStop = HITSTOP_STOMP;
+    this.player.addRage(RAGE_STOMP);
     const chain = this.player.airChain;
     this.stats.addStomp(chain);
     const bonus = Math.max(0, chain - 1) * CHAIN_BONUS;
@@ -592,6 +701,7 @@ export class Game {
     this.map = new Tilemap([...L.tiles], L.width, L.height);
     this.camera = new Camera(this.map.pixelWidth);
     this.particles.clear();
+    this.flames = [];
 
     const { player: ps } = L.spawns;
     const spawnX = ps.tx * TILE_SIZE;
@@ -647,6 +757,7 @@ export class Game {
     const stats: RunStats = {
       coins: this.stats.coins,
       enemiesStomped: this.stats.enemiesStomped,
+      sentHome: this.stats.sentHome,
       timeMs: Math.floor(this.stats.elapsedMs()),
     };
     let best = this.stats.getBest(L.id);
@@ -679,6 +790,12 @@ export class Game {
       isBig:    this.player?.isBig ?? false,
       coins:    this.stats.coins,
       state:    this.state,
+      // While raging, the meter shows how much tantrum is left.
+      rage:     this.player?.isTantrum
+        ? (this.player.tantrumFrames / TANTRUM_FRAMES) * TANTRUM_MAX
+        : this.player?.rage ?? 0,
+      tantrum:  this.player?.isTantrum ?? false,
+      sentHome: this.stats.sentHome,
     });
   }
 
