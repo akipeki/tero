@@ -1,5 +1,4 @@
 import { GRAVITY, MAX_FALL_SPD, TILE_SIZE } from '../constants';
-import { TileType } from '../types';
 import { isSolidTile, isPlatformTile, type Tilemap } from '../level/Tilemap';
 
 export interface PhysicsBody {
