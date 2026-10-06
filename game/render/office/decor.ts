@@ -15,7 +15,8 @@ export type DecorId =
   | 'lab'        // floor 21 — white R&D lab, whiteboards
   | 'security'   // floor 27 — steel, CCTV wall, blinds fully shut
   | 'executive'  // floor 30 — 90s Memphis design, Scandinavian furniture
-  | 'penthouse'; // floor 33 — marble and gold, open sky
+  | 'penthouse'  // floor 33 — marble and gold, open sky
+  | 'stairwell'; // the way home — institutional green, yellow handrail, daylight at last
 
 /** What the cubicle-height strip of the background shows. */
 export type MidLayer = 'cubicles' | 'shelving' | 'glass' | 'binders' | 'lab' | 'monitors' | 'memphis' | 'marble';
@@ -52,7 +53,18 @@ export interface Decor {
 
 const DUSK: [string, string, string] = ['#2b3a67', '#c46a6a', '#f2a65a'];
 
+const FRIDAY: [string, string, string] = ['#7fb8e8', '#cfe6f5', '#fff3c4'];
+
 export const DECORS: Record<DecorId, Decor> = {
+  stairwell: {
+    id: 'stairwell',
+    wall: '#8f9e8c', wallStripe: '#869583', rail: '#c9a01f', railLight: '#ffd23f',
+    wainscot: '#4f6b55', wainscotPanel: '#47614c', wainscotLight: '#5d7a63',
+    blinds: 0, windowScale: 0.8, sky: FRIDAY, poster: false,
+    mid: 'shelving',
+    carpet: ['#6e6e66', '#808078', '#5a5a54'], slab: ['#7a7a72', '#8e8e86', '#5e5e58'],
+    desk: 'metal', ceiling: '#d8d6cc', haze: 'rgba(200,220,200,0.22)',
+  },
   basement: {
     id: 'basement',
     wall: '#9a9a92', wallStripe: '#8e8e86', rail: '#5a5a54', railLight: '#74746c',

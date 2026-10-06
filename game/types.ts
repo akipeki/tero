@@ -86,7 +86,7 @@ export type GadgetSpawn =
   /** The golden parachute pickup: hold jump while falling to glide. */
   | { type: 'chute'; tx: number; ty: number };
 /** A boss and the left column of its one-screen arena. */
-export interface BossSpawn { type: 'halvorsen'; arenaTx: number }
+export interface BossSpawn { type: 'halvorsen' | 'board'; arenaTx: number }
 
 export interface LevelSpawns {
   player:      PlayerSpawn;
@@ -98,6 +98,9 @@ export interface LevelSpawns {
   /** The floor's boss. While it lives the elevator stays shut. */
   boss?:       BossSpawn;
   gadgets?:    GadgetSpawn[];
+  /** The escape run: a countdown, Dad following, falling ceiling tiles and
+   *  floor numbers counting down (`floors` sections of `cols` tiles). */
+  escape?:     { seconds: number; floors: number; cols: number };
 }
 
 // ─── Particle ────────────────────────────────────────────────────────────────
@@ -121,6 +124,8 @@ export interface HudData {
   tantrum:  boolean;
   /** Workers freed this run — the "sent home" counter. */
   sentHome: number;
+  /** Seconds until Monday on the escape run, else null. */
+  countdown: number | null;
   /** The boss bar, while a boss fight is on. */
   boss:     { name: string; hp: number; maxHp: number; slide: string } | null;
 }

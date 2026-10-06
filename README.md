@@ -231,6 +231,26 @@ note where his face was).
 
 All the numbers are in the Tantrum section of `game/constants.ts`.
 
+### Every floor has its own mechanic (Phase 2)
+
+| Floor | Mechanic | Where |
+|---|---|---|
+| 1 Mailroom | the tantrum (Dad's desk fills the meter), the Monday rush, paperwork walls, a secret stash | `level1.ts` |
+| 6 Cubicles | **quick syncs**: syncers who see you trap you in a conversation; duck to hide in a cardboard box | `Walker` (`sees`), `level2.ts` |
+| 12 Boardroom | **boss: Mr. Halvorsen's Q3 review** — slides' bullet points are the platforms | `Halvorsen.ts`, `level3.ts` |
+| 13 Legal | **red tape** (`~`): sticky, slow, flammable | `TileType.TAPE`, `level4.ts` |
+| 21 R&D | **fax teleporters** and the **synergy spring** | `Gadgets.ts`, `level5.ts` |
+| 27 Security | **CCTV cones**: get seen and guards drop from the vents; a box is just a box | `Cctv.ts`, `level7.ts` |
+| 30 Executive | the **golden parachute**: hold jump to glide over chasms | `Gadgets.ts`, `level8.ts` |
+| 33 Sanctum | **final boss: THE BOARD**, a five-headed hydra of executives | `Board.ts`, `level6.ts` |
+| The way home | **the escape**: 33 floors of stairs before Monday, Dad following, ceiling falling | `Escape.ts`, `level9.ts` |
+
+Bosses share the `Boss` interface (`creaturesAndObjects/Boss.ts`): a
+one-screen arena from `arenaTx` that locks the camera and shuts the door;
+the elevator wears an IN A MEETING sign until the boss walks out. Story
+triggers can start them with `effect: 'boss'`. Gadgets (faxes, springs,
+cameras, the parachute) are listed in a level's `gadgets` spawns.
+
 ### Music
 
 The theme song is written as plain note names in

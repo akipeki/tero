@@ -2,11 +2,12 @@ import { describe, it, expect } from 'vitest';
 import { LEVELS, validateLevel } from './levels';
 
 describe('levels registry', () => {
-  it('contains eight levels with unique ids, finale last', () => {
-    expect(LEVELS).toHaveLength(8);
+  it('contains nine levels with unique ids, the escape last, the Board just before it', () => {
+    expect(LEVELS).toHaveLength(9);
     const ids = new Set(LEVELS.map(L => L.id));
-    expect(ids.size).toBe(8);
-    expect(LEVELS[LEVELS.length - 1].name).toBe('The Sanctum');
+    expect(ids.size).toBe(9);
+    expect(LEVELS[LEVELS.length - 1].name).toBe('The Way Home');
+    expect(LEVELS[LEVELS.length - 2].spawns.boss?.type).toBe('board');
   });
 
   it('every level has tiles matching width × height', () => {

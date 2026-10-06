@@ -83,7 +83,7 @@ export default function GameContainer() {
 
   const [hud, setHud] = useState<HudData>({
     lives: STARTING_LIVES, maxLives: STARTING_LIVES, isBig: false, coins: 0, state: GameState.TITLE,
-    rage: 0, tantrum: false, sentHome: 0, boss: null,
+    rage: 0, tantrum: false, sentHome: 0, boss: null, countdown: null,
   });
   /** Big centre-screen shout ("TANTRUM!!"); the key restarts the animation. */
   const [callout, setCallout] = useState<{ id: number; text: string } | null>(null);
@@ -307,7 +307,7 @@ export default function GameContainer() {
     else await wrap.requestFullscreen?.();
   }, []);
 
-  const { state, lives, maxLives, isBig, coins, rage, tantrum, sentHome, boss } = hud;
+  const { state, lives, maxLives, isBig, coins, rage, tantrum, sentHome, boss, countdown } = hud;
   const isPlaying  = state === GameState.PLAYING;
   const isPaused   = state === GameState.PAUSED;
   const isTitle    = state === GameState.TITLE;
@@ -490,6 +490,19 @@ export default function GameContainer() {
           </div>
 
           {boss && <BossBar boss={boss} />}
+          {countdown !== null && (
+            <p
+              className="absolute left-1/2 -translate-x-1/2 select-none pointer-events-none"
+              style={{
+                top: 40, margin: 0, fontFamily: 'var(--font-pixel, monospace)',
+                fontSize: 'clamp(10px, 2vw, 20px)', textShadow: '2px 2px 0 #000',
+                color: countdown <= 15 ? '#ff3b1f' : '#ffd23f',
+              }}
+              role="timer"
+            >
+              WEEKEND IN {Math.floor(countdown / 60)}:{String(countdown % 60).padStart(2, '0')}
+            </p>
+          )}
 
           {/* Chain bonus floaters */}
           <div

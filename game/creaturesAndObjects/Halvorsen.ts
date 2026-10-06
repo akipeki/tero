@@ -27,6 +27,7 @@ import {
   drawHalvorsenAt, drawProjectorScreen, drawPie, drawQuestion, drawLaser,
 } from '../render/office/bossArt';
 import type { HalvorsenPose } from '../render/characters/humans';
+import type { Boss, BossPhase } from './Boss';
 
 type Attack = 'pie' | 'laser' | 'intern' | 'qa';
 
@@ -59,7 +60,7 @@ const FLOOR_ROW = 8;
 const HIT_LINES = ['LET\'S TAKE THIS OFFLINE.', 'CIRCLE BACK!', 'PER MY LAST EMAIL...', 'THIS COULD HAVE BEEN AN EMAIL.'];
 const FREED_LINES = ['...I HAVE KIDS TOO.', 'I MISSED SIX RECITALS.', 'I\'M GOING HOME.'];
 
-type Phase = 'waiting' | 'fight' | 'freed' | 'gone';
+type Phase = BossPhase;
 
 class Shot {
   life = 0;
@@ -76,7 +77,10 @@ class Shot {
   }
 }
 
-export class Halvorsen extends creaturesAndObjects {
+export class Halvorsen extends creaturesAndObjects implements Boss {
+  readonly name = 'MR. HALVORSEN';
+  readonly maxHp = HALVORSEN_HP;
+  resigned: Boss['resigned'] = [];
   phase: Phase = 'waiting';
   hp = HALVORSEN_HP;
   readonly arenaTx: number;
@@ -114,6 +118,7 @@ export class Halvorsen extends creaturesAndObjects {
   get slideIndex(): number { return this.slide; }
   get slideTitle(): string { return this.phase === 'freed' || this.phase === 'gone' ? 'MEETING ENDED' : SLIDES[this.slide].title; }
   get fighting():   boolean { return this.phase === 'fight'; }
+  get subtitle():   string { return this.slideTitle; }
 
   /** Lights up the arena: first slide, bullets in place, attacks primed. */
   start(map: UpdateCtx['map']): void {

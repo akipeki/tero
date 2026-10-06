@@ -19,9 +19,12 @@ import { Coin } from './creaturesAndObjects/Coin';
 import { Checkpoint } from './creaturesAndObjects/Checkpoint';
 import { Flame } from './creaturesAndObjects/Flame';
 import { drawBubble } from './creaturesAndObjects/freed';
-import { Halvorsen, HALVORSEN_HP } from './creaturesAndObjects/Halvorsen';
+import { Halvorsen } from './creaturesAndObjects/Halvorsen';
+import { Board } from './creaturesAndObjects/Board';
+import type { Boss } from './creaturesAndObjects/Boss';
 import { Fax, Spring, ChutePickup, drawCanopy } from './creaturesAndObjects/Gadgets';
 import { Cctv } from './creaturesAndObjects/Cctv';
+import { DadFollower, Debris, drawFloorSigns } from './creaturesAndObjects/Escape';
 import { overlaps } from './physics/AABB';
 import { Camera } from './Camera';
 import { ParticleSystem } from './ParticleSystem';
@@ -84,7 +87,7 @@ export class Game {
   private coins:    Coin[] = [];
   private checkpoints: Checkpoint[] = [];
   private flames:   Flame[] = [];
-  private boss:     Halvorsen | null = null;
+  private boss:     Boss | null = null;
   private faxes:    Fax[] = [];
   private springs:  Spring[] = [];
   private cameras:  Cctv[] = [];
@@ -95,6 +98,11 @@ export class Game {
   private faxing: { to: Fax; t: number } | null = null;
   /** Ticks left looking like a bad photocopy. */
   private faxedFrames = 0;
+  // The escape run
+  private dad: DadFollower | null = null;
+  private debris: Debris[] = [];
+  private escapeFrames = 0;
+  private debrisTimer = 0;
   private goal!: Goal;
   /** Ticks the world stays frozen so a hit lands (hit-stop). */
   private hitStop = 0;
@@ -398,6 +406,7 @@ export class Game {
     this.player.update(ctx);
     this.updateFire();
     this.updateGadgets(ctx);
+    if (this.dad && this.updateEscape(ctx)) return;
 
     // Death → respawn or game over
     if (this.player.deadTimerDone) {
@@ -406,11 +415,13 @@ export class Game {
         return;
       }
       if (this.boss?.fighting) this.endBossFight(false);
+      this.debris = [];
       // Re-spawn at the most recently triggered checkpoint, else the level start.
       this.player.respawn(
         Math.floor(this.player.spawnX / TILE_SIZE),
         Math.floor((this.player.spawnY + this.player.h) / TILE_SIZE),
       );
+      this.dad?.reset(this.player);
       this.syncHud();
     }
 
@@ -585,6 +596,31 @@ export class Game {
     }
   }
 
+  /** The way home: Monday is coming. Returns true if time ran out. */
+  private updateEscape(ctx: UpdateCtx): boolean {
+    const p = this.player;
+    this.dad!.follow(p);
+    if (--this.escapeFrames <= 0) {
+      this.onCallout?.('IT\'S MONDAY.');
+      this.audio.play('death');
+      this.endRun('GAME_OVER');
+      return true;
+    }
+    if (this.escapeFrames === 15 * 60) this.onCallout?.('15 SECONDS TO MONDAY!');
+    // Ceiling tiles fall ahead of Tero
+    if (--this.debrisTimer <= 0) {
+      this.debrisTimer = 50 + Math.floor(Math.random() * 50);
+      const x = p.cx + 70 + Math.random() * 160;
+      if (this.map.tileAtWorld(x, 4) === TileType.SOLID && x < this.map.pixelWidth - 3 * TILE_SIZE) this.debris.push(new Debris(x));
+    }
+    for (const d of this.debris) {
+      d.update(ctx);
+      if (d.hits(p)) { p.hurt(ctx); d.active = false; }
+    }
+    this.debris = this.debris.filter((d) => d.active);
+    return false;
+  }
+
   /** A camera saw Tero: sirens, and guards drop from the vents. */
   private soundAlarm(c: Cctv): void {
     this.audio.play('alarm');
@@ -679,6 +715,14 @@ export class Game {
       this.hitStop = 8;
       this.player.addRage(RAGE_STOMP);
     }
+    for (const r of b.resigned) {
+      // A hydra head resigns: out pops a worker, already on the way home.
+      const tx = Math.floor(r.x / TILE_SIZE), ty = Math.floor(r.y / TILE_SIZE);
+      const e = enemyClass(r.variant === 'clerk' ? 'walker' : r.variant === 'manager' ? 'hopper' : r.variant);
+      if (e.cls === 'walker') { const w = new Walker(tx, ty, e.variant); this.walkers.push(w); w.burn(ctx); }
+      else { const h = new Hopper(tx, ty, e.variant); this.hoppers.push(h); h.burn(ctx); }
+    }
+    b.resigned = [];
     if (b.wantsIntern) {
       b.wantsIntern = false;
       const inArena = this.walkers.filter((w) => w.hittable && w.x >= b.arenaLeft).length;
@@ -781,6 +825,7 @@ export class Game {
       ...this.springs,
       ...this.cameras,
       ...this.chutes,
+      ...this.debris,
       ...(this.boss ? [this.boss] : []),
       ...this.flames,
     ].filter(Boolean);
@@ -796,10 +841,15 @@ export class Game {
       case GameState.WIN:
       case GameState.STORY:
         // The canvas is low-res pixel art, so the world scrolls in whole pixels.
+        const esc = this.currentRuntimeLevel?.spawns.escape;
         this.renderer.render(
           Math.round(this.camera.at(alpha)), this.map, allEntities, this.particles, this.shake,
-          this.boss ? (c, x) => this.boss!.drawBackdrop(c, x) : undefined,
+          (c, x) => {
+            this.boss?.drawBackdrop(c, x);
+            if (esc) drawFloorSigns(c, x, esc.floors, esc.cols);
+          },
         );
+        this.dad?.draw(ctx, Math.round(this.camera.at(alpha)) - this.shake.offsetX);
         if (this.player.gliding) {
           const camX = Math.round(this.camera.at(alpha));
           const a = this.state === GameState.PLAYING ? alpha : 1;
@@ -959,7 +1009,8 @@ export class Game {
 
     this.mushrooms = [];
     this.goal = new Goal(L.spawns.goal.tx, L.spawns.goal.ty);
-    this.boss = L.spawns.boss ? new Halvorsen(L.spawns.boss.arenaTx) : null;
+    const bs = L.spawns.boss;
+    this.boss = !bs ? null : bs.type === 'board' ? new Board(bs.arenaTx) : new Halvorsen(bs.arenaTx);
     // Gadgets: faxes keep their index in the list so `to` can point at one.
     this.faxes = [];
     this.springs = [];
@@ -977,6 +1028,12 @@ export class Game {
     }
     this.faxing = null;
     this.faxedFrames = 0;
+    const esc = L.spawns.escape;
+    this.dad = esc ? new DadFollower() : null;
+    this.dad?.reset(this.player);
+    this.debris = [];
+    this.escapeFrames = esc ? esc.seconds * 60 : 0;
+    this.debrisTimer = 120;
     this.goal.locked = this.boss !== null;
 
     // Each office floor has its own décor; unknown ids fall back to cubicles.
@@ -1047,8 +1104,9 @@ export class Game {
         : this.player?.rage ?? 0,
       tantrum:  this.player?.isTantrum ?? false,
       sentHome: this.stats.sentHome,
+      countdown: this.dad ? Math.max(0, Math.ceil(this.escapeFrames / 60)) : null,
       boss:     this.boss?.fighting
-        ? { name: 'MR. HALVORSEN', hp: this.boss.hp, maxHp: HALVORSEN_HP, slide: this.boss.slideTitle }
+        ? { name: this.boss.name, hp: this.boss.hp, maxHp: this.boss.maxHp, slide: this.boss.subtitle }
         : null,
     });
   }

@@ -17,7 +17,8 @@
 //                           The rest of each level is filled with random gags.
 //                 goalWriting  Tero's crayon slogan above the elevator (his flagpole)
 //                 decor     the floor's look (render/office/decor.ts): basement,
-//                           cubicles, boardroom, legal, lab, security, executive, penthouse
+//                           cubicles, boardroom, legal, lab, security, executive,
+//                           penthouse, stairwell
 //                 quiet     [from, to] tile ranges the random gags leave empty
 //                 mood      'unhinged' lets the auto-fill use the weird tier-2 gags
 //                           (and use them first). Default is 'tame'.
@@ -58,6 +59,14 @@ export const STORY = defineStory({
         { who: 'it', text: 'Your dad got promoted to floor 33.\nThe Board took him.' },
         { who: 'tero', text: 'Bad board.' },
         { text: 'NOBODY COMES BACK DOWN FROM 33.\nNOBODY HAS EVER SENT A TODDLER.' },
+      ],
+    },
+    {
+      id: 'friday',
+      name: 'The way home',
+      levels: ['9'],
+      intro: [
+        { text: 'FRIDAY, 4:47 PM.' },
       ],
     },
   ],
@@ -425,6 +434,7 @@ export const STORY = defineStory({
       decor: 'penthouse',
       goalWriting: 'crayon_power',
       mood: 'unhinged',
+      quiet: [[57, 79]],
       intro: [
         { text: 'FLOOR 33 — THE SHAREHOLDERS\' SANCTUM.' },
         { who: 'board', text: 'A CHILD? HERE?\nWHAT IS ITS QUARTERLY OUTPUT?' },
@@ -438,44 +448,73 @@ export const STORY = defineStory({
           ],
         },
         {
-          atTile: 48,
-          lines: [
-            { who: 'tero', text: 'Vroom vroom.\n...Inside?' },
-          ],
-        },
-        {
           atTile: 29,
           lines: [
             { who: 'tero', text: 'Chair. Money. ...Yucky.' },
           ],
         },
         {
-          atTile: 68,
+          atTile: 45,
+          lines: [
+            { who: 'tero', text: 'Vroom vroom.\n...Inside?' },
+          ],
+        },
+        {
+          atTile: 58,
           lines: [
             { who: 'tero', text: 'DADA!!' },
             { who: 'dad', text: '...Tero? Is it the weekend?' },
+            { who: 'board', text: 'HE HAS A DELIVERABLE DUE.' },
           ],
+        },
+        {
+          // The final boss. The door shuts behind Tero once the lines are done.
+          atTile: 65,
+          lines: [
+            { who: 'board', text: 'WE ARE THE BOARD.\nWE ARE FIVE. WE ARE ONE. WE ARE UP 3%.' },
+            { who: 'tero', text: 'Many heads.' },
+            { who: 'tero', text: '...ONE DRAGON.' },
+          ],
+          effect: 'boss',
         },
       ],
       scenery: [
         { atTile: 3,  gag: 'banner_growth' },
-        { atTile: 8,  gag: 'hostess_blonde' },
-        { atTile: 14, gag: 'fountain' },
-        { atTile: 21, gag: 'hostess_brunette' },
-        { atTile: 27, gag: 'money_throne' },
-        { atTile: 34, gag: 'coffee_iv' },
-        { atTile: 40, gag: 'sign_shareholders' },
-        { atTile: 46, gag: 'ferrari' },
-        { atTile: 55, gag: 'hostess_redhead' },
-        { atTile: 61, gag: 'sofa_memphis' },
-        { atTile: 69, gag: 'dad_desk' },
+        { atTile: 5,  gag: 'hostess_blonde' },
+        { atTile: 20, gag: 'money_throne' },
+        { atTile: 28, gag: 'hostess_brunette' },
+        { atTile: 40, gag: 'ferrari' },
+        { atTile: 51, gag: 'coffee_iv' },
+        { atTile: 54, gag: 'sign_shareholders' },
+        { atTile: 58, gag: 'dad_desk' },
       ],
       outro: [
         { text: 'TERO HOLDS UP DAD\'S TIE.\nSIX MONTHS OF FLOOR DUST ON IT.' },
         { who: 'dad', text: 'I... I came in for "a few extra hours."' },
-        { who: 'tero', text: 'You gave them everything.\nWe got the leftovers.' },
-        { who: 'board', text: 'HE HAS A DELIVERABLE DUE.' },
-        { text: 'DAD CLOSES THE LAPTOP.' },
+        { who: 'tero', text: 'Dada. Home.' },
+        { who: 'dad', text: 'The elevator\'s been cut. Thirty-three\nfloors of stairs. Before Monday.' },
+        { who: 'tero', text: 'RUN.' },
+      ],
+    },
+
+    '9': {
+      decor: 'stairwell',
+      density: 'sparse',
+      goalWriting: 'crayon_go_home',
+      intro: [
+        { who: 'dad', text: 'I can\'t feel my legs.\nI\'ve been sitting since March.' },
+        { who: 'tero', text: 'Dada. RUN.' },
+      ],
+      triggers: [
+        {
+          atTile: 66,
+          lines: [
+            { who: 'dad', text: 'Floor 17. I had a desk here once.\nIn 2019. They never told me it moved.' },
+          ],
+        },
+      ],
+      outro: [
+        { text: 'THE LOBBY DOORS. DAYLIGHT.\nDAD HASN\'T SEEN IT SINCE MARCH.' },
         { who: 'dad', text: 'Let\'s go home, buddy.' },
         { who: 'tero', text: 'Home.' },
         { text: 'DAD TOOK THE REST OF THE YEAR OFF.\nTHE QUARTERLY REPORT WAS LATE.\nNOBODY DIED.' },

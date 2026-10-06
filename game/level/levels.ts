@@ -14,6 +14,7 @@ import { level5Tiles, level5Spawns, LEVEL5_WIDTH, LEVEL5_HEIGHT } from './level5
 import { level6Tiles, level6Spawns, LEVEL6_WIDTH, LEVEL6_HEIGHT } from './level6';
 import { level7Tiles, level7Spawns, LEVEL7_WIDTH, LEVEL7_HEIGHT } from './level7';
 import { level8Tiles, level8Spawns, LEVEL8_WIDTH, LEVEL8_HEIGHT } from './level8';
+import { level9Tiles, level9Spawns, LEVEL9_WIDTH, LEVEL9_HEIGHT } from './level9';
 
 export interface LevelDef {
   id:     string;
@@ -35,6 +36,7 @@ export const LEVELS: readonly LevelDef[] = [
   { id: '7', name: 'Security',      theme: 'office', tiles: level7Tiles, spawns: level7Spawns, width: LEVEL7_WIDTH, height: LEVEL7_HEIGHT },
   { id: '8', name: 'Executive Wing', theme: 'office', tiles: level8Tiles, spawns: level8Spawns, width: LEVEL8_WIDTH, height: LEVEL8_HEIGHT },
   { id: '6', name: 'The Sanctum',   theme: 'office', tiles: level6Tiles, spawns: level6Spawns, width: LEVEL6_WIDTH, height: LEVEL6_HEIGHT },
+  { id: '9', name: 'The Way Home',  theme: 'office', tiles: level9Tiles, spawns: level9Spawns, width: LEVEL9_WIDTH, height: LEVEL9_HEIGHT },
 ] as const;
 
 /** Validate level data on load. Pads missing cells with AIR and warns;
