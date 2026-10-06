@@ -124,3 +124,18 @@ describe('floor 1', () => {
     for (let tx = 57; tx <= 63; tx++) expect(tile(tx, 3)).toBe(TileType.PLATFORM);
   });
 });
+
+describe('red tape', () => {
+  it('slows Tero down and burns away', () => {
+    const ctx = ctxFor(['..~~~~..', '..~~~~..', '########']);
+    const p = new Player(2 * 32 + 5, 64 - 28, 3);
+    p.actions = 2; // RIGHT
+    for (let i = 0; i < 40; i++) p.update(ctx);
+    expect(p.inTape).toBe(true);
+    expect(Math.abs(p.vx)).toBeLessThan(1.3);
+
+    const f = new Flame(2 * 32, 48, 4, 0, 20, false);
+    for (let i = 0; i < 20 && f.active; i++) f.update(ctx);
+    expect(ctx.map.tileAt(2, 1)).toBe(TileType.AIR);
+  });
+});

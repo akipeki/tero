@@ -58,7 +58,8 @@ export class Flame extends creaturesAndObjects {
     const ty0 = Math.floor(this.top / TILE_SIZE),  ty1 = Math.floor((this.bottom - 1) / TILE_SIZE);
     for (let ty = ty0; ty <= ty1; ty++) {
       for (let tx = tx0; tx <= tx1; tx++) {
-        if (ctx.map.tileAt(tx, ty) !== TileType.PAPER) continue;
+        const t = ctx.map.tileAt(tx, ty);
+        if (t !== TileType.PAPER && t !== TileType.TAPE) continue;
         ctx.map.setTile(tx, ty, TileType.AIR);
         ctx.particles.burst(tx * TILE_SIZE + 16, ty * TILE_SIZE + 16, 10, '#fbf8ee', MID);
         ctx.particles.burst(tx * TILE_SIZE + 16, ty * TILE_SIZE + 16, 6, SMOKE, EDGE);

@@ -11,9 +11,9 @@ import {
   TILE_SIZE, GRAVITY, WALK_SPEED, RUN_ACCEL, FRICTION, AIR_FRICTION,
   JUMP_FORCE, JUMP_CUT, STOMP_BOUNCE, COYOTE_TIME, JUMP_BUFFER,
   INVINCIBLE_FRAMES, VIEWPORT_H, DEAD_TIMER_FRAMES,
-  TANTRUM_MAX, TANTRUM_FRAMES, TANTRUM_SPEED, RAGE_HURT, RAGE_DEATH,
+  TANTRUM_MAX, TANTRUM_FRAMES, TANTRUM_SPEED, RAGE_HURT, RAGE_DEATH, TAPE_SLOW, TAPE_JUMP,
 } from '../constants';
-import { PlayerState, Action } from '../types';
+import { PlayerState, Action, TileType } from '../types';
 
 const SMALL_W = 22;
 const SMALL_H = 28;
@@ -75,6 +75,8 @@ export class Player extends creaturesAndObjects {
   syncFrames = 0;
   /** Ticks during which nobody can start another sync with him. */
   syncImmune = 0;
+  /** Wading through red tape this tick (slow feet, weak jumps). */
+  inTape = false;
 
   // Respawn anchor — re-pointed by checkpoints
   spawnX = 0;
@@ -229,6 +231,7 @@ export class Player extends creaturesAndObjects {
     }
 
     this.prevBottom = this.bottom;
+    this.inTape = this.touchesTape(ctx);
     this.updateTimers();
     this.updateInput();
     this.stepPhysics(ctx);
@@ -250,6 +253,14 @@ export class Player extends creaturesAndObjects {
 
   get deadTimerDone(): boolean {
     return this.state === PlayerState.DEAD && this.deadTimer <= 0;
+  }
+
+  private touchesTape(ctx: UpdateCtx): boolean {
+    const m = ctx.map;
+    return m.tileAtWorld(this.cx, this.cy) === TileType.TAPE ||
+      m.tileAtWorld(this.cx, this.bottom - 2) === TileType.TAPE ||
+      m.tileAtWorld(this.left + 2, this.bottom - 2) === TileType.TAPE ||
+      m.tileAtWorld(this.right - 2, this.bottom - 2) === TileType.TAPE;
   }
 
   private updateTimers(): void {
@@ -277,9 +288,11 @@ export class Player extends creaturesAndObjects {
     this.setDucking(wantsDuck);
 
     // Horizontal — ducking halves walk speed
-    const maxSpeed = this.ducking ? WALK_SPEED * 0.4
+    const maxSpeed = (this.ducking ? WALK_SPEED * 0.4
       : this.isTantrum ? WALK_SPEED * TANTRUM_SPEED
-      : WALK_SPEED;
+      : WALK_SPEED) * (this.inTape ? TAPE_SLOW : 1);
+    if (this.inTape) this.vx = Math.max(-maxSpeed, Math.min(maxSpeed, this.vx));
+    if (this.inTape && this.vy > 2) this.vy = 2;   // you sink through it slowly
 
     if (a & Action.LEFT) {
       this.vx = Math.max(this.vx - RUN_ACCEL, -maxSpeed);
@@ -302,7 +315,7 @@ export class Player extends creaturesAndObjects {
 
     // Execute jump
     if (this.jumpBuffer > 0 && this.coyoteFrames > 0 && !this.ducking) {
-      this.vy = JUMP_FORCE;
+      this.vy = JUMP_FORCE * (this.inTape ? TAPE_JUMP : 1);
       this.jumpBuffer = 0;
       this.coyoteFrames = 0;
       this.scaleX = 0.8;

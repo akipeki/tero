@@ -36,6 +36,9 @@ export const PUFF_COOLDOWN      = 20;
 // Quick syncs (Floor 6): a coworker catches your eye and you're stuck talking.
 export const SYNC_FRAMES        = 150;  // mash jump to cut it short
 export const RAGE_SYNC          = 10;   // nothing is more unfair
+// Red tape (Legal): sticky, burnable.
+export const TAPE_SLOW          = 0.35; // walk speed multiplier inside it
+export const TAPE_JUMP          = 0.62; // jump force multiplier from inside it
 // Hit-stop: the world freezes for a few ticks so hits land.
 export const HITSTOP_STOMP      = 4;
 export const HITSTOP_FREE       = 2;

@@ -3,7 +3,7 @@
 import { TILE_SIZE, VIEWPORT_W } from '../constants';
 import { TileType } from '../types';
 import { drawHazardTile, drawPlatformTile, drawSolidTile } from '../render/sprites/TileSprites';
-import { drawPaperTile, drawBulletTile } from '../render/office/OfficeTiles';
+import { drawPaperTile, drawBulletTile, drawTapeTile } from '../render/office/OfficeTiles';
 
 /** One-way tiles: land on them from above, jump up through them. */
 export function isPlatformTile(t: TileType): boolean {
@@ -87,6 +87,10 @@ export class Tilemap {
 
           case TileType.PAPER:
             drawPaperTile(ctx, sx, sy, tx, ty);
+            break;
+
+          case TileType.TAPE:
+            drawTapeTile(ctx, sx, sy, tx, ty);
             break;
 
           case TileType.BULLET:

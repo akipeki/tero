@@ -35,6 +35,9 @@ export const enum TileType {
   /** A projected slide bullet point: a one-way platform the boss's clicker
    *  moves around. Only placed at runtime, never in level rows. */
   BULLET     = 7,
+  /** Red tape (Legal): not solid, but sticky — slow feet, weak jumps.
+   *  Any fire burns it. */
+  TAPE       = 8,
 }
 
 // ─── Player state ────────────────────────────────────────────────────────────

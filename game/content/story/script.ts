@@ -230,14 +230,21 @@ export const STORY = defineStory({
       ],
       triggers: [
         {
-          atTile: 33,
+          atTile: 7,
+          lines: [
+            { text: 'RED TAPE. SLOW, STICKY,\nAND VERY, VERY FLAMMABLE.' },
+            { who: 'tero', text: 'Pff.' },
+          ],
+        },
+        {
+          atTile: 34,
           lines: [
             { text: '"PROJECT ORPHANAGE." DAD\'S COMPANY\nIS EVICTING KIDS WHO HAVE NO DADS AT ALL.' },
             { who: 'tero', text: 'NO.' },
           ],
         },
         {
-          atTile: 52,
+          atTile: 50,
           lines: [
             { text: 'A SOUL TRANSFER AGREEMENT.\nSIGNED: #4471.' },
             { who: 'tero', text: 'Dada soul?!' },
@@ -245,12 +252,12 @@ export const STORY = defineStory({
         },
       ],
       scenery: [
-        { atTile: 5,  gag: 'banner_capitalism' },
-        { atTile: 30, gag: 'orphan_plan' },
-        { atTile: 50, gag: 'soul_contract' },
-        { atTile: 62, gag: 'banner_family' },
+        { atTile: 3,  gag: 'banner_capitalism' },
         { atTile: 20, gag: 'room_review' },
-        { atTile: 41, gag: 'vhs_archive' },
+        { atTile: 32, gag: 'orphan_plan' },
+        { atTile: 48, gag: 'soul_contract' },
+        { atTile: 60, gag: 'banner_family' },
+        { atTile: 71, gag: 'vhs_archive' },
       ],
       outro: [
         { who: 'tero', text: 'Tear up. Tear UP.' },

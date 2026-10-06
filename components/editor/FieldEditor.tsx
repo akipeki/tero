@@ -6,13 +6,14 @@ import type { LevelDef } from '@/game/content/types';
 import type { ThemeName } from '@/game/render/Theme';
 
 // ─── DSL paintable chars ─────────────────────────────────────────────────────
-type Brush = '.' | '#' | '=' | '^' | '%';
+type Brush = '.' | '#' | '=' | '^' | '%' | '~';
 const BRUSHES: { ch: Brush; label: string; swatch: string }[] = [
   { ch: '.', label: 'AIR',      swatch: '#0e0e16' },
   { ch: '#', label: 'SOLID',    swatch: '#c2c3c7' },
   { ch: '=', label: 'PLATFORM', swatch: '#ab5236' },
   { ch: '^', label: 'HAZARD',   swatch: '#ff004d' },
   { ch: '%', label: 'PAPER',    swatch: '#fbf8ee' },
+  { ch: '~', label: 'RED TAPE', swatch: '#d83b3b' },
 ];
 
 const THEMES: ThemeName[] = ['office', 'ember', 'mint', 'dusk'];
@@ -24,6 +25,7 @@ const TILE_COLORS: Record<Brush, string> = {
   '=': '#ab5236',
   '^': '#ff004d',
   '%': '#fbf8ee',
+  '~': '#d83b3b',
 };
 
 const MIN_W = 12;

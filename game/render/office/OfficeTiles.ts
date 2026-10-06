@@ -308,3 +308,31 @@ export function drawBulletTile(
   ctx.globalAlpha = 1;
   safetyEdge(ctx, sx, sy, S, tx);
 }
+
+/** Red tape: criss-crossed bright red strands with little SEALED tags.
+ *  Bright because it's gameplay (sticky, burnable). */
+export function drawTapeTile(ctx: CanvasRenderingContext2D, sx: number, sy: number, tx: number, ty: number): void {
+  const sway = Math.round(Math.sin(performance.now() / 700 + tx * 1.3 + ty) * 1.5);
+  ctx.fillStyle = 'rgba(216,59,59,0.12)';
+  ctx.fillRect(sx, sy, S, S);
+  ctx.fillStyle = '#d83b3b';
+  // three diagonal strands each way, built from 2×2 steps
+  for (let k = 0; k < 3; k++) {
+    const o = k * 11 + ((tx * 5 + ty * 3) % 6);
+    for (let i = 0; i < S; i += 2) {
+      const y1 = (i + o) % S, y2 = (S - 1 - i + o) % S;
+      ctx.fillRect(sx + i + sway, sy + y1, 2, 2);
+      ctx.fillRect(sx + i - sway, sy + y2, 2, 1);
+    }
+  }
+  ctx.fillStyle = '#8f1f24';
+  ctx.fillRect(sx, sy + 15 + sway, S, 1);
+  if ((tx + ty * 2) % 3 === 0) {
+    // a SEALED tag
+    ctx.fillStyle = '#f4f1e6';
+    ctx.fillRect(sx + 9, sy + 12 + sway, 12, 7);
+    ctx.fillStyle = '#d83b3b';
+    ctx.fillRect(sx + 10, sy + 14 + sway, 10, 1);
+    ctx.fillRect(sx + 10, sy + 16 + sway, 7, 1);
+  }
+}
