@@ -79,7 +79,10 @@ export interface CheckpointSpawn { tx: number; ty: number }
  *  list (omit it for an OUT ONLY machine). */
 export type GadgetSpawn =
   | { type: 'fax'; tx: number; ty: number; to?: number }
-  | { type: 'spring'; tx: number; ty: number };
+  | { type: 'spring'; tx: number; ty: number }
+  /** A ceiling security camera sweeping between `sweep` angles (radians
+   *  from straight down; negative = left). */
+  | { type: 'camera'; tx: number; ty: number; sweep?: [number, number] };
 /** A boss and the left column of its one-screen arena. */
 export interface BossSpawn { type: 'halvorsen'; arenaTx: number }
 

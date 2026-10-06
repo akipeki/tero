@@ -21,6 +21,7 @@ import { Flame } from './creaturesAndObjects/Flame';
 import { drawBubble } from './creaturesAndObjects/freed';
 import { Halvorsen, HALVORSEN_HP } from './creaturesAndObjects/Halvorsen';
 import { Fax, Spring } from './creaturesAndObjects/Gadgets';
+import { Cctv } from './creaturesAndObjects/Cctv';
 import { overlaps } from './physics/AABB';
 import { Camera } from './Camera';
 import { ParticleSystem } from './ParticleSystem';
@@ -86,6 +87,9 @@ export class Game {
   private boss:     Halvorsen | null = null;
   private faxes:    Fax[] = [];
   private springs:  Spring[] = [];
+  private cameras:  Cctv[] = [];
+  /** Guards that came down the vents (capped so alarms don't flood the floor). */
+  private alarmGuards: Walker[] = [];
   /** Tero is down the phone line, on his way to `to`. */
   private faxing: { to: Fax; t: number } | null = null;
   /** Ticks left looking like a bad photocopy. */
@@ -549,6 +553,11 @@ export class Game {
   private updateGadgets(ctx: UpdateCtx): void {
     const p = this.player;
     for (const s of this.springs) { s.update(); s.check(p, ctx); }
+    for (const c of this.cameras) {
+      c.update();
+      if (p.isTantrum) continue;
+      if (c.watch(p, this.map) === 'alarm') this.soundAlarm(c);
+    }
     const down = this.input.justPressedAction(Action.DOWN);
     for (const f of this.faxes) {
       f.update(ctx);
@@ -564,6 +573,26 @@ export class Game {
       this.faxing = { to: this.faxes[f.to], t: 36 };
       this.audio.play('fax');
       return;
+    }
+  }
+
+  /** A camera saw Tero: sirens, and guards drop from the vents. */
+  private soundAlarm(c: Cctv): void {
+    this.audio.play('alarm');
+    this.shake.trigger(3);
+    this.player.addRage(RAGE_SYNC);
+    this.onCallout?.('INTRUDER!  (IT\'S A BABY)');
+    this.alarmGuards = this.alarmGuards.filter((g) => g.active && g.hittable);
+    const tx = Math.floor(c.cx / TILE_SIZE);
+    for (const off of [-2, 2]) {
+      if (this.alarmGuards.length >= 4) break;
+      const gx = tx + off;
+      if (this.map.tileAt(gx, 2) !== TileType.AIR) continue;
+      const g = new Walker(gx, 3, 'guard');
+      g.facingRight = this.player.cx > g.cx;
+      this.walkers.push(g);
+      this.alarmGuards.push(g);
+      this.particles.burst(g.cx, TILE_SIZE + 4, 6, '#8a8f96', '#c9ced6');
     }
   }
 
@@ -741,6 +770,7 @@ export class Game {
       ...this.hoppers,
       ...this.faxes,
       ...this.springs,
+      ...this.cameras,
       ...(this.boss ? [this.boss] : []),
       ...this.flames,
     ].filter(Boolean);
@@ -917,11 +947,14 @@ export class Game {
     // Gadgets: faxes keep their index in the list so `to` can point at one.
     this.faxes = [];
     this.springs = [];
+    this.cameras = [];
+    this.alarmGuards = [];
     const gadgets = L.spawns.gadgets ?? [];
     const faxIndex = new Map<number, number>();
     gadgets.forEach((g, i) => { if (g.type === 'fax') faxIndex.set(i, faxIndex.size); });
     for (const g of gadgets) {
       if (g.type === 'spring') this.springs.push(new Spring(g.tx, g.ty));
+      else if (g.type === 'camera') this.cameras.push(new Cctv(g.tx, g.ty, g.sweep));
       else this.faxes.push(new Fax(g.tx, g.ty, g.to !== undefined ? faxIndex.get(g.to) ?? null : null));
     }
     this.faxing = null;

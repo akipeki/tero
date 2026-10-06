@@ -16,7 +16,7 @@ type SfxName =
   | 'jump' | 'stomp' | 'powerup' | 'hurt' | 'death'
   | 'goal' | 'block' | 'coin' | 'checkpoint' | 'text' | 'plop' | 'dada'
   | 'puff' | 'fire' | 'burn' | 'free' | 'ready' | 'roar'
-  | 'laser' | 'bossHit' | 'click' | 'unlock' | 'sync' | 'hide' | 'fax' | 'boing';
+  | 'laser' | 'bossHit' | 'click' | 'unlock' | 'sync' | 'hide' | 'fax' | 'boing' | 'alarm';
 
 interface ToneSpec {
   freq: number;
@@ -64,6 +64,7 @@ const SFX_TONES: Record<Exclude<SfxName, 'dada' | 'roar'>, ToneSpec> = {
   // R&D: a modem handshake squeal, and the spring
   fax:        { freq: 1200, duration: 0.07, type: 'square', freqs: [1200, 2100, 1650, 2400, 980, 2100], gain: 0.07 },
   boing:      { freq: 180, duration: 0.3, type: 'square', slideTo: 720, gain: 0.14 },
+  alarm:      { freq: 880, duration: 0.16, type: 'sawtooth', freqs: [880, 660, 880, 660, 880, 660], gain: 0.1 },
 };
 
 /** Music bus level before the volume slider. */

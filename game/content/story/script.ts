@@ -333,20 +333,26 @@ export const STORY = defineStory({
       ],
       triggers: [
         {
-          atTile: 6,
+          atTile: 4,
+          lines: [
+            { text: 'CAMERAS. DON\'T GET SEEN.\nNOBODY SUSPECTS A CARDBOARD BOX.' },
+          ],
+        },
+        {
+          atTile: 7,
           lines: [
             { who: 'tero', text: 'Harder. Better. Stronger.\n...Sadder.' },
           ],
         },
         {
-          atTile: 30,
+          atTile: 32,
           lines: [
             { who: 'tero', text: 'Sky. Net.' },
             { who: 'tero', text: '...Uh oh.' },
           ],
         },
         {
-          atTile: 40,
+          atTile: 43,
           lines: [
             { text: '"WORK HARD FOR 30 YEARS AND YOU MIGHT\nPAY OFF YOUR STUDENT LOAN."' },
             { who: 'tero', text: 'Dada still paying?' },
