@@ -9,6 +9,7 @@ import StoryBox from './StoryBox';
 import { GAME_SUBTITLE, GAME_TITLE_LINES } from '@/game/title';
 import { loadSettings, saveSettings } from '@/game/Settings';
 import { framePaths } from '@/game/render/sprites/PlayerSpriteAssets';
+import { initCustomSprites } from '@/game/render/customImages';
 
 interface EndScreenPayload {
   state: 'WIN' | 'GAME_OVER';
@@ -111,6 +112,9 @@ export default function GameContainer() {
     mq.addEventListener('change', onMq);
 
     preloadPlayerFrames();
+    // Your own images from game/customSprites.ts; the player's frame list is
+    // updated when they load, so preload again for the new files.
+    initCustomSprites().then(preloadPlayerFrames);
     game.onPlayerRender = (data: PlayerRenderData | null) => {
       const div = playerDivRef.current;
       if (!div) return;

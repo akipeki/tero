@@ -15,6 +15,8 @@
   cards/chapters; played by `StoryPlayer` via the `STORY` game state and
   shown by `components/StoryBox.tsx`
 - Game name → `game/title.ts`
+- Your own sprite images → `public/sprites/…` + `game/customSprites.ts`
+  (loaded by `render/customImages.ts`; guide in `docs/SPRITES.md`)
 - Enemy variants (guard, rat, pig, robot, plant, gorilla, vampire) →
   `creaturesAndObjects/enemyKinds.ts` + art in `render/characters/creatures.ts`
 - Characters are pixel rigs → `game/render/characters/` (baby Tero + Dad, humans) on

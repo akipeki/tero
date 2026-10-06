@@ -9,6 +9,7 @@ import {
   drawGuard, drawRat, drawPig, drawRobot, drawPlant, drawGorilla, drawVampire,
 } from '../characters/creatures';
 import type { WalkerVariant, HopperVariant } from '../../creaturesAndObjects/enemyKinds';
+import { customEnemy, type StripImage } from '../customImages';
 import type { Raster } from '../pixel/Raster';
 import type { WalkerSpriteProps } from '../sprites/WalkerSprite';
 import type { HopperSpriteProps } from '../sprites/HopperSprite';
@@ -46,6 +47,22 @@ function blitHuman(
   ctx.restore();
 }
 
+/** Draws frame `f` of a custom enemy strip, scaled so a frame is as tall as
+ *  the built-in 32px art, feet on the hitbox's bottom-centre. */
+function blitCustom(
+  ctx: CanvasRenderingContext2D, s: StripImage, f: number,
+  p: { x: number; y: number; w: number; h: number; camX: number; facingRight: boolean; scaleY: number },
+): void {
+  const k = HUMAN_FRAME / s.fh;
+  const dw = s.fw * k, dh = HUMAN_FRAME;
+  ctx.save();
+  ctx.translate(Math.round(p.x - p.camX + p.w / 2), Math.round(p.y + p.h));
+  ctx.scale(p.facingRight ? 1 : -1, p.scaleY);
+  if (k < 1) { ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high'; }
+  ctx.drawImage(s.img, (f % s.frames) * s.fw, 0, s.fw, s.fh, -dw / 2, -dh, dw, dh);
+  ctx.restore();
+}
+
 const WALKER_ART: Record<WalkerVariant, (f: number) => Raster> = {
   clerk: drawClerk,
   guard: drawGuard,
@@ -68,6 +85,8 @@ export function drawOfficeWalker(ctx: CanvasRenderingContext2D, p: WalkerSpriteP
   const f = p.dying ? 0
     : variant === 'plant' ? Math.floor((p.animTick ?? 0) / 20) % 2
     : Math.floor(Math.abs(p.x) / 6) % 4;
+  const custom = customEnemy(variant);
+  if (custom) return blitCustom(ctx, custom, f, p);
   blitHuman(ctx, facings(`${variant}${f}`, () => WALKER_ART[variant](f)), p);
 }
 
@@ -81,6 +100,8 @@ export function drawOfficeHopper(ctx: CanvasRenderingContext2D, p: HopperSpriteP
     ctx.fillStyle = 'rgba(20,16,24,0.35)';
     ctx.fillRect(Math.round(p.x - p.camX + p.w / 2 - w / 2), p.groundY - 2, w, 3);
   }
+  const custom = customEnemy(variant);
+  if (custom) return blitCustom(ctx, custom, air ? Math.min(1, custom.frames - 1) : 0, p);
   blitHuman(ctx, facings(`${variant}${air ? 1 : 0}`, () => HOPPER_ART[variant](air)), p);
 }
 

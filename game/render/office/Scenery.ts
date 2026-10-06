@@ -16,6 +16,7 @@ import type { DecorId } from './decor';
 import type { Raster } from '../pixel/Raster';
 import { GAGS, GAG_IDS, isGagId, type Gag, type GagId } from './gags';
 import { mute } from './mute';
+import { customProp, onCustomSpritesLoaded } from '../customImages';
 
 export interface PlacedGag {
   id: GagId;
@@ -47,10 +48,31 @@ function raster(id: GagId): Raster {
   return r;
 }
 
+/** A custom prop image fitted into the built-in prop's footprint (keeps its
+ *  aspect; floor props sit on the bottom edge, hanging ones on the top). */
+function customCanvas(id: GagId): HTMLCanvasElement | null {
+  const s = customProp(id);
+  if (!s) return null;
+  const box = raster(id);
+  const c = document.createElement('canvas');
+  c.width = box.w; c.height = box.h;
+  const ctx = c.getContext('2d')!;
+  const k = Math.min(box.w / s.fw, box.h / s.fh);
+  const dw = Math.round(s.fw * k), dh = Math.round(s.fh * k);
+  ctx.imageSmoothingEnabled = k < 1;
+  ctx.imageSmoothingQuality = 'high';
+  const dy = GAGS[id].kind === 'floor' ? box.h - dh : 0;
+  ctx.drawImage(s.img, 0, 0, s.fw, s.fh, Math.round((box.w - dw) / 2), dy, dw, dh);
+  return c;
+}
+
+// Custom images arrive after the first frames are drawn: rebuild then.
+if (typeof window !== 'undefined') onCustomSpritesLoaded(() => canvases.clear());
+
 function canvas(id: GagId): HTMLCanvasElement {
   let c = canvases.get(id);
   if (!c) {
-    c = raster(id).toCanvas();
+    c = customCanvas(id) ?? raster(id).toCanvas();
     // Props are scenery: muted so platforms and pickups stand out. Tero's
     // crayon slogans stay bright — they mark the exit.
     if (!id.startsWith('crayon_')) mute(c, 0.7, '#a8a294', 0.2);

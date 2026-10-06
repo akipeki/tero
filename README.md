@@ -74,6 +74,12 @@ game/
     sprites/           — Each entity's draw function lives here
 ```
 
+### Your own sprites
+
+Drop PNGs into `public/sprites/{player,enemies,props}/` and list them in
+`game/customSprites.ts` — anything not listed keeps the built-in art. Specs
+and AI prompts: [docs/SPRITES.md](docs/SPRITES.md).
+
 ### Characters are rigged, not hand-drawn
 
 Baby Tero and Dad (`game/render/characters/dragon.ts`) and the humans
