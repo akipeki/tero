@@ -75,6 +75,11 @@ export interface GoalSpawn   { tx: number; ty: number }
 export interface PlayerSpawn { tx: number; ty: number }
 export interface CoinSpawn   { tx: number; ty: number }
 export interface CheckpointSpawn { tx: number; ty: number }
+/** R&D prototypes. A fax's `to` is the index of another fax in the same
+ *  list (omit it for an OUT ONLY machine). */
+export type GadgetSpawn =
+  | { type: 'fax'; tx: number; ty: number; to?: number }
+  | { type: 'spring'; tx: number; ty: number };
 /** A boss and the left column of its one-screen arena. */
 export interface BossSpawn { type: 'halvorsen'; arenaTx: number }
 
@@ -87,6 +92,7 @@ export interface LevelSpawns {
   checkpoints?: CheckpointSpawn[];
   /** The floor's boss. While it lives the elevator stays shut. */
   boss?:       BossSpawn;
+  gadgets?:    GadgetSpawn[];
 }
 
 // ─── Particle ────────────────────────────────────────────────────────────────
@@ -149,6 +155,8 @@ export interface PlayerRenderData {
   tantrum: boolean;
   /** Ducking still: drawn as a cardboard box instead of Tero. */
   hiding: boolean;
+  /** Just came out of a fax machine: a grainy black-and-white copy. */
+  faxed: boolean;
 }
 
 // ─── Story overlay (game → React) ────────────────────────────────────────────

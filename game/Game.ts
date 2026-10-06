@@ -20,6 +20,7 @@ import { Checkpoint } from './creaturesAndObjects/Checkpoint';
 import { Flame } from './creaturesAndObjects/Flame';
 import { drawBubble } from './creaturesAndObjects/freed';
 import { Halvorsen, HALVORSEN_HP } from './creaturesAndObjects/Halvorsen';
+import { Fax, Spring } from './creaturesAndObjects/Gadgets';
 import { overlaps } from './physics/AABB';
 import { Camera } from './Camera';
 import { ParticleSystem } from './ParticleSystem';
@@ -83,6 +84,12 @@ export class Game {
   private checkpoints: Checkpoint[] = [];
   private flames:   Flame[] = [];
   private boss:     Halvorsen | null = null;
+  private faxes:    Fax[] = [];
+  private springs:  Spring[] = [];
+  /** Tero is down the phone line, on his way to `to`. */
+  private faxing: { to: Fax; t: number } | null = null;
+  /** Ticks left looking like a bad photocopy. */
+  private faxedFrames = 0;
   private goal!: Goal;
   /** Ticks the world stays frozen so a hit lands (hit-stop). */
   private hitStop = 0;
@@ -375,6 +382,9 @@ export class Game {
       dt: FIXED_DT,
     };
 
+    if (this.faxing) { this.updateFaxing(ctx); return; }
+    if (this.faxedFrames > 0) this.faxedFrames--;
+
     // Feed input into player
     this.player.actions         = this.input.bits;
     this.player.jumpJustPressed = this.input.jumpPressed;
@@ -382,6 +392,7 @@ export class Game {
 
     this.player.update(ctx);
     this.updateFire();
+    this.updateGadgets(ctx);
 
     // Death → respawn or game over
     if (this.player.deadTimerDone) {
@@ -531,6 +542,50 @@ export class Game {
     const mouthY = p.top + p.h * (p.ducking ? 0.5 : 0.35);
     const jitter = frees ? (Math.random() - 0.5) * 1.2 : 0;
     this.flames.push(new Flame(mouthX, mouthY, dir * speed + p.vx * 0.5, jitter, life, frees));
+  }
+
+  // ─── R&D gadgets ───────────────────────────────────────────────────────────
+
+  private updateGadgets(ctx: UpdateCtx): void {
+    const p = this.player;
+    for (const s of this.springs) { s.update(); s.check(p, ctx); }
+    const down = this.input.justPressedAction(Action.DOWN);
+    for (const f of this.faxes) {
+      f.update(ctx);
+      const near = !p.isDead && f.touches(p);
+      f.setNear(near);
+      if (!near || !down || p.inSync || p.isTantrum) continue;
+      if (f.to === null || !this.faxes[f.to]) {
+        f.jammed = 50;
+        this.audio.play('block');
+        continue;
+      }
+      f.busy = 36;
+      this.faxing = { to: this.faxes[f.to], t: 36 };
+      this.audio.play('fax');
+      return;
+    }
+  }
+
+  /** On the line: Tero is invisible; the camera pans to the receiving fax. */
+  private updateFaxing(ctx: UpdateCtx): void {
+    const job = this.faxing!;
+    for (const f of this.faxes) f.update(ctx);
+    this.particles.update();
+    this.shake.update();
+    this.camera.follow(job.to.cx);
+    if (--job.t > 0) return;
+    const p = this.player;
+    p.x = job.to.cx - p.w / 2;
+    p.y = job.to.bottom - p.h;
+    p.vx = 0;
+    p.vy = -4;
+    p.syncPrev();
+    job.to.busy = 20;
+    this.faxedFrames = 100;
+    this.faxing = null;
+    this.audio.play('fax');
+    this.particles.burst(p.cx, p.cy, 10, '#f4f1e6', '#5a5f68');
   }
 
   // ─── Quick syncs & hiding ──────────────────────────────────────────────────
@@ -684,6 +739,8 @@ export class Game {
       ...this.mushrooms,
       ...this.walkers,
       ...this.hoppers,
+      ...this.faxes,
+      ...this.springs,
       ...(this.boss ? [this.boss] : []),
       ...this.flames,
     ].filter(Boolean);
@@ -716,7 +773,7 @@ export class Game {
   private syncPlayerOverlay(alpha: number): void {
     if (!this.onPlayerRender) return;
     const visible =
-      this.player && this.camera && this.state !== GameState.TITLE;
+      this.player && this.camera && this.state !== GameState.TITLE && !this.faxing;
     if (!visible) { this.onPlayerRender(null); return; }
 
     const p = this.player;
@@ -760,6 +817,7 @@ export class Game {
       big: p.isBig,
       tantrum: p.isTantrum,
       hiding: p.isHidden,
+      faxed: this.faxedFrames > 0,
     });
   }
 
@@ -856,6 +914,18 @@ export class Game {
     this.mushrooms = [];
     this.goal = new Goal(L.spawns.goal.tx, L.spawns.goal.ty);
     this.boss = L.spawns.boss ? new Halvorsen(L.spawns.boss.arenaTx) : null;
+    // Gadgets: faxes keep their index in the list so `to` can point at one.
+    this.faxes = [];
+    this.springs = [];
+    const gadgets = L.spawns.gadgets ?? [];
+    const faxIndex = new Map<number, number>();
+    gadgets.forEach((g, i) => { if (g.type === 'fax') faxIndex.set(i, faxIndex.size); });
+    for (const g of gadgets) {
+      if (g.type === 'spring') this.springs.push(new Spring(g.tx, g.ty));
+      else this.faxes.push(new Fax(g.tx, g.ty, g.to !== undefined ? faxIndex.get(g.to) ?? null : null));
+    }
+    this.faxing = null;
+    this.faxedFrames = 0;
     this.goal.locked = this.boss !== null;
 
     // Each office floor has its own décor; unknown ids fall back to cubicles.

@@ -268,32 +268,41 @@ export const STORY = defineStory({
       decor: 'lab',
       goalWriting: 'crayon_go_home',
       mood: 'unhinged',
+      // keep the clean room and the spill readable
+      quiet: [[14, 28], [61, 75]],
       intro: [
         { text: 'FLOOR 21 — R&D.\n(RAGE & DEPRESSION)' },
         { who: 'it', text: 'Careful, kid. They just found out\nthe bonus pool is a kiddie pool.' },
       ],
       triggers: [
         {
-          atTile: 27,
+          atTile: 7,
+          lines: [
+            { text: 'PROTOTYPE: HUMAN FAX. STAND AT A FAX,\nPRESS DOWN. SIDE EFFECTS: MILD.' },
+            { who: 'tero', text: '...Beep boop?' },
+          ],
+        },
+        {
+          atTile: 20,
           lines: [
             { who: 'tero', text: 'Axe. Computer. Ouchie.' },
           ],
         },
         {
-          atTile: 43,
+          atTile: 34,
           lines: [
             { text: 'A SLEEPING BAG UNDER A DESK.\nDAD\'S SLIPPERS. DAD\'S PILLOW.' },
             { who: 'tero', text: 'Dada sleep... HERE?' },
           ],
         },
         {
-          atTile: 52,
+          atTile: 51,
           lines: [
             { who: 'tero', text: 'Wheel go round.\nNobody go anywhere.' },
           ],
         },
         {
-          atTile: 59,
+          atTile: 58,
           lines: [
             { who: 'tero', text: 'Doggy!' },
             { who: 'it', text: 'That\'s the VP of Sales.\nBest quarter we ever had.' },
@@ -301,15 +310,13 @@ export const STORY = defineStory({
         },
       ],
       scenery: [
-        { atTile: 10, gag: 'banner_fun_lasted' },
-        { atTile: 25, gag: 'smashed_pc' },
-        { atTile: 34, gag: 'flipped_desk' },
-        { atTile: 42, gag: 'dad_cot' },
+        { atTile: 3,  gag: 'banner_fun_lasted' },
+        { atTile: 23, gag: 'smashed_pc' },
+        { atTile: 33, gag: 'dad_cot' },
+        { atTile: 36, gag: 'poster_internet' },
         { atTile: 50, gag: 'intern_wheel' },
-        { atTile: 58, gag: 'poodle_desk' },
-        { atTile: 9,  gag: 'fax_machine' },
-        { atTile: 46, gag: 'poster_internet' },
-        { atTile: 60, gag: 'room_motivate' },
+        { atTile: 56, gag: 'poodle_desk' },
+        { atTile: 6,  gag: 'room_motivate' },
       ],
       outro: [
         { who: 'it', text: 'Security\'s next. Then the executives.\nThen your dad. Go get him, kid.' },

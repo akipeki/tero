@@ -185,6 +185,7 @@ export default function GameContainer() {
       // Tantrum: red-hot glow (static under reduced motion — no flicker).
       div.style.filter = data.tantrum
         ? `drop-shadow(0 0 ${still ? 3 : 2 + Math.round(Math.random() * 3)}px #ff3b1f) saturate(1.5) brightness(1.08)`
+        : data.faxed ? 'grayscale(1) contrast(1.8) brightness(1.1)'
         : '';
       div.style.display = 'block';
 
