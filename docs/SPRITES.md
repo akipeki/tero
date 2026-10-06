@@ -10,8 +10,8 @@ thing (the player's **idle**) and add the rest later.
 
    | What | Folder | File name |
    |---|---|---|
-   | Player (Tero) | `public/sprites/player/` | `idle.png`, `walk.png`, `jump.png`, `fall.png`, `duck.png`, `hurt.png`, `lose.png`, `win.png` |
-   | Enemies | `public/sprites/enemies/` | `clerk`, `manager`, `guard`, `rat`, `pig`, `robot`, `plant`, `gorilla`, `vampire` + `.png` |
+   | Player (Tero) | `public/sprites/player/` | `idle.png`, `walk.png`, `jump.png`, `fall.png`, `duck.png`, `hurt.png`, `lose.png`, `win.png`, `breathe.png`, `glide.png` |
+   | Enemies | `public/sprites/enemies/` | `clerk`, `manager`, `syncer`, `guard`, `rat`, `pig`, `robot`, `plant`, `gorilla`, `vampire` + `.png` |
    | Props | `public/sprites/props/` | the prop's id + `.png`, e.g. `fridge_notes.png` (ids: `game/render/office/gags.ts`) |
 
 2. List it in `game/customSprites.ts`:
@@ -64,6 +64,11 @@ frames when you're ready.
 | hurt | 2 | 14 fps |
 | lose | 1 | – |
 | win | 4 | 8 fps |
+| breathe | 2 | 14 fps (fire: puffs and tantrums) |
+| glide | 2 | 6 fps (golden parachute) |
+
+For a full review of the current art and exact Aseprite specs (palettes,
+anchors, bosses, gadgets), see [SPRITE_REVIEW.md](SPRITE_REVIEW.md).
 
 ## Readability rule
 
