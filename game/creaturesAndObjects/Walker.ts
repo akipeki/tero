@@ -3,11 +3,15 @@
 import { drawWalkerSprite } from '../render/sprites/WalkerSprite';
 import { creaturesAndObjects, type UpdateCtx } from './creaturesAndObjects';
 import { stepBody } from '../physics/Physics';
+import { isSolidTile } from '../level/Tilemap';
 import { overlaps, stompOverlap } from '../physics/AABB';
 import { TILE_SIZE } from '../constants';
 import type { Player } from './Player';
 import { WALKERS, type WalkerSpec, type WalkerVariant } from './enemyKinds';
-import { FreedMotion, TIE_COLORS, drawFreedBubble } from './freed';
+import { FreedMotion, TIE_COLORS, drawFreedBubble, drawBubble } from './freed';
+
+const SYNC_LINES = ['QUICK SYNC?', 'GOT 5 MINS?', 'LET\'S ALIGN!', 'JUST CIRCLING BACK', 'SO... WEEKEND PLANS?', 'HAVE YOU SEEN MY EMAIL?'];
+let syncLine = 0;
 
 export class Walker extends creaturesAndObjects {
   facingRight = false;
@@ -22,6 +26,11 @@ export class Walker extends creaturesAndObjects {
   private freed: FreedMotion | null = null;
   /** Set on the tick this worker is sent home; Game counts it and clears it. */
   sentHome = false;
+  /** Ticks left of a quick sync (the syncer stands still and talks). */
+  talking = 0;
+  private talkLine = '';
+  /** Ticks of "?" — they saw a box where a toddler should be. */
+  puzzled = 0;
 
   constructor(tx: number, ty: number, variant: WalkerVariant = 'clerk') {
     const spec = WALKERS[variant];
@@ -32,6 +41,30 @@ export class Walker extends creaturesAndObjects {
 
   /** Can still be stomped, burnt or bumped into. */
   get hittable(): boolean { return this.active && !this.dying && !this.freed; }
+  /** Line of sight in tiles (0 = doesn't look for Tero). */
+  get sightTiles(): number { return this.spec.sees ?? 0; }
+
+  /** Trap Tero in a quick sync: stop, face him, start talking. */
+  startTalking(frames: number, faceRight: boolean): void {
+    this.talking = frames;
+    this.facingRight = faceRight;
+    this.talkLine = SYNC_LINES[syncLine++ % SYNC_LINES.length];
+  }
+
+  /** Can it see a point at (x, footY) right now? Walls in between block it. */
+  canSee(x: number, footY: number, map: UpdateCtx['map']): boolean {
+    const reach = this.sightTiles * TILE_SIZE;
+    if (!reach || this.talking > 0 || !this.hittable) return false;
+    const dx = (x - this.cx) * (this.facingRight ? 1 : -1);
+    if (dx < -8 || dx > reach) return false;
+    if (Math.abs(footY - this.bottom) > 20) return false;
+    const eyeY = this.y + 8;
+    const step = Math.sign(x - this.cx) * 8;
+    for (let sx = this.cx; step !== 0 && Math.abs(sx - this.cx) < Math.abs(x - this.cx); sx += step) {
+      if (isSolidTile(map.tileAtWorld(sx, eyeY))) return false;   // walls and paper block the view
+    }
+    return true;
+  }
 
   update(ctx: UpdateCtx): void {
     if (this.freed) {
@@ -43,6 +76,15 @@ export class Walker extends creaturesAndObjects {
       this.dyingTimer--;
       this.scaleY = Math.max(0.05, this.scaleY - 0.12);
       if (this.dyingTimer <= 0) this.active = false;
+      return;
+    }
+
+    if (this.puzzled > 0) this.puzzled--;
+    if (this.talking > 0) {
+      this.talking--;
+      this.vx = 0;
+      stepBody(this, ctx.map);
+      this.animTimer++;
       return;
     }
 
@@ -95,8 +137,8 @@ export class Walker extends creaturesAndObjects {
       return true;
     }
 
-    // Side collision — hurt player
-    if (!player.isInvincible && overlaps(
+    // Side collision — hurt player (a syncer just wants to talk: Game handles that)
+    if (!this.spec.harmless && !player.isInvincible && overlaps(
       { x: player.x + 2, y: player.y + 4, w: player.w - 4, h: player.h - 4 },
       { x: this.x, y: this.y, w: this.w, h: this.h },
     )) {
@@ -140,10 +182,13 @@ export class Walker extends creaturesAndObjects {
   draw(ctx: CanvasRenderingContext2D, camX: number): void {
   const freed = this.freed;
   if (freed) ctx.globalAlpha = freed.alpha;
+  if (!freed && this.talking > 0) drawBubble(ctx, this.talkLine, this.cx - camX, this.y - 3);
+  else if (!freed && this.puzzled > 0) drawBubble(ctx, '?', this.cx - camX, this.y - 3);
   drawWalkerSprite(ctx, {
     x: this.x,
     y: this.y + (freed?.hop ?? 0),
     freed: freed !== null,
+    talking: !freed && this.talking > 0,
     w: this.w,
     h: this.h,
     camX,

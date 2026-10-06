@@ -16,6 +16,8 @@ export interface WalkerSpriteProps {
   scaleY: number;
   /** Sent home: drawn with the colour back in their face. */
   freed?: boolean;
+  /** A syncer mid-"quick sync": waving the mug, mouth going. */
+  talking?: boolean;
   variant?: WalkerVariant;
   /** Ticks since spawn — drives animations that don't follow movement. */
   animTick?: number;

@@ -120,7 +120,7 @@ export const STORY = defineStory({
     '2': {
       decor: 'cubicles',
       // a long, empty corridor after the opening: just the SYNERGY poster
-      quiet: [[18, 35]],
+      quiet: [[19, 34]],
       density: 'sparse',
       goalWriting: 'crayon_want',
       intro: [
@@ -136,26 +136,32 @@ export const STORY = defineStory({
           ],
         },
         {
-          atTile: 50,
+          atTile: 18,
+          lines: [
+            { text: 'TIP: DON\'T MAKE EYE CONTACT.\nHOLD DOWN TO HIDE IN A BOX.' },
+          ],
+        },
+        {
+          atTile: 66,
           lines: [
             { who: 'doris', text: 'Your father? Boardroom, sweetie.\nHave a bottle of coffee. Grow up fast.' },
           ],
         },
         {
-          atTile: 65,
+          atTile: 77,
           lines: [
             { who: 'tero', text: 'Das Kapital for Toddlers:\nWho owns our dadas?' },
           ],
         },
       ],
       scenery: [
-        { atTile: 11, gag: 'fridge_notes' },
-        { atTile: 25, gag: 'poster_synergy' },
-        { atTile: 14, gag: 'dad_mug' },
-        { atTile: 64, gag: 'money_shrine' },
         { atTile: 4,  gag: 'dead_xmas_tree' },
-        { atTile: 49, gag: 'water_dispenser' },
-        { atTile: 56, gag: 'vending_snacks' },
+        { atTile: 11, gag: 'fridge_notes' },
+        { atTile: 14, gag: 'dad_mug' },
+        { atTile: 25, gag: 'poster_synergy' },
+        { atTile: 35, gag: 'water_dispenser' },
+        { atTile: 76, gag: 'money_shrine' },
+        { atTile: 80, gag: 'vending_snacks' },
       ],
       outro: [
         { who: 'tero', text: 'Bottle good. More bottle.' },

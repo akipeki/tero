@@ -6,7 +6,7 @@
 
 import { ENEMY_SPEED } from '../constants';
 
-export type WalkerVariant = 'clerk' | 'guard' | 'rat' | 'pig' | 'robot' | 'plant';
+export type WalkerVariant = 'clerk' | 'guard' | 'rat' | 'pig' | 'robot' | 'plant' | 'syncer';
 export type HopperVariant = 'manager' | 'gorilla' | 'vampire';
 
 export interface WalkerSpec {
@@ -19,6 +19,10 @@ export interface WalkerSpec {
   /** True = a person (or corporate creature) under the suit: defeating it
    *  sends it home. False = robots and plants, which just break or burn. */
   freeable: boolean;
+  /** Bumping into it doesn't hurt (the syncer just wants to talk). */
+  harmless?: boolean;
+  /** Line of sight in tiles: seeing Tero (not hiding) traps him in a quick sync. */
+  sees?: number;
   /** Stomp particle colours. */
   burst: [string, string];
 }
@@ -39,6 +43,7 @@ export const WALKERS: Record<WalkerVariant, WalkerSpec> = {
   pig:   { w: 28, h: 26, speed: 0.8, stompable: true,  freeable: true,  burst: ['#f0a0a8', '#e8b72f'] },
   robot: { w: 24, h: 28, speed: 1.0, stompable: true,  freeable: false, burst: ['#a9b3bd', '#ff3b3b'] },
   plant: { w: 22, h: 28, speed: 0,   stompable: false, freeable: false, burst: ['#3f9a48', '#c8323a'] },
+  syncer: { w: 22, h: 24, speed: 0.9, stompable: true, freeable: true, harmless: true, sees: 5, burst: ['#9fc3e8', '#ff77a8'] },
 };
 
 export const HOPPERS: Record<HopperVariant, HopperSpec> = {
@@ -50,7 +55,7 @@ export const HOPPERS: Record<HopperVariant, HopperSpec> = {
 export type EnemyType = 'walker' | 'hopper' | Exclude<WalkerVariant, 'clerk'> | Exclude<HopperVariant, 'manager'>;
 
 export const ENEMY_TYPES: readonly EnemyType[] = [
-  'walker', 'hopper', 'guard', 'rat', 'pig', 'robot', 'plant', 'gorilla', 'vampire',
+  'walker', 'hopper', 'guard', 'rat', 'pig', 'robot', 'plant', 'gorilla', 'vampire', 'syncer',
 ];
 
 /** Which class and variant a level's enemy type spawns. */

@@ -16,7 +16,7 @@ type SfxName =
   | 'jump' | 'stomp' | 'powerup' | 'hurt' | 'death'
   | 'goal' | 'block' | 'coin' | 'checkpoint' | 'text' | 'plop' | 'dada'
   | 'puff' | 'fire' | 'burn' | 'free' | 'ready' | 'roar'
-  | 'laser' | 'bossHit' | 'click' | 'unlock';
+  | 'laser' | 'bossHit' | 'click' | 'unlock' | 'sync' | 'hide';
 
 interface ToneSpec {
   freq: number;
@@ -58,6 +58,9 @@ const SFX_TONES: Record<Exclude<SfxName, 'dada' | 'roar'>, ToneSpec> = {
   bossHit:    { freq: 420, duration: 0.09, type: 'square', freqs: [420, 300, 520, 260], gain: 0.16 },
   click:      { freq: 2400, duration: 0.02, type: 'square', freqs: [2400, 1600], gain: 0.08 },
   unlock:     { freq: 784, duration: 0.18, type: 'triangle', freqs: [1047, 784], gain: 0.25 },   // ding-dong
+  // Quick syncs: the "someone is calling you" knock, and a cardboard rustle
+  sync:       { freq: 523, duration: 0.09, type: 'triangle', freqs: [523, 659, 523, 659], gain: 0.22 },
+  hide:       { freq: 0, duration: 0.08, type: 'square', noise: 0.08, noiseHz: 900, noiseOnly: true, gain: 0.12 },
 };
 
 /** Music bus level before the volume slider. */

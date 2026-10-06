@@ -4,7 +4,7 @@
 // once to canvases (both facings) and blitted at native size.
 
 import { TILE_SIZE } from '../../constants';
-import { drawClerk, drawManager, HUMAN_FRAME } from '../characters/humans';
+import { drawClerk, drawManager, drawSyncer, HUMAN_FRAME } from '../characters/humans';
 import {
   drawGuard, drawRat, drawPig, drawRobot, drawPlant, drawGorilla, drawVampire,
 } from '../characters/creatures';
@@ -120,6 +120,7 @@ const WALKER_ART: Record<WalkerVariant, (f: number) => Raster> = {
   pig:   drawPig,
   robot: drawRobot,
   plant: (f) => drawPlant(f % 2 === 1),
+  syncer: (f) => drawSyncer(f),
 };
 
 const HOPPER_ART: Record<HopperVariant, (air: boolean) => Raster> = {
@@ -138,6 +139,10 @@ export function drawOfficeWalker(ctx: CanvasRenderingContext2D, p: WalkerSpriteP
   const custom = customEnemy(variant);
   if (custom) return blitCustom(ctx, custom, f, p);
   const pick = p.freed ? freedFacings : facings;
+  if (p.talking) {
+    const tf = Math.floor((p.animTick ?? 0) / 12) % 2;
+    return blitHuman(ctx, pick(`syncer-talk${tf}`, () => drawSyncer(tf, true)), p);
+  }
   blitHuman(ctx, pick(`${variant}${f}`, () => WALKER_ART[variant](f)), p);
 }
 

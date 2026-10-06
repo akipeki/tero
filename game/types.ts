@@ -144,6 +144,8 @@ export interface PlayerRenderData {
   big: boolean;
   /** Mid-tantrum: the overlay glows red and trembles. */
   tantrum: boolean;
+  /** Ducking still: drawn as a cardboard box instead of Tero. */
+  hiding: boolean;
 }
 
 // ─── Story overlay (game → React) ────────────────────────────────────────────

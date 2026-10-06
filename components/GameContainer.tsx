@@ -10,6 +10,14 @@ import { GAME_SUBTITLE, GAME_TITLE_LINES } from '@/game/title';
 import { loadSettings, saveSettings } from '@/game/Settings';
 import { framePaths } from '@/game/render/sprites/PlayerSpriteAssets';
 import { initCustomSprites } from '@/game/render/customImages';
+import { drawHideBox } from '@/game/render/characters/humans';
+
+let hideBoxCache = '';
+/** The cardboard box as a data URL, drawn once by its pixel rig. */
+function hideBoxUrl(): string {
+  if (!hideBoxCache) hideBoxCache = drawHideBox().toCanvas().toDataURL();
+  return hideBoxCache;
+}
 
 interface EndScreenPayload {
   state: 'WIN' | 'GAME_OVER';
@@ -65,6 +73,8 @@ export default function GameContainer() {
   const wrapRef        = useRef<HTMLDivElement>(null);
   const viewportRef    = useRef<HTMLDivElement>(null);
   const playerDivRef   = useRef<HTMLDivElement>(null);
+  /** Tero hiding (ducking still) is a cardboard box. */
+  const boxDivRef      = useRef<HTMLDivElement>(null);
   const canvasScaleRef = useRef(1);
   const lastSrcRef     = useRef<string>('');
   const reducedMotionRef = useRef(false);
@@ -129,8 +139,10 @@ export default function GameContainer() {
       const div = playerDivRef.current;
       if (!div) return;
 
+      const box = boxDivRef.current;
       if (!data) {
         div.style.display = 'none';
+        if (box) box.style.display = 'none';
         return;
       }
 
@@ -147,6 +159,18 @@ export default function GameContainer() {
       const spriteSize = TILE_SIZE * SPRITE_TILES * s * (data.big ? BIG_SPRITE_SCALE : 1);
       const cx    = snap(screenX * s);
       const footY = snap((screenY + (still ? 0 : bobY)) * s);
+
+      if (box) {
+        if (!box.style.backgroundImage) box.style.backgroundImage = `url(${hideBoxUrl()})`;
+        box.style.display = data.hiding ? 'block' : 'none';
+        if (data.hiding) {
+          box.style.width  = `${34 * s}px`;
+          box.style.height = `${24 * s}px`;
+          box.style.transform = `translate3d(${snap(cx - 17 * s)}px,${snap(footY - 24 * s)}px,0)`;
+          div.style.display = 'none';
+          return;
+        }
+      }
 
       div.style.transform = [
         `translate3d(${cx}px,${footY}px,0)`,
@@ -317,6 +341,16 @@ export default function GameContainer() {
           }}
           role="img"
           aria-label="player"
+        />
+
+        <div
+          ref={boxDivRef}
+          style={{
+            position: 'absolute', left: 0, top: 0, display: 'none', pointerEvents: 'none',
+            backgroundSize: '100% 100%', imageRendering: 'pixelated', willChange: 'transform',
+          }}
+          role="img"
+          aria-label="Tero hiding in a cardboard box"
         />
 
         {/* ── TANTRUM ── red edges while Tero rages */}

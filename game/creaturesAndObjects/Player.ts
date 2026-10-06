@@ -71,6 +71,10 @@ export class Player extends creaturesAndObjects {
   rageJustFilled = false;
   /** Set when Tero takes a hit (or dies); Game reads it for hit-stop. */
   justHurt = false;
+  /** Ticks left trapped in a quick sync (can't move; mash jump to leave). */
+  syncFrames = 0;
+  /** Ticks during which nobody can start another sync with him. */
+  syncImmune = 0;
 
   // Respawn anchor — re-pointed by checkpoints
   spawnX = 0;
@@ -94,6 +98,16 @@ export class Player extends creaturesAndObjects {
   get isInvincible()  { return this.invincible > 0; }
   get shouldFlash()   { return this.invincible > 0 && Math.floor(this.invincible / 4) % 2 === 0; }
   get isTantrum()     { return this.tantrumFrames > 0; }
+  get inSync()        { return this.syncFrames > 0; }
+  /** Ducking, still, on the floor: Tero is a cardboard box. Watchers can't see him. */
+  get isHidden()      { return this.ducking && this.onGround && Math.abs(this.vx) < 0.6; }
+
+  /** Caught by a syncer. */
+  startSync(frames: number): void {
+    this.syncFrames = frames;
+    this.vx = 0;
+    this.setDucking(false);
+  }
   get rageFull()      { return this.rage >= TANTRUM_MAX; }
 
   addRage(amount: number): void {
@@ -161,6 +175,7 @@ export class Player extends creaturesAndObjects {
 
   die(ctx: UpdateCtx): void {
     this.lives--;
+    this.syncFrames = 0;
     this.tantrumFrames = 0;
     this.justHurt = true;
     this.addRage(RAGE_DEATH);
@@ -241,9 +256,20 @@ export class Player extends creaturesAndObjects {
     if (this.invincible > 0) this.invincible--;
     if (this.tantrumFrames > 0) this.tantrumFrames--;
     if (this.puffCooldown > 0) this.puffCooldown--;
+    if (this.syncImmune > 0) this.syncImmune--;
+    if (this.syncFrames > 0 && --this.syncFrames === 0) this.syncImmune = 120;
   }
 
   private updateInput(): void {
+    if (this.syncFrames > 0) {
+      // Trapped in a conversation: mash jump to wrap it up faster.
+      this.vx *= 0.5;
+      if (this.jumpJustPressed) {
+        this.syncFrames = Math.max(1, this.syncFrames - 14);
+        this.scaleX = 1.15; this.scaleY = 0.9; this.squashTimer = 3;
+      }
+      return;
+    }
     const a = this.actions;
 
     // Duck (only while grounded and small — Big Tero can't duck through low gaps yet)

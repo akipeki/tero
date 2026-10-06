@@ -18,6 +18,7 @@ import { Goal } from './creaturesAndObjects/Goal';
 import { Coin } from './creaturesAndObjects/Coin';
 import { Checkpoint } from './creaturesAndObjects/Checkpoint';
 import { Flame } from './creaturesAndObjects/Flame';
+import { drawBubble } from './creaturesAndObjects/freed';
 import { Halvorsen, HALVORSEN_HP } from './creaturesAndObjects/Halvorsen';
 import { overlaps } from './physics/AABB';
 import { Camera } from './Camera';
@@ -33,6 +34,7 @@ import {
   CHAIN_BONUS, SQUASH_STRENGTH, WALK_STRIDE_PX, WALK_BOB_PX, STORY_BLIP_EVERY,
   STORY_INPUT_GRACE, TANTRUM_MAX, TANTRUM_FRAMES, RAGE_STOMP, BOSS_VALUE, RAGE_COIN, FLAME_EVERY, FLAME_SPEED,
   FLAME_LIFE, PUFF_LIFE, PUFF_SPEED, PUFF_COOLDOWN, HITSTOP_STOMP, HITSTOP_FREE,
+  SYNC_FRAMES, RAGE_SYNC,
   HITSTOP_HURT,
 } from './constants';
 import { updateBackground } from './render/Background';
@@ -86,6 +88,10 @@ export class Game {
   private hitStop = 0;
   /** Tantrum state last tick — to catch the moment it ends. */
   private wasTantrum = false;
+  private wasHidden = false;
+  /** Whoever has Tero trapped in a quick sync. */
+  private syncPartner: Walker | null = null;
+  private syncTipShown = false;
 
   private state: GameState = GameState.TITLE;
   private accumulator = 0;
@@ -398,6 +404,8 @@ export class Game {
       const stomped = w.checkPlayerInteraction(this.player, ctx);
       if (stomped) this.recordStomp();
     }
+    this.updateWatchers();
+
     // Hoppers
     for (const h of this.hoppers) {
       h.update(ctx);
@@ -523,6 +531,44 @@ export class Game {
     const mouthY = p.top + p.h * (p.ducking ? 0.5 : 0.35);
     const jitter = frees ? (Math.random() - 0.5) * 1.2 : 0;
     this.flames.push(new Flame(mouthX, mouthY, dir * speed + p.vx * 0.5, jitter, life, frees));
+  }
+
+  // ─── Quick syncs & hiding ──────────────────────────────────────────────────
+
+  /** Syncers who see Tero (or bump into him) trap him in a conversation.
+   *  Ducking makes him a cardboard box: they just see a box. */
+  private updateWatchers(): void {
+    const p = this.player;
+    if (p.isHidden !== this.wasHidden) {
+      if (p.isHidden) this.audio.play('hide');
+      this.wasHidden = p.isHidden;
+    }
+    if (this.syncPartner && !p.inSync) {
+      this.syncPartner.talking = Math.min(this.syncPartner.talking, 10);
+      this.syncPartner = null;
+    }
+    if (p.isDead || p.isTantrum || p.inSync) return;
+    for (const w of this.walkers) {
+      if (!w.sightTiles || !w.hittable || w.talking > 0) continue;
+      const noticed = overlaps(p, w) || w.canSee(p.cx, p.bottom, this.map);
+      if (!noticed) continue;
+      if (p.isHidden) {
+        if (w.puzzled === 0) w.puzzled = 50;
+        continue;
+      }
+      if (p.syncImmune > 0) continue;
+      p.startSync(SYNC_FRAMES);
+      w.startTalking(SYNC_FRAMES + 30, p.cx > w.cx);
+      this.syncPartner = w;
+      p.addRage(RAGE_SYNC);
+      this.audio.play('sync');
+      this.shake.trigger(2);
+      if (!this.syncTipShown) {
+        this.syncTipShown = true;
+        this.onCallout?.('MASH JUMP TO WRAP IT UP');
+      }
+      return;
+    }
   }
 
   // ─── Boss ──────────────────────────────────────────────────────────────────
@@ -657,6 +703,10 @@ export class Game {
           Math.round(this.camera.at(alpha)), this.map, allEntities, this.particles, this.shake,
           this.boss ? (c, x) => this.boss!.drawBackdrop(c, x) : undefined,
         );
+        if (this.player.inSync) {
+          // Tero's side of the conversation
+          drawBubble(ctx, '...', this.player.cx - Math.round(this.camera.at(alpha)) + this.shake.offsetX, this.player.bottom - 46);
+        }
         break;
     }
 
@@ -709,6 +759,7 @@ export class Game {
       shouldFlash: p.shouldFlash,
       big: p.isBig,
       tantrum: p.isTantrum,
+      hiding: p.isHidden,
     });
   }
 

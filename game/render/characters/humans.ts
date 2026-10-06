@@ -264,3 +264,85 @@ export function drawHalvorsen(pose: HalvorsenPose): Raster {
   if (pose === 'present') r.px(39, 21, C.glow);              // laser dot on the clicker
   return r;
 }
+
+// ─── Syncer (Floor 6): "got five minutes?" ───────────────────────────────────
+
+/** A shirt-sleeves coworker with a lanyard, a mug held out and a grin that
+ *  means a calendar invite. 4-frame shuffle like the clerk; `talking` is the
+ *  pose while they've trapped Tero in a quick sync. */
+export function drawSyncer(f: number, talking = false): Raster {
+  const r = new Raster(HUMAN_FRAME, HUMAN_FRAME);
+  const step = talking ? 0 : [0, 1, 0, -1][f % 4];
+  const bob = talking ? 0 : f % 2;
+  const shirt = '#9fc3e8', shirtLight = '#c4dcf2', shirtDark = '#6f95bd';
+  const slacks = '#5b4a3a';
+
+  // legs
+  r.part(C.ink, (t) => {
+    t.rect(12 + step, 25, 4, 4, slacks);
+    t.rect(17 - step, 25, 4, 4, slacks);
+    t.rect(11 + step, 28, 6, 3, C.shoe);
+    t.rect(16 - step, 28, 7, 3, C.shoe);
+  });
+  // body: shirt sleeves, tucked in
+  r.part(C.ink, (t) => {
+    t.shadedEllipse(16, 21 + bob, 7, 5.5, shirt, shirtLight, shirtDark);
+    t.rect(10, 21 + bob, 13, 4, shirt);
+    t.rect(10, 24 + bob, 13, 2, slacks);
+  });
+  // lanyard + badge
+  r.line(14, 16 + bob, 17, 22 + bob, '#ff77a8');
+  r.line(20, 16 + bob, 18, 22 + bob, '#ff77a8');
+  r.rect(16, 22 + bob, 4, 3, '#ffffff');
+  r.px(17, 23 + bob, '#22336b');
+
+  // head
+  const hx = 17, hy = 10 + bob;
+  r.part(C.ink, (t) => {
+    t.shadedEllipse(hx, hy, 7, 6.5, C.skin, C.skinLight, C.skinDark);
+    t.ellipse(hx - 6, hy + 1, 1.5, 2, C.skinDark);
+  });
+  // spiky "fun guy" hair
+  r.rect(hx - 6, hy - 6, 11, 2, C.hair);
+  r.px(hx - 4, hy - 7, C.hair); r.px(hx, hy - 8, C.hair); r.px(hx + 3, hy - 7, C.hair);
+  // eyebrows up, eyes wide (sockets still glow — they're one of them)
+  r.line(hx, hy - 4, hx + 2, hy - 5, C.hair);
+  r.line(hx + 4, hy - 5, hx + 6, hy - 4, C.hair);
+  r.rect(hx, hy - 2, 3, 3, C.socket);
+  r.rect(hx + 4, hy - 2, 3, 3, C.socket);
+  r.px(hx + 1, hy - 1, C.glow);
+  r.px(hx + 5, hy - 1, C.glow);
+  // the grin
+  r.rect(hx, hy + 2, 7, 2, C.mouth);
+  r.rect(hx + 1, hy + 2, 5, 1, C.teeth);
+  if (talking) r.rect(hx + 1, hy + 3, 5, 2, C.mouth);
+
+  // front arm holding a mug out ("coffee?"), waving while talking
+  r.part(C.ink, (t) => {
+    const lift = talking ? -4 - (f % 2) * 2 : 0;
+    t.capsule(15, 19 + bob, 24, 17 + bob + lift, 1.8, shirt);
+    t.rect(24, 13 + bob + lift, 5, 5, '#f4f1e6');            // the mug
+    t.rect(29, 14 + bob + lift, 1, 3, '#f4f1e6');
+  });
+  r.px(25, 14 + bob + (talking ? -4 - (f % 2) * 2 : 0), '#d83b3b');   // "#1 COWORKER"
+  return r;
+}
+
+/** Tero's hiding place: a cardboard box (ducking anywhere). 34×24, open
+ *  side down; a peephole so you know someone's in there. */
+export function drawHideBox(): Raster {
+  const r = new Raster(34, 24);
+  r.part(C.ink, (t) => t.rect(1, 3, 32, 20, '#c8935a'));
+  r.rect(2, 4, 30, 2, '#e0ad74');                 // top edge light
+  r.rect(2, 20, 30, 2, '#9c6a3a');                // bottom shade
+  r.tri(1, 3, 9, 3, 1, 0, '#b07a44');             // flaps
+  r.tri(33, 3, 25, 3, 33, 0, '#b07a44');
+  r.rect(15, 4, 4, 18, '#d8c08c');                // tape
+  r.rect(6, 9, 6, 2, '#1b1620');                  // peephole
+  r.px(8, 9, '#ffffff');
+  // "FRAGILE" label
+  r.rect(21, 12, 10, 6, '#f4f1e6');
+  r.rect(22, 14, 8, 1, '#d83b3b');
+  r.rect(22, 16, 6, 1, '#d83b3b');
+  return r;
+}
