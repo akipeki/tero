@@ -384,7 +384,13 @@ export const STORY = defineStory({
       ],
       triggers: [
         {
-          atTile: 6,
+          atTile: 4,
+          lines: [
+            { text: 'A GOLDEN PARACHUTE. EXECUTIVES\nNEVER HIT THE GROUND. HOLD JUMP.' },
+          ],
+        },
+        {
+          atTile: 9,
           lines: [
             { text: '"I WORKED 18 HOURS A DAY FOR 10 YEARS.\nNOW I\'M SENIOR JUNIOR LEVEL\nPRODUCT MANAGER ASSISTANT."' },
             { who: 'tero', text: 'Ten years.\n...For THAT?' },
@@ -399,15 +405,15 @@ export const STORY = defineStory({
       ],
       scenery: [
         { atTile: 3,  gag: 'portrait_senior' },
-        { atTile: 18, gag: 'golden_parachute' },
+        { atTile: 0,  gag: 'scandi_set' },
+        { atTile: 21, gag: 'golden_parachute' },
         { atTile: 26, gag: 'sign_results' },
-        { atTile: 34, gag: 'copier_butt' },
+        { atTile: 39, gag: 'copier_butt' },
         { atTile: 44, gag: 'banner_ceo' },
-        { atTile: 51, gag: 'supply_closet' },
-        { atTile: 58, gag: 'trickle_down' },
-        { atTile: 66, gag: 'pension_grave' },
-        { atTile: 10, gag: 'scandi_set' },
-        { atTile: 25, gag: 'sofa_memphis' },
+        { atTile: 57, gag: 'supply_closet' },
+        { atTile: 61, gag: 'trickle_down' },
+        { atTile: 70, gag: 'pension_grave' },
+        { atTile: 74, gag: 'sofa_memphis' },
       ],
       outro: [
         { who: 'pig', text: 'The Board will not be pleased.' },

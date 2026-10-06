@@ -11,7 +11,7 @@ import {
   TILE_SIZE, GRAVITY, WALK_SPEED, RUN_ACCEL, FRICTION, AIR_FRICTION,
   JUMP_FORCE, JUMP_CUT, STOMP_BOUNCE, COYOTE_TIME, JUMP_BUFFER,
   INVINCIBLE_FRAMES, VIEWPORT_H, DEAD_TIMER_FRAMES,
-  TANTRUM_MAX, TANTRUM_FRAMES, TANTRUM_SPEED, RAGE_HURT, RAGE_DEATH, TAPE_SLOW, TAPE_JUMP,
+  TANTRUM_MAX, TANTRUM_FRAMES, TANTRUM_SPEED, RAGE_HURT, RAGE_DEATH, TAPE_SLOW, TAPE_JUMP, GLIDE_FALL,
 } from '../constants';
 import { PlayerState, Action, TileType } from '../types';
 
@@ -77,6 +77,10 @@ export class Player extends creaturesAndObjects {
   syncImmune = 0;
   /** Wading through red tape this tick (slow feet, weak jumps). */
   inTape = false;
+  /** Picked up the golden parachute on this floor. */
+  hasChute = false;
+  /** Gliding under it right now (drawn by Game). */
+  gliding = false;
 
   // Respawn anchor — re-pointed by checkpoints
   spawnX = 0;
@@ -322,6 +326,10 @@ export class Player extends creaturesAndObjects {
       this.scaleY = 1.25;
       this.squashTimer = 6;
     }
+
+    // Golden parachute: hold jump on the way down to float.
+    this.gliding = this.hasChute && !this.onGround && this.jumpHeld && this.vy > 0 && !this.inTape;
+    if (this.gliding) this.vy = Math.min(this.vy, GLIDE_FALL - GRAVITY);
 
     // Variable-height jump — cut velocity ONCE on the release edge.
     // (Applying every frame compounded the cut and made jumps too short.)

@@ -82,7 +82,9 @@ export type GadgetSpawn =
   | { type: 'spring'; tx: number; ty: number }
   /** A ceiling security camera sweeping between `sweep` angles (radians
    *  from straight down; negative = left). */
-  | { type: 'camera'; tx: number; ty: number; sweep?: [number, number] };
+  | { type: 'camera'; tx: number; ty: number; sweep?: [number, number] }
+  /** The golden parachute pickup: hold jump while falling to glide. */
+  | { type: 'chute'; tx: number; ty: number };
 /** A boss and the left column of its one-screen arena. */
 export interface BossSpawn { type: 'halvorsen'; arenaTx: number }
 

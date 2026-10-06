@@ -7,6 +7,7 @@ import { ParticleSystem } from '../ParticleSystem';
 import { ScreenShake } from '../ScreenShake';
 import { TileType } from '../types';
 import { level5Spawns, level5Tiles, LEVEL5_WIDTH } from '../level/level5';
+import { level8Spawns, level8Tiles, LEVEL8_WIDTH } from '../level/level8';
 import type { UpdateCtx } from './creaturesAndObjects';
 import type { AudioManager } from '../AudioManager';
 
@@ -48,5 +49,28 @@ describe('R&D gadgets', () => {
     }
     const g = level5Spawns.gadgets!;
     for (const x of g) if (x.type === 'fax' && x.to !== undefined) expect(g[x.to].type).toBe('fax');
+  });
+});
+
+describe('golden parachute', () => {
+  it('holding jump while falling glides; without it Tero drops', () => {
+    const tall = buildLevel(['....', '....', '....', '....', '....', '....', '....', '....', '####']);
+    const c: UpdateCtx = { ...ctx(), map: new Tilemap(tall.tiles, tall.width, tall.height) };
+    const fall = (chute: boolean) => {
+      const p = new Player(40, 0, 3);
+      p.hasChute = chute;
+      p.jumpHeld = true;
+      p.vy = 3;
+      for (let i = 0; i < 10; i++) { p.jumpHeld = true; p.update(c); }
+      return p.vy;
+    };
+    expect(fall(true)).toBeLessThanOrEqual(1);
+    expect(fall(false)).toBeGreaterThan(5);
+  });
+
+  it('Floor 30: chasm 1 is too wide to jump, and the parachute waits before it', () => {
+    const g = level8Spawns.gadgets!;
+    expect(g.some((x) => x.type === 'chute' && x.tx < 12)).toBe(true);
+    for (let tx = 12; tx < 20; tx++) expect(level8Tiles[8 * LEVEL8_WIDTH + tx]).toBe(TileType.AIR);
   });
 });

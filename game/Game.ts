@@ -20,7 +20,7 @@ import { Checkpoint } from './creaturesAndObjects/Checkpoint';
 import { Flame } from './creaturesAndObjects/Flame';
 import { drawBubble } from './creaturesAndObjects/freed';
 import { Halvorsen, HALVORSEN_HP } from './creaturesAndObjects/Halvorsen';
-import { Fax, Spring } from './creaturesAndObjects/Gadgets';
+import { Fax, Spring, ChutePickup, drawCanopy } from './creaturesAndObjects/Gadgets';
 import { Cctv } from './creaturesAndObjects/Cctv';
 import { overlaps } from './physics/AABB';
 import { Camera } from './Camera';
@@ -88,6 +88,7 @@ export class Game {
   private faxes:    Fax[] = [];
   private springs:  Spring[] = [];
   private cameras:  Cctv[] = [];
+  private chutes:   ChutePickup[] = [];
   /** Guards that came down the vents (capped so alarms don't flood the floor). */
   private alarmGuards: Walker[] = [];
   /** Tero is down the phone line, on his way to `to`. */
@@ -553,6 +554,14 @@ export class Game {
   private updateGadgets(ctx: UpdateCtx): void {
     const p = this.player;
     for (const s of this.springs) { s.update(); s.check(p, ctx); }
+    for (const c of this.chutes) {
+      c.update();
+      if (c.check(p)) {
+        this.audio.play('powerup');
+        this.particles.confetti(c.cx, c.cy);
+        this.onCallout?.('GOLDEN PARACHUTE!  HOLD JUMP TO GLIDE');
+      }
+    }
     for (const c of this.cameras) {
       c.update();
       if (p.isTantrum) continue;
@@ -771,6 +780,7 @@ export class Game {
       ...this.faxes,
       ...this.springs,
       ...this.cameras,
+      ...this.chutes,
       ...(this.boss ? [this.boss] : []),
       ...this.flames,
     ].filter(Boolean);
@@ -790,6 +800,12 @@ export class Game {
           Math.round(this.camera.at(alpha)), this.map, allEntities, this.particles, this.shake,
           this.boss ? (c, x) => this.boss!.drawBackdrop(c, x) : undefined,
         );
+        if (this.player.gliding) {
+          const camX = Math.round(this.camera.at(alpha));
+          const a = this.state === GameState.PLAYING ? alpha : 1;
+          const footY = this.player.prevFootY + (this.player.bottom - this.player.prevFootY) * a;
+          drawCanopy(ctx, this.player.cx - camX + this.shake.offsetX, footY + this.shake.offsetY);
+        }
         if (this.player.inSync) {
           // Tero's side of the conversation
           drawBubble(ctx, '...', this.player.cx - Math.round(this.camera.at(alpha)) + this.shake.offsetX, this.player.bottom - 46);
@@ -948,6 +964,7 @@ export class Game {
     this.faxes = [];
     this.springs = [];
     this.cameras = [];
+    this.chutes = [];
     this.alarmGuards = [];
     const gadgets = L.spawns.gadgets ?? [];
     const faxIndex = new Map<number, number>();
@@ -955,6 +972,7 @@ export class Game {
     for (const g of gadgets) {
       if (g.type === 'spring') this.springs.push(new Spring(g.tx, g.ty));
       else if (g.type === 'camera') this.cameras.push(new Cctv(g.tx, g.ty, g.sweep));
+      else if (g.type === 'chute') this.chutes.push(new ChutePickup(g.tx, g.ty));
       else this.faxes.push(new Fax(g.tx, g.ty, g.to !== undefined ? faxIndex.get(g.to) ?? null : null));
     }
     this.faxing = null;

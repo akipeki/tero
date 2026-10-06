@@ -138,3 +138,61 @@ function label(text: string): HTMLCanvasElement {
   }
   return c;
 }
+
+/** The golden parachute: a bulging gold sack with a CEO EXIT tag. Pick it
+ *  up and holding jump while falling glides. */
+export class ChutePickup extends creaturesAndObjects {
+  private t = 0;
+
+  constructor(tx: number, ty: number) {
+    super(tx * TILE_SIZE + 6, ty * TILE_SIZE + 8, 20, 22);
+  }
+
+  /** True on the tick Tero grabs it. */
+  check(player: Player): boolean {
+    if (!this.active || player.isDead || !overlaps(player, this)) return false;
+    this.active = false;
+    player.hasChute = true;
+    return true;
+  }
+
+  update(): void { this.t++; }
+
+  draw(ctx: CanvasRenderingContext2D, camX: number): void {
+    const bob = Math.round(Math.sin(this.t / 12) * 2);
+    const x = Math.round(this.x - camX), y = Math.round(this.y) + bob;
+    ctx.fillStyle = 'rgba(255,210,63,0.25)';
+    ctx.fillRect(x - 4, y - 4, this.w + 8, this.h + 8);                 // glow
+    ctx.fillStyle = '#1b1620';
+    ctx.fillRect(x + 2, y + 5, this.w - 4, this.h - 5);
+    ctx.fillRect(x + 6, y, this.w - 12, 7);
+    ctx.fillStyle = '#e8b72f';
+    ctx.fillRect(x + 3, y + 6, this.w - 6, this.h - 7);
+    ctx.fillStyle = '#fff0a0';
+    ctx.fillRect(x + 5, y + 8, 3, 6);
+    ctx.fillStyle = '#a87b12';
+    ctx.fillRect(x + 7, y + 1, this.w - 14, 5);                         // the knot
+    ctx.drawImage(label('$'), x + 6, y + 12);
+  }
+}
+
+/** The canopy over Tero's head while he glides (feet at footX, footY). */
+export function drawCanopy(ctx: CanvasRenderingContext2D, footX: number, footY: number): void {
+  const x = Math.round(footX), top = Math.round(footY - 78);
+  ctx.fillStyle = '#1b1620';
+  ctx.fillRect(x - 25, top + 6, 50, 9);
+  ctx.fillRect(x - 21, top + 2, 42, 5);
+  ctx.fillStyle = '#e8b72f';
+  ctx.fillRect(x - 24, top + 7, 48, 7);
+  ctx.fillRect(x - 20, top + 3, 40, 5);
+  ctx.fillStyle = '#fff0a0';
+  for (let i = -20; i < 20; i += 10) ctx.fillRect(x + i, top + 4, 5, 9);   // gores
+  ctx.strokeStyle = '#5a5f68';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  for (const dx of [-22, -8, 8, 22]) {
+    ctx.moveTo(x + dx + 0.5, top + 14);
+    ctx.lineTo(x + Math.sign(dx) * 4 + 0.5, top + 40);
+  }
+  ctx.stroke();
+}

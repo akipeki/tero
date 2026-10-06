@@ -39,6 +39,8 @@ export const RAGE_SYNC          = 10;   // nothing is more unfair
 // Red tape (Legal): sticky, burnable.
 export const TAPE_SLOW          = 0.35; // walk speed multiplier inside it
 export const TAPE_JUMP          = 0.62; // jump force multiplier from inside it
+// The golden parachute (Executive Wing): hold jump while falling.
+export const GLIDE_FALL         = 0.9;  // max fall speed while gliding
 // Hit-stop: the world freezes for a few ticks so hits land.
 export const HITSTOP_STOMP      = 4;
 export const HITSTOP_FREE       = 2;
