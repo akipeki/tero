@@ -73,7 +73,7 @@ export default function GameContainer() {
 
   const [hud, setHud] = useState<HudData>({
     lives: STARTING_LIVES, maxLives: STARTING_LIVES, isBig: false, coins: 0, state: GameState.TITLE,
-    rage: 0, tantrum: false, sentHome: 0,
+    rage: 0, tantrum: false, sentHome: 0, boss: null,
   });
   /** Big centre-screen shout ("TANTRUM!!"); the key restarts the animation. */
   const [callout, setCallout] = useState<{ id: number; text: string } | null>(null);
@@ -282,7 +282,7 @@ export default function GameContainer() {
     else await wrap.requestFullscreen?.();
   }, []);
 
-  const { state, lives, maxLives, isBig, coins, rage, tantrum, sentHome } = hud;
+  const { state, lives, maxLives, isBig, coins, rage, tantrum, sentHome, boss } = hud;
   const isPlaying  = state === GameState.PLAYING;
   const isPaused   = state === GameState.PAUSED;
   const isTitle    = state === GameState.TITLE;
@@ -454,6 +454,8 @@ export default function GameContainer() {
             <span style={{ color: '#a7f070' }} title="Workers sent home to their kids">⌂ {sentHome}</span>
           </div>
 
+          {boss && <BossBar boss={boss} />}
+
           {/* Chain bonus floaters */}
           <div
             className="absolute top-12 left-4 pointer-events-none select-none"
@@ -565,6 +567,25 @@ function StatsBlock({
           BEST&nbsp;{formatTime(best.timeMs)}&nbsp;·&nbsp;{best.score}
         </p>
       )}
+    </div>
+  );
+}
+
+// ─── Boss bar ─────────────────────────────────────────────────────────────────
+function BossBar({ boss }: { boss: NonNullable<HudData['boss']> }) {
+  const pct = Math.round((boss.hp / boss.maxHp) * 100);
+  return (
+    <div
+      className="absolute left-1/2 -translate-x-1/2 text-center select-none pointer-events-none"
+      style={{ bottom: 12, fontFamily: 'var(--font-pixel, monospace)', fontSize: 'clamp(8px, 1.4vw, 13px)', width: 'min(60%, 420px)' }}
+      aria-label={`${boss.name}: ${boss.hp} of ${boss.maxHp}`}
+    >
+      <p style={{ color: '#fff1e8', textShadow: '2px 2px 0 #000', margin: '0 0 4px' }}>
+        {boss.name} <span style={{ color: '#ffd23f' }}>· {boss.slide}</span>
+      </p>
+      <div style={{ height: '0.9em', border: '2px solid #fff1e8', background: '#1b1620', position: 'relative' }}>
+        <div style={{ position: 'absolute', inset: 0, width: `${pct}%`, background: '#d83b3b', transition: 'width 200ms steps(4)' }} />
+      </div>
     </div>
   );
 }

@@ -43,6 +43,7 @@ export const COIN_VALUE         = 10;
 export const STOMP_VALUE        = 100;
 export const CHAIN_BONUS        = 50;  // added per consecutive air-stomp
 export const SENT_HOME_VALUE    = 150; // a freed worker is worth more than a squashed one
+export const BOSS_VALUE         = 1000; // on top of SENT_HOME_VALUE
 
 // ─── Animation ──────────────────────────────────────────────────────────────
 export const WALK_ANIM_FPS      = 8;

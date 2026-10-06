@@ -18,6 +18,7 @@ import { Goal } from './creaturesAndObjects/Goal';
 import { Coin } from './creaturesAndObjects/Coin';
 import { Checkpoint } from './creaturesAndObjects/Checkpoint';
 import { Flame } from './creaturesAndObjects/Flame';
+import { Halvorsen, HALVORSEN_HP } from './creaturesAndObjects/Halvorsen';
 import { overlaps } from './physics/AABB';
 import { Camera } from './Camera';
 import { ParticleSystem } from './ParticleSystem';
@@ -27,10 +28,10 @@ import { InputHandler } from './InputHandler';
 import { AudioManager } from './AudioManager';
 import { Stats } from './Stats';
 import { saveSettings, loadSettings } from './Settings';
-import { GameState, Action, PlayerState } from './types';
+import { GameState, Action, PlayerState, TileType } from './types';
 import {
   CHAIN_BONUS, SQUASH_STRENGTH, WALK_STRIDE_PX, WALK_BOB_PX, STORY_BLIP_EVERY,
-  STORY_INPUT_GRACE, TANTRUM_MAX, TANTRUM_FRAMES, RAGE_STOMP, RAGE_COIN, FLAME_EVERY, FLAME_SPEED,
+  STORY_INPUT_GRACE, TANTRUM_MAX, TANTRUM_FRAMES, RAGE_STOMP, BOSS_VALUE, RAGE_COIN, FLAME_EVERY, FLAME_SPEED,
   FLAME_LIFE, PUFF_LIFE, PUFF_SPEED, PUFF_COOLDOWN, HITSTOP_STOMP, HITSTOP_FREE,
   HITSTOP_HURT,
 } from './constants';
@@ -79,6 +80,7 @@ export class Game {
   private coins:    Coin[] = [];
   private checkpoints: Checkpoint[] = [];
   private flames:   Flame[] = [];
+  private boss:     Halvorsen | null = null;
   private goal!: Goal;
   /** Ticks the world stays frozen so a hit lands (hit-stop). */
   private hitStop = 0;
@@ -381,6 +383,7 @@ export class Game {
         this.endRun('GAME_OVER');
         return;
       }
+      if (this.boss?.fighting) this.endBossFight(false);
       // Re-spawn at the most recently triggered checkpoint, else the level start.
       this.player.respawn(
         Math.floor(this.player.spawnX / TILE_SIZE),
@@ -411,6 +414,7 @@ export class Game {
         if (e.hittable && overlaps(f, e)) e.burn(ctx);
       }
     }
+    this.updateBoss(ctx);
     this.countSentHome();
 
     // ? blocks
@@ -521,6 +525,73 @@ export class Game {
     this.flames.push(new Flame(mouthX, mouthY, dir * speed + p.vx * 0.5, jitter, life, frees));
   }
 
+  // ─── Boss ──────────────────────────────────────────────────────────────────
+
+  private updateBoss(ctx: UpdateCtx): void {
+    const b = this.boss;
+    if (!b) return;
+    if (b.phase === 'waiting' && b.introDone && !this.player.isDead && b.playerInArena(this.player)) {
+      this.startBossFight();
+    }
+    b.tick(ctx, this.player, this.flames);
+
+    if (b.justHit) {
+      b.justHit = false;
+      this.hitStop = 8;
+      this.player.addRage(RAGE_STOMP);
+    }
+    if (b.wantsIntern) {
+      b.wantsIntern = false;
+      const inArena = this.walkers.filter((w) => w.hittable && w.x >= b.arenaLeft).length;
+      if (inArena < 2) this.walkers.push(new Walker(b.arenaTx + 1, 7, 'clerk'));
+    }
+    if (b.freedNow) {
+      b.freedNow = false;
+      this.stats.addSentHome();
+      this.stats.score += BOSS_VALUE;
+      this.onScore?.(this.stats.score);
+      this.hitStop = 20;
+      this.shake.trigger(10);
+      this.audio.setBoss(false);
+      this.setArenaDoor(false);   // he walks out the way Tero came in
+      this.onCallout?.('MEETING ADJOURNED');
+    }
+    if (b.walkedOut) {
+      b.walkedOut = false;
+      this.camera.unlock();
+      this.goal.locked = false;
+      this.audio.play('unlock');
+      this.particles.confetti(this.goal.cx, this.goal.y + 40);
+    }
+  }
+
+  private startBossFight(): void {
+    const b = this.boss!;
+    b.start(this.map);
+    this.setArenaDoor(true);
+    this.camera.lock(b.arenaLeft, b.arenaLeft);
+    this.audio.setBoss(true);
+    this.onCallout?.('MEETING IN PROGRESS');
+  }
+
+  /** Tero died mid-meeting: open up and reset for the next attempt. */
+  private endBossFight(won: boolean): void {
+    const b = this.boss;
+    if (!b) return;
+    if (!won) b.reset(this.map);
+    this.setArenaDoor(false);
+    this.camera.unlock();
+    this.audio.setBoss(false);
+  }
+
+  /** The glass door at the arena's left edge. */
+  private setArenaDoor(closed: boolean): void {
+    const b = this.boss;
+    if (!b) return;
+    for (let ty = 1; ty <= 7; ty++) this.map.setTile(b.arenaTx - 1, ty, closed ? TileType.SOLID : TileType.AIR);
+    if (closed) this.particles.burst(b.arenaLeft - 16, 7 * TILE_SIZE, 8, '#c9ced6', '#ffffff');
+  }
+
   /** Workers freed this tick (by stomp, fire or tantrum body-slam). */
   private countSentHome(): void {
     let n = 0;
@@ -545,6 +616,7 @@ export class Game {
       const effect = triggers[i].effect;
       this.playStory(triggers[i].cards, () => {
         if (effect === 'tantrum') this.player.addRage(TANTRUM_MAX);
+        if (effect === 'boss' && this.boss) this.boss.introDone = true;
         this.resumePlaying();
       });
       return; // one beat at a time; the next fires on a later tick
@@ -566,6 +638,7 @@ export class Game {
       ...this.mushrooms,
       ...this.walkers,
       ...this.hoppers,
+      ...(this.boss ? [this.boss] : []),
       ...this.flames,
     ].filter(Boolean);
 
@@ -580,7 +653,10 @@ export class Game {
       case GameState.WIN:
       case GameState.STORY:
         // The canvas is low-res pixel art, so the world scrolls in whole pixels.
-        this.renderer.render(Math.round(this.camera.at(alpha)), this.map, allEntities, this.particles, this.shake);
+        this.renderer.render(
+          Math.round(this.camera.at(alpha)), this.map, allEntities, this.particles, this.shake,
+          this.boss ? (c, x) => this.boss!.drawBackdrop(c, x) : undefined,
+        );
         break;
     }
 
@@ -647,6 +723,7 @@ export class Game {
     this.loadLevel();
     this.audio.setFloorMood(this.floorMood());
     this.audio.setTantrum(false);
+    this.audio.setBoss(false);
     this.wasTantrum = false;
     this.hitStop = 0;
     this.audio.startMusic();
@@ -727,6 +804,8 @@ export class Game {
 
     this.mushrooms = [];
     this.goal = new Goal(L.spawns.goal.tx, L.spawns.goal.ty);
+    this.boss = L.spawns.boss ? new Halvorsen(L.spawns.boss.arenaTx) : null;
+    this.goal.locked = this.boss !== null;
 
     // Each office floor has its own décor; unknown ids fall back to cubicles.
     const decor = this.levelPack?.decor;
@@ -796,6 +875,9 @@ export class Game {
         : this.player?.rage ?? 0,
       tantrum:  this.player?.isTantrum ?? false,
       sentHome: this.stats.sentHome,
+      boss:     this.boss?.fighting
+        ? { name: 'MR. HALVORSEN', hp: this.boss.hp, maxHp: HALVORSEN_HP, slide: this.boss.slideTitle }
+        : null,
     });
   }
 

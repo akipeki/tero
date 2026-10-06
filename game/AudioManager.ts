@@ -15,7 +15,8 @@ import { BPM, CHORDS, DRUMS, MELODY, chordTones, hz, midi } from './music';
 type SfxName =
   | 'jump' | 'stomp' | 'powerup' | 'hurt' | 'death'
   | 'goal' | 'block' | 'coin' | 'checkpoint' | 'text' | 'plop' | 'dada'
-  | 'puff' | 'fire' | 'burn' | 'free' | 'ready' | 'roar';
+  | 'puff' | 'fire' | 'burn' | 'free' | 'ready' | 'roar'
+  | 'laser' | 'bossHit' | 'click' | 'unlock';
 
 interface ToneSpec {
   freq: number;
@@ -52,6 +53,11 @@ const SFX_TONES: Record<Exclude<SfxName, 'dada' | 'roar'>, ToneSpec> = {
   burn:       { freq: 140, duration: 0.18, type: 'square', slideTo: 60, gain: 0.1, noise: 0.22, noiseHz: 2500 },
   free:       { freq: 784, duration: 0.06, type: 'square', freqs: [784, 988, 1175, 1568], gain: 0.1 },
   ready:      { freq: 523, duration: 0.07, type: 'triangle', freqs: [523, 659, 784, 1047, 784, 1047], gain: 0.24 },
+  // Boss fight
+  laser:      { freq: 1800, duration: 0.25, type: 'sine', slideTo: 900, gain: 0.08 },
+  bossHit:    { freq: 420, duration: 0.09, type: 'square', freqs: [420, 300, 520, 260], gain: 0.16 },
+  click:      { freq: 2400, duration: 0.02, type: 'square', freqs: [2400, 1600], gain: 0.08 },
+  unlock:     { freq: 784, duration: 0.18, type: 'triangle', freqs: [1047, 784], gain: 0.25 },   // ding-dong
 };
 
 /** Music bus level before the volume slider. */
@@ -71,6 +77,7 @@ export class AudioManager {
   /** Input of the metal guitar's own distortion (bypasses the muffle). */
   private metal: WaveShaperNode | null = null;
   private tantrum = false;
+  private boss = false;
   private lfoDepth: GainNode | null = null;
   private musicNodes = new Set<AudioScheduledSourceNode>();
   private timerId: ReturnType<typeof setInterval> | null = null;
@@ -142,6 +149,11 @@ export class AudioManager {
   }
 
   get isMuted(): boolean { return this.muted; }
+
+  /** Boss fight: the muzak speeds up and the snare doubles. */
+  setBoss(on: boolean): void {
+    this.boss = on;
+  }
 
   /** Metal mode on/off — applies from the next eighth note. */
   setTantrum(on: boolean): void {
@@ -244,7 +256,7 @@ export class AudioManager {
 
   /** One eighth note. Slower on higher floors — everyone's exhausted. */
   private get stepDur(): number {
-    return 60 / (BPM - this.mood * 18) / 2;
+    return 60 / (BPM - this.mood * 18 + (this.boss ? 26 : 0)) / 2;
   }
 
   /** The penthouse is a semitone flat. Nobody has noticed. */
@@ -296,6 +308,9 @@ export class AudioManager {
       this.pitched(hz(root + 7), t, sd * 0.85, 'sawtooth', 0.3, this.metal, 0.003);
       if (DRUMS[beat] !== 'k') this.kick(t, bus);
     }
+
+    // Boss: an extra snare on the last eighth of every bar.
+    if (this.boss && beat === 7) this.noise(t, 0.08, 0.22, bus, 1500);
 
     // Drums
     switch (DRUMS[beat]) {

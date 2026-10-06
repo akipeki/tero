@@ -166,6 +166,8 @@ export const STORY = defineStory({
       decor: 'boardroom',
       density: 'sparse',
       goalWriting: 'crayon_resource',
+      // The arena stays clean: just the projector screen and the elevator.
+      quiet: [[60, 79]],
       intro: [
         { text: 'FLOOR 12 — THE BOARDROOM.' },
         { who: 'boss', text: 'Your father is in a meeting.\nHe has been in a meeting since March.' },
@@ -178,27 +180,31 @@ export const STORY = defineStory({
           ],
         },
         {
-          atTile: 48,
+          atTile: 47,
           lines: [
             { who: 'tero', text: 'Meet. ???. Profit.' },
             { who: 'tero', text: '...Dumb.' },
           ],
         },
         {
-          atTile: 58,
+          // The boss fight. The door shuts behind Tero once the lines are done.
+          atTile: 65,
           lines: [
-            { who: 'boss', text: 'He\'s been promoted. Floor 33.\nYou\'ll never get past Legal.' },
+            { who: 'boss', text: 'Ah. The toddler. Take a seat.\nThis meeting has 47 slides.' },
+            { who: 'tero', text: 'No.' },
+            { who: 'boss', text: 'Your father? Promoted. Floor 33.\nYou\'ll never get past Legal.' },
             { who: 'tero', text: 'DADA IS NOT A RESOURCE.' },
           ],
+          effect: 'boss',
         },
       ],
       scenery: [
         { atTile: 1,  gag: 'employee_month' },
         { atTile: 10, gag: 'dad_calendar' },
         { atTile: 20, gag: 'banner_q4' },
+        { atTile: 31, gag: 'room_closed' },
         { atTile: 45, gag: 'whiteboard' },
-        { atTile: 17, gag: 'room_closed' },
-        { atTile: 67, gag: 'copier_jam' },
+        { atTile: 55, gag: 'copier_jam' },
       ],
       outro: [
         { who: 'tero', text: 'Dada. Floor. Thirty. Free.' },

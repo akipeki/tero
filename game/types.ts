@@ -32,6 +32,9 @@ export const enum TileType {
   COIN       = 5,
   /** A stack of paperwork: solid until Tero's fire burns it away. */
   PAPER      = 6,
+  /** A projected slide bullet point: a one-way platform the boss's clicker
+   *  moves around. Only placed at runtime, never in level rows. */
+  BULLET     = 7,
 }
 
 // ─── Player state ────────────────────────────────────────────────────────────
@@ -69,6 +72,8 @@ export interface GoalSpawn   { tx: number; ty: number }
 export interface PlayerSpawn { tx: number; ty: number }
 export interface CoinSpawn   { tx: number; ty: number }
 export interface CheckpointSpawn { tx: number; ty: number }
+/** A boss and the left column of its one-screen arena. */
+export interface BossSpawn { type: 'halvorsen'; arenaTx: number }
 
 export interface LevelSpawns {
   player:      PlayerSpawn;
@@ -77,6 +82,8 @@ export interface LevelSpawns {
   goal:        GoalSpawn;
   coins?:      CoinSpawn[];
   checkpoints?: CheckpointSpawn[];
+  /** The floor's boss. While it lives the elevator stays shut. */
+  boss?:       BossSpawn;
 }
 
 // ─── Particle ────────────────────────────────────────────────────────────────
@@ -100,6 +107,8 @@ export interface HudData {
   tantrum:  boolean;
   /** Workers freed this run — the "sent home" counter. */
   sentHome: number;
+  /** The boss bar, while a boss fight is on. */
+  boss:     { name: string; hp: number; maxHp: number; slide: string } | null;
 }
 
 // ─── End-of-run stats shown on Game Over / Win screens ───────────────────────

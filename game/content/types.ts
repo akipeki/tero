@@ -152,7 +152,8 @@ export interface StoryTrigger {
   effect?: TriggerEffect;
 }
 
-export type TriggerEffect = 'tantrum';
+/** 'tantrum' fills Tero's meter; 'boss' lets the floor's boss start the fight. */
+export type TriggerEffect = 'tantrum' | 'boss';
 
 export interface Chapter {
   id:       ChapterId;

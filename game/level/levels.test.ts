@@ -41,12 +41,12 @@ describe('levels registry', () => {
     }
   });
 
-  it('every enemy stands on solid ground in its column', () => {
+  it('every enemy stands on solid ground or a desk in its column', () => {
     for (const L of LEVELS) {
       for (const e of L.spawns.enemies) {
         let ty = e.ty;
         while (ty < L.height && L.tiles[ty * L.width + e.tx] === 0) ty++;
-        expect(L.tiles[ty * L.width + e.tx], `${L.name}: ${e.type} @${e.tx}`).toBe(1);
+        expect([1, 2], `${L.name}: ${e.type} @${e.tx}`).toContain(L.tiles[ty * L.width + e.tx]);
       }
     }
   });

@@ -77,6 +77,13 @@ function freedFacings(key: string, make: () => Raster): Facings {
   return f;
 }
 
+/** Cached left/right canvases for any rig drawing; `freed` gives it the
+ *  colour-back recolour. Used by bosses, which are drawn outside the
+ *  32×32 human frame. */
+export function riggedFacings(key: string, make: () => Raster, freed = false): Facings {
+  return freed ? freedFacings(key, make) : facings(key, make);
+}
+
 /** Draws a 32×32 human frame with its feet on the hitbox's bottom-centre. */
 function blitHuman(
   ctx: CanvasRenderingContext2D, img: Facings, p: { x: number; y: number; w: number; h: number; camX: number; facingRight: boolean; scaleY: number },

@@ -282,3 +282,29 @@ export function drawPaperTile(ctx: CanvasRenderingContext2D, sx: number, sy: num
   ctx.fillStyle = '#1b1620';
   ctx.fillRect(sx, sy + S - 1, S, 1);
 }
+
+/** A slide bullet point projected into the air: a glowing bar with a bullet
+ *  and a squiggle of "text". Bright — it's what you stand on in the boss
+ *  fight. `first`/`last` = ends of the bar. */
+export function drawBulletTile(
+  ctx: CanvasRenderingContext2D, sx: number, sy: number, tx: number, first: boolean, last: boolean,
+): void {
+  const flicker = Math.sin(performance.now() / 90 + sx) > 0.96 ? 0.6 : 1;
+  ctx.globalAlpha = flicker;
+  ctx.fillStyle = 'rgba(160,220,255,0.35)';
+  ctx.fillRect(sx, sy + 3, S, 9);                    // the projected glow
+  ctx.fillStyle = '#e8f6ff';
+  ctx.fillRect(sx, sy, S, 4);                        // the surface
+  ctx.fillStyle = '#7fc4f0';
+  ctx.fillRect(sx, sy + 4, S, 1);
+  if (first) {
+    ctx.fillStyle = '#22336b';
+    ctx.fillRect(sx + 3, sy + 6, 4, 4);              // the bullet
+  }
+  ctx.fillStyle = '#22336b';
+  const x0 = first ? sx + 10 : sx;
+  const x1 = last ? sx + S - 4 : sx + S;
+  for (let x = x0; x < x1; x += 3) ctx.fillRect(x, sy + 7 + ((x >> 2) % 2), 2, 1);
+  ctx.globalAlpha = 1;
+  safetyEdge(ctx, sx, sy, S, tx);
+}

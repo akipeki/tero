@@ -177,3 +177,90 @@ export function drawManager(airborne: boolean): Raster {
 
   return r;
 }
+
+// ─── Mr. Halvorsen (the Floor 12 boss) ───────────────────────────────────────
+
+export const HALVORSEN_W = 40;
+export const HALVORSEN_H = 60;
+
+export type HalvorsenPose = 'walk0' | 'walk1' | 'present' | 'throw' | 'hurt';
+
+/** Tall, thin, TED-talk headset, pinstripes, a tie down to his knees and a
+ *  presentation clicker. Faces right; feet on the bottom edge. Zombie skin,
+ *  so the freed recolour gives him his face back. */
+export function drawHalvorsen(pose: HalvorsenPose): Raster {
+  const r = new Raster(HALVORSEN_W, HALVORSEN_H);
+  const hurt = pose === 'hurt';
+  const lean = hurt ? -2 : 0;
+  const pin = '#3a4878';
+  const suit = '#26305a', suitLight = '#34407a', suitDark = '#181e3c';
+
+  // long legs: a stride when walking
+  r.part(C.ink, (t) => {
+    const a = pose === 'walk0' ? 3 : pose === 'walk1' ? -3 : 0;
+    t.capsule(17, 40, 16 + a, 55, 2.6, suitDark);
+    t.capsule(23, 40, 24 - a, 55, 2.6, suit);
+    t.rect(11 + a, 55, 8, 4, C.shoe);
+    t.rect(21 - a, 55, 9, 4, C.shoe);
+  });
+
+  // back arm (holds the pie when throwing)
+  r.part(C.ink, (t) => {
+    if (pose === 'throw') {
+      t.capsule(16 + lean, 24, 12 + lean, 10, 2.2, suitDark);
+      t.ellipse(12 + lean, 8, 5, 5, '#ffd23f');              // the pie chart
+      t.tri(12 + lean, 8, 17 + lean, 8, 12 + lean, 3, '#d83b3b');
+    } else {
+      t.capsule(16 + lean, 24, 14 + lean, 38, 2.2, suitDark);
+    }
+  });
+
+  // torso: tall jacket with pinstripes
+  r.part(C.ink, (t) => {
+    t.shadedEllipse(20 + lean, 31, 8, 12, suit, suitLight, suitDark);
+  });
+  for (let x = 14; x <= 26; x += 3) r.line(x + lean, 22, x + lean, 41, pin);
+  r.tri(18 + lean, 20, 23 + lean, 20, 20 + lean, 27, C.shirt);
+  // the tie, all the way to his knees
+  r.rect(20 + lean, 22, 2, 24, C.tieRed);
+  r.px(20 + lean, 46, C.tieRed);
+
+  // head: long face, combover, headset mic
+  const hx = 21 + lean, hy = 12;
+  r.part(C.ink, (t) => {
+    t.shadedEllipse(hx, hy, 6.5, 8, C.skin, C.skinLight, C.skinDark);
+  });
+  r.rect(hx - 6, hy - 8, 10, 3, C.hair);                    // the combover
+  r.rect(hx - 2, hy - 9, 8, 1, C.hairLight);
+  r.rect(hx - 5, hy - 2, 2, 4, C.ink);                       // headset ear piece
+  r.line(hx - 4, hy + 2, hx + 3, hy + 5, C.ink);             // mic boom
+  r.rect(hx + 3, hy + 4, 2, 2, C.ink);                       // mic
+  // glasses + eyes
+  r.rect(hx, hy - 3, 3, 3, C.glasses);
+  r.rect(hx + 4, hy - 3, 3, 3, C.glasses);
+  if (hurt) {
+    r.px(hx + 1, hy - 2, C.ink); r.px(hx + 5, hy - 2, C.ink);
+  } else {
+    r.px(hx + 2, hy - 2, C.glow); r.px(hx + 6, hy - 2, C.glow);
+  }
+  // the smile that never reaches the eyes (or a wince)
+  if (hurt) r.rect(hx + 1, hy + 3, 4, 2, C.mouth);
+  else { r.line(hx, hy + 3, hx + 5, hy + 3, C.mouth); r.px(hx, hy + 2, C.mouth); r.rect(hx + 1, hy + 3, 4, 1, C.teeth); }
+
+  // front arm: clicker held out
+  r.part(C.ink, (t) => {
+    if (pose === 'present') {
+      t.capsule(22 + lean, 24, 34, 22, 2.2, suit);
+      t.ellipse(35, 22, 2, 2, C.skin);
+      t.rect(36, 20, 3, 4, C.ink);                            // the clicker
+    } else if (hurt) {
+      t.capsule(22 + lean, 24, 30, 14, 2.2, suit);
+      t.ellipse(31, 13, 2, 2, C.skin);
+    } else {
+      t.capsule(22 + lean, 24, 25, 37, 2.2, suit);
+      t.ellipse(25, 38, 2, 2, C.skin);
+    }
+  });
+  if (pose === 'present') r.px(39, 21, C.glow);              // laser dot on the clicker
+  return r;
+}

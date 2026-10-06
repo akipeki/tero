@@ -1,6 +1,6 @@
 import { GRAVITY, MAX_FALL_SPD, TILE_SIZE } from '../constants';
 import { TileType } from '../types';
-import { isSolidTile, type Tilemap } from '../level/Tilemap';
+import { isSolidTile, isPlatformTile, type Tilemap } from '../level/Tilemap';
 
 export interface PhysicsBody {
   x: number;
@@ -109,7 +109,7 @@ function sweepVertical(
         }
       }
 
-      if (tile === TileType.PLATFORM && body.vy >= 0) {
+      if (isPlatformTile(tile) && body.vy >= 0) {
         const tileTop = ty * TILE_SIZE;
         if (body.y + body.h > tileTop && prevY + body.h <= tileTop + 1) {
           body.y = tileTop - body.h;

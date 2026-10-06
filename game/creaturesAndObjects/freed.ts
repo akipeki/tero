@@ -105,15 +105,18 @@ function bubble(text: string): HTMLCanvasElement {
   return c;
 }
 
+/** A speech bubble whose tail points down at (x, y) in screen px. */
+export function drawBubble(ctx: CanvasRenderingContext2D, text: string, x: number, y: number): void {
+  const c = bubble(text);
+  ctx.drawImage(c, Math.round(x - 5), Math.round(y - c.height));
+}
+
 /** Bubble above a freed worker's head, at hitbox top-centre. */
 export function drawFreedBubble(
   ctx: CanvasRenderingContext2D, f: FreedMotion, body: creaturesAndObjects, camX: number,
 ): void {
   if (!f.showBubble) return;
-  const c = bubble(f.line);
-  const x = Math.round(body.cx - camX - 5);
-  const y = Math.round(body.y + f.hop - 14 - 10);
-  ctx.drawImage(c, x, y);
+  drawBubble(ctx, f.line, body.cx - camX, body.y + f.hop - 11);
 }
 
 /** The tie they drop, as a little burst of tie-coloured bits. */
