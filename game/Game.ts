@@ -541,15 +541,28 @@ export class Game {
     this.audio.stopMusic();
     if (this.story.active) { this.story.cancel(); this.onStory?.(null); }
     this.loadLevel();
+    this.audio.setFloorMood(this.floorMood());
     this.audio.startMusic();
     this.stats.reset();
     this.onScore?.(this.stats.score);
     this.onEndScreen?.(null);
     saveSettings({ lastLevelId: this.currentLevelId });
     this.state = GameState.PLAYING;
-    if (withIntro) this.playStory(this.introCardIds(), this.resumePlaying);
+    if (withIntro) this.playStory(this.introCardIds(), this.startAfterIntro);
     this.syncHud();
   }
+
+  /** 0 on the first built-in floor → 1 on the last; user levels stay at 0. */
+  private floorMood(): number {
+    const idx = this.builtInPlaylist.indexOf(this.currentLevelId);
+    return idx > 0 ? idx / (this.builtInPlaylist.length - 1) : 0;
+  }
+
+  /** Fresh arrival on a floor: Tero calls out for Dad, then play. */
+  private startAfterIntro = (): void => {
+    this.audio.play('dada');
+    this.resumePlaying();
+  };
 
   /** Chapter intro (if this level opens a chapter) followed by the level intro. */
   private introCardIds(): string[] {

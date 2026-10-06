@@ -1,42 +1,66 @@
 'use client';
 
-// AudioManager — Web Audio API tones. No audio files required.
-// (Tier 2 swap to Howler.js: drop MP3s in /public/audio/ and replace `play()`.)
+// AudioManager — Web Audio API chiptune. No audio files required.
+// The theme song's notes live in game/music.ts; this file is the band.
+//
+// Music: four voices (lead, arpeggio, bass, noise drums) plus Tero's
+// synthesized "da" for the hook, scheduled ahead with a look-ahead timer.
+// `setFloorMood(0..1)` makes the muzak sadder the higher you climb: slower,
+// warbly like a stretched tape, overdriven and muffled.
+
+import { BPM, CHORDS, DRUMS, MELODY, chordTones, hz, midi } from './music';
 
 type SfxName =
   | 'jump' | 'stomp' | 'powerup' | 'hurt' | 'death'
-  | 'goal' | 'block' | 'coin' | 'checkpoint' | 'text' | 'plop';
+  | 'goal' | 'block' | 'coin' | 'checkpoint' | 'text' | 'plop' | 'dada';
 
 interface ToneSpec {
   freq: number;
   duration: number;
   type: OscillatorType;
   freqs?: number[];
+  /** Glide to this frequency over the tone (classic jump/hurt sweeps). */
+  slideTo?: number;
+  /** Add a short noise burst (impacts). */
+  noise?: number;
   /** Per-tone gain; defaults to 0.2. */
   gain?: number;
 }
 
-const SFX_TONES: Record<SfxName, ToneSpec> = {
-  jump:       { freq: 520, duration: 0.10, type: 'square' },
-  stomp:      { freq: 160, duration: 0.18, type: 'sawtooth' },
-  powerup:    { freq: 260, duration: 0.08, type: 'square', freqs: [260, 330, 392, 523] },
-  hurt:       { freq: 180, duration: 0.25, type: 'sawtooth' },
-  death:      { freq: 440, duration: 0.08, type: 'square', freqs: [440, 330, 220, 110] },
+const SFX_TONES: Record<Exclude<SfxName, 'dada'>, ToneSpec> = {
+  jump:       { freq: 330, duration: 0.12, type: 'square', slideTo: 700, gain: 0.14 },
+  stomp:      { freq: 300, duration: 0.14, type: 'square', slideTo: 70, noise: 0.08 },
+  powerup:    { freq: 260, duration: 0.08, type: 'square', freqs: [260, 330, 392, 523, 659, 784] },
+  hurt:       { freq: 520, duration: 0.30, type: 'sawtooth', slideTo: 140 },
+  death:      { freq: 440, duration: 0.10, type: 'square', freqs: [440, 415, 392, 370, 349, 330, 165] },
   goal:       { freq: 523, duration: 0.12, type: 'square', freqs: [392, 440, 523, 659, 784] },
-  block:      { freq: 300, duration: 0.12, type: 'square' },
+  block:      { freq: 180, duration: 0.08, type: 'square', slideTo: 110, noise: 0.05 },
   coin:       { freq: 988, duration: 0.07, type: 'square', freqs: [988, 1319] },
   checkpoint: { freq: 660, duration: 0.10, type: 'square', freqs: [660, 880, 990] },
   text:       { freq: 1400, duration: 0.015, type: 'square', gain: 0.05 },
   plop:       { freq: 660, duration: 0.035, type: 'sine', freqs: [660, 440], gain: 0.18 },
 };
 
+/** Music bus level before the volume slider. */
+const MUSIC_LEVEL = 0.09;
+const LOOKAHEAD_S = 0.15;
+const TICK_MS = 25;
+
 export class AudioManager {
   private ac: AudioContext | null = null;
   private muted = false;
+  private masterScale = 1;
+  private noiseBuf: AudioBuffer | null = null;
+
+  // Music graph: voices → bus → drive → muffle → musicGain → out
   private musicGain: GainNode | null = null;
-  private musicOscs = new Set<OscillatorNode>();
-  private musicStarted = false;
-  private loopTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  private bus: GainNode | null = null;
+  private lfoDepth: GainNode | null = null;
+  private musicNodes = new Set<AudioScheduledSourceNode>();
+  private timerId: ReturnType<typeof setInterval> | null = null;
+  private step = 0;
+  private nextStepAt = 0;
+  private mood = 0;
 
   /** Must be called after the first user gesture (browser autoplay policy) */
   init(): void {
@@ -57,61 +81,326 @@ export class AudioManager {
 
   play(name: SfxName): void {
     if (this.muted || !this.ac) return;
+    const now = this.ac.currentTime;
+    if (name === 'dada') {
+      // "Da-da?" — rising, like the title
+      this.voice(hz(midi('E5')), now, 0.22, this.ac.destination, 0.8, false);
+      this.voice(hz(midi('G5')), now + 0.26, 0.42, this.ac.destination, 0.8, true);
+      return;
+    }
     const spec = SFX_TONES[name];
+    const gain = spec.gain ?? (spec.freqs ? 0.18 : 0.2);
 
     if (spec.freqs) {
       spec.freqs.forEach((f, i) => {
-        const t = this.ac!.currentTime + i * spec.duration;
-        this.playTone(f, spec.duration * 0.9, spec.type, spec.gain ?? 0.18, t);
+        this.playTone(f, spec.duration * 0.9, spec.type, gain, now + i * spec.duration);
       });
     } else {
-      this.playTone(spec.freq, spec.duration, spec.type, spec.gain ?? 0.2);
+      this.playTone(spec.freq, spec.duration, spec.type, gain, now, spec.slideTo);
     }
+    if (spec.noise) this.noise(now, spec.noise, 0.25, this.ac.destination, 1800);
   }
 
   toggleMute(): void {
-    this.muted = !this.muted;
-    if (this.musicGain) {
-      this.musicGain.gain.value = this.muted ? 0 : 0.06;
-    }
+    this.setMuted(!this.muted);
   }
 
   setMuted(muted: boolean): void {
     this.muted = muted;
-    if (this.musicGain) {
-      this.musicGain.gain.value = muted ? 0 : 0.06 * this.masterScale;
-    }
+    this.applyMusicLevel();
   }
 
-  private masterScale = 1;
   /** 0..1, multiplies the music gain. (SFX uses fixed per-tone gains.) */
   setMasterVolume(scale: number): void {
     this.masterScale = Math.max(0, Math.min(1, scale));
-    if (this.musicGain && !this.muted) {
-      this.musicGain.gain.value = 0.06 * this.masterScale;
-    }
+    this.applyMusicLevel();
   }
 
   get isMuted(): boolean { return this.muted; }
 
-  stopMusic(): void {
-    if (this.loopTimeoutId !== null) {
-      clearTimeout(this.loopTimeoutId);
-      this.loopTimeoutId = null;
-    }
-    for (const o of this.musicOscs) {
-      try { o.stop(); o.disconnect(); } catch { /* ignore */ }
-    }
-    this.musicOscs.clear();
-    this.musicStarted = false;
-    this.musicGain = null;
+  /** 0 = ground floor muzak, 1 = the penthouse, where the tape is melting.
+   *  Takes effect on the next `startMusic()`. */
+  setFloorMood(mood: number): void {
+    this.mood = Math.max(0, Math.min(1, mood));
   }
 
-  /** Start (or restart) the background music */
+  stopMusic(): void {
+    if (this.timerId !== null) {
+      clearInterval(this.timerId);
+      this.timerId = null;
+    }
+    for (const n of this.musicNodes) {
+      try { n.stop(); n.disconnect(); } catch { /* ignore */ }
+    }
+    this.musicNodes.clear();
+    try { this.musicGain?.disconnect(); } catch { /* ignore */ }
+    this.musicGain = null;
+    this.bus = null;
+    this.lfoDepth = null;
+  }
+
+  /** Start (or restart) the theme from bar 1. */
   startMusic(): void {
     if (!this.ac) return;
     this.stopMusic();
-    this.scheduleChiptune();
+    const ac = this.ac;
+    const m = this.mood;
+
+    const out = ac.createGain();
+    out.connect(ac.destination);
+    this.musicGain = out;
+    this.applyMusicLevel();
+
+    // Higher floors: the speaker in the ceiling tile is dying.
+    const muffle = ac.createBiquadFilter();
+    muffle.type = 'lowpass';
+    muffle.frequency.value = 14000 - m * 11000;
+    muffle.Q.value = 0.7 + m * 3;
+    muffle.connect(out);
+
+    const drive = ac.createWaveShaper();
+    drive.curve = driveCurve(m * 30);
+    drive.connect(muffle);
+
+    const bus = ac.createGain();
+    bus.gain.value = 1 - m * 0.35;   // drive adds loudness back
+    bus.connect(drive);
+    this.bus = bus;
+
+    // Tape warble: one slow LFO bends every pitched voice.
+    const lfo = ac.createOscillator();
+    lfo.frequency.value = 0.6 + m * 3.4;
+    const depth = ac.createGain();
+    depth.gain.value = m * 38;      // cents
+    lfo.connect(depth);
+    lfo.start();
+    this.lfoDepth = depth;
+    this.musicNodes.add(lfo);
+
+    this.step = 0;
+    this.nextStepAt = ac.currentTime + 0.1;
+    this.timerId = setInterval(() => this.scheduleAhead(), TICK_MS);
+    this.scheduleAhead();
+  }
+
+  private applyMusicLevel(): void {
+    if (this.musicGain) {
+      // Overdrive on high floors is louder; pull it back so every floor sits level.
+      const makeup = 1 - 0.35 * this.mood;
+      this.musicGain.gain.value = this.muted ? 0 : MUSIC_LEVEL * this.masterScale * makeup;
+    }
+  }
+
+  // ─── Sequencer ─────────────────────────────────────────────────────────────
+
+  private scheduleAhead(): void {
+    if (!this.ac || !this.bus) return;
+    while (this.nextStepAt < this.ac.currentTime + LOOKAHEAD_S) {
+      this.playStep(this.step, this.nextStepAt);
+      this.nextStepAt += this.stepDur;
+      this.step = (this.step + 1) % (MELODY.length * 8);
+    }
+  }
+
+  /** One eighth note. Slower on higher floors — everyone's exhausted. */
+  private get stepDur(): number {
+    return 60 / (BPM - this.mood * 18) / 2;
+  }
+
+  /** The penthouse is a semitone flat. Nobody has noticed. */
+  private get transpose(): number {
+    return this.mood >= 0.95 ? -1 : 0;
+  }
+
+  private playStep(step: number, t: number): void {
+    const bus = this.bus!;
+    const bar = Math.floor(step / 8);
+    const beat = step % 8;
+    const sd = this.stepDur;
+
+    // Lead: count how many '-' follow to get the note length.
+    const tok = MELODY[bar][beat];
+    if (tok !== '-' && tok !== '.') {
+      let len = 1;
+      while (beat + len < 8 && MELODY[bar][beat + len] === '-') len++;
+      const sung = tok.startsWith('da:');
+      const f = hz(midi(sung ? tok.slice(3) : tok) + this.transpose);
+      if (sung) {
+        this.voice(f, t, len * sd * 0.92, bus, 1.3, beat + len >= 8);
+      } else {
+        this.pitched(f, t, len * sd * 0.9, 'square', 0.32, bus, 0.01);
+        // Upper floors: a second, slightly sour copy of the lead.
+        if (this.mood > 0.4) {
+          this.pitched(f, t, len * sd * 0.9, 'square', 0.12 * this.mood, bus, 0.01, this.mood * 28);
+        }
+      }
+    }
+
+    // Chords: two per bar means the second takes over at beat 4.
+    const chords = CHORDS[bar];
+    const chord = chordTones(chords.length > 1 && beat >= 4 ? chords[1] : chords[0])
+      .map((n) => n + this.transpose);
+
+    // Bass: root, octave, root, octave…
+    const bassNote = chord[0] + (beat % 2 === 1 ? 12 : 0);
+    this.pitched(hz(bassNote), t, sd * 0.8, 'triangle', 0.55, bus, 0.005);
+
+    // Arpeggio two octaves up, quiet: 1-3-5-3 …
+    const arp = [0, 1, 2, 1][beat % 4];
+    this.pitched(hz(chord[arp] + 24), t, sd * 0.5, 'square', 0.07, bus, 0.003);
+
+    // Drums
+    switch (DRUMS[beat]) {
+      case 'k': this.kick(t, bus); break;
+      case 's': this.noise(t, 0.12, 0.3, bus, 1500); break;
+      case 'h': this.noise(t, 0.03, 0.08, bus, 7000); break;
+    }
+  }
+
+  // ─── Instruments ───────────────────────────────────────────────────────────
+
+  private pitched(
+    freq: number, t: number, dur: number, type: OscillatorType,
+    gain: number, dest: AudioNode, attack: number, detune = 0,
+  ): void {
+    const ac = this.ac!;
+    const o = ac.createOscillator();
+    o.type = type;
+    o.frequency.value = freq;
+    o.detune.value = detune;
+    const lfo = this.lfoDepth;
+    lfo?.connect(o.detune);
+    const g = ac.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(gain, t + attack);
+    g.gain.setValueAtTime(gain, t + dur * 0.7);
+    g.gain.linearRampToValueAtTime(0.0001, t + dur);
+    o.connect(g);
+    g.connect(dest);
+    this.track(o, g, t, dur, () => lfo?.disconnect(o.detune));
+  }
+
+  private kick(t: number, dest: AudioNode): void {
+    const ac = this.ac!;
+    const o = ac.createOscillator();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(150, t);
+    o.frequency.exponentialRampToValueAtTime(40, t + 0.12);
+    const g = ac.createGain();
+    g.gain.setValueAtTime(0.9, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+    o.connect(g);
+    g.connect(dest);
+    this.track(o, g, t, 0.16);
+  }
+
+  private noise(t: number, dur: number, gain: number, dest: AudioNode, highpass: number): void {
+    const ac = this.ac!;
+    const src = ac.createBufferSource();
+    src.buffer = this.noiseBuffer();
+    const hp = ac.createBiquadFilter();
+    hp.type = 'highpass';
+    hp.frequency.value = highpass;
+    const g = ac.createGain();
+    g.gain.setValueAtTime(gain, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    src.connect(hp);
+    hp.connect(g);
+    g.connect(dest);
+    src.start(t, Math.random() * 0.5);
+    src.stop(t + dur + 0.01);
+    if (dest !== ac.destination) this.musicNodes.add(src);
+    src.onended = () => {
+      this.musicNodes.delete(src);
+      try { src.disconnect(); hp.disconnect(); g.disconnect(); } catch { /* ignore */ }
+    };
+  }
+
+  /** Tero sings "da": a buzzy source through three formant filters for an
+   *  "ah" vowel, with the formants sliding in from a "d" at the start.
+   *  `wobble` adds the little vibrato a toddler holds the last note with. */
+  private voice(freq: number, t: number, dur: number, dest: AudioNode, gain: number, wobble: boolean): void {
+    const ac = this.ac!;
+    const src = ac.createOscillator();
+    src.type = 'sawtooth';
+    src.frequency.setValueAtTime(freq * 1.04, t);
+    src.frequency.exponentialRampToValueAtTime(freq, t + 0.06);
+    const lfo = dest === this.bus ? this.lfoDepth : null;
+    lfo?.connect(src.detune);
+
+    let vib: OscillatorNode | null = null;
+    if (wobble) {
+      vib = ac.createOscillator();
+      vib.frequency.value = 6;
+      const vibDepth = ac.createGain();
+      vibDepth.gain.setValueAtTime(0, t);
+      vibDepth.gain.linearRampToValueAtTime(30, t + dur);
+      vib.connect(vibDepth);
+      vibDepth.connect(src.detune);
+      vib.start(t);
+      vib.stop(t + dur + 0.05);
+    }
+
+    const env = ac.createGain();
+    env.gain.setValueAtTime(0.0001, t);
+    env.gain.linearRampToValueAtTime(gain, t + 0.025);
+    env.gain.setValueAtTime(gain, t + dur * 0.75);
+    env.gain.linearRampToValueAtTime(0.0001, t + dur);
+    env.connect(dest);
+
+    // [start Hz (the "d"), vowel Hz, Q, level] — child-sized "ah"
+    const formants: [number, number, number, number][] = [
+      [450, 1150, 7, 1.0],
+      [1900, 1650, 9, 0.7],
+      [3400, 3300, 12, 0.3],
+    ];
+    const nodes: AudioNode[] = [env];
+    for (const [from, to, q, level] of formants) {
+      const bp = ac.createBiquadFilter();
+      bp.type = 'bandpass';
+      bp.Q.value = q;
+      bp.frequency.setValueAtTime(from, t);
+      bp.frequency.exponentialRampToValueAtTime(to, t + 0.045);
+      const lv = ac.createGain();
+      lv.gain.value = level;
+      src.connect(bp);
+      bp.connect(lv);
+      lv.connect(env);
+      nodes.push(bp, lv);
+    }
+    src.start(t);
+    src.stop(t + dur + 0.02);
+    if (dest === this.bus) this.musicNodes.add(src);
+    if (vib && dest === this.bus) this.musicNodes.add(vib);
+    src.onended = () => {
+      this.musicNodes.delete(src);
+      if (vib) this.musicNodes.delete(vib);
+      try { src.disconnect(); for (const n of nodes) n.disconnect(); lfo?.disconnect(src.detune); } catch { /* ignore */ }
+    };
+
+    // The "d" itself: a tiny click of breath
+    this.noise(t, 0.012, gain * 0.25, dest, 3000);
+  }
+
+  private track(o: OscillatorNode, g: GainNode, t: number, dur: number, cleanup?: () => void): void {
+    o.start(t);
+    o.stop(t + dur + 0.02);
+    this.musicNodes.add(o);
+    o.onended = () => {
+      this.musicNodes.delete(o);
+      try { o.disconnect(); g.disconnect(); cleanup?.(); } catch { /* ignore */ }
+    };
+  }
+
+  private noiseBuffer(): AudioBuffer {
+    if (!this.noiseBuf) {
+      const ac = this.ac!;
+      const buf = ac.createBuffer(1, ac.sampleRate, ac.sampleRate);
+      const d = buf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      this.noiseBuf = buf;
+    }
+    return this.noiseBuf;
   }
 
   private playTone(
@@ -120,6 +409,7 @@ export class AudioManager {
     type: OscillatorType,
     gain = 0.2,
     startAt?: number,
+    slideTo?: number,
   ): void {
     if (!this.ac) return;
     const g = this.ac.createGain();
@@ -130,74 +420,24 @@ export class AudioManager {
 
     const o = this.ac.createOscillator();
     o.type = type;
-    o.frequency.value = freq;
+    o.frequency.setValueAtTime(freq, t0);
+    if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t0 + dur);
     o.connect(g);
     o.start(t0);
     o.stop(t0 + dur + 0.01);
     // Tidy up after the tone ends.
     o.onended = () => { try { g.disconnect(); } catch { /* ignore */ } };
   }
+}
 
-  // ─── Chiptune background music ──────────────────────────────────────────────
-
-  private scheduleChiptune(): void {
-    if (!this.ac) return;
-    this.musicStarted = true;
-
-    const master = this.ac.createGain();
-    master.gain.value = this.muted ? 0 : 0.06;
-    master.connect(this.ac.destination);
-    this.musicGain = master;
-
-    const BPM  = 140;
-    const BEAT = 60 / BPM;
-
-    const melody = [
-      523, 659, 784, 659, 523, 440, 392, 440,
-      523, 784, 880, 784, 659, 523, 440, 392,
-    ];
-    const durations = melody.map(() => BEAT * 0.5);
-    const loopDur   = durations.reduce((s, d) => s + d, 0);
-
-    const scheduleLoop = (startTime: number) => {
-      if (!this.ac || !this.musicStarted) return;
-
-      let t = startTime;
-      for (let i = 0; i < melody.length; i++) {
-        const o = this.ac.createOscillator();
-        o.type = 'square';
-        o.frequency.value = melody[i];
-
-        const g = this.ac.createGain();
-        g.gain.setValueAtTime(0.001, t);
-        g.gain.linearRampToValueAtTime(1, t + 0.01);
-        g.gain.setValueAtTime(1, t + durations[i] * 0.7);
-        g.gain.linearRampToValueAtTime(0.001, t + durations[i]);
-
-        o.connect(g);
-        g.connect(master);
-        o.start(t);
-        o.stop(t + durations[i] + 0.02);
-        this.musicOscs.add(o);
-
-        // Free the node references once they finish — avoid unbounded growth.
-        o.onended = () => {
-          this.musicOscs.delete(o);
-          try { o.disconnect(); g.disconnect(); } catch { /* ignore */ }
-        };
-
-        t += durations[i];
-      }
-
-      const nextStart = startTime + loopDur;
-      const delay     = Math.max(0, (nextStart - this.ac.currentTime - 0.1) * 1000);
-
-      this.loopTimeoutId = setTimeout(() => {
-        this.loopTimeoutId = null;
-        if (this.musicStarted) scheduleLoop(nextStart);
-      }, delay);
-    };
-
-    scheduleLoop(this.ac.currentTime + 0.1);
+/** Soft-clip curve; amount 0 = clean. */
+function driveCurve(amount: number): Float32Array<ArrayBuffer> {
+  const n = 1024;
+  const curve = new Float32Array(n);
+  const k = Math.max(0.001, amount);
+  for (let i = 0; i < n; i++) {
+    const x = (i / (n - 1)) * 2 - 1;
+    curve[i] = ((1 + k) * x) / (1 + k * Math.abs(x));
   }
+  return curve;
 }

@@ -416,6 +416,9 @@ export const GAGS = {
   })),
   sign_incident:    hang(() => signBoard('SAFETY', ['INCIDENTS: 0', 'DAYS AGO'], C.red)),
   sign_hr:          hang(() => signBoard('HR', ['CLOSED'], C.navy)),
+  // Floor 1 opener: the backstory and the one rule, told by the walls.
+  memo_more:        { ...hang(() => signBoard('MEMO', ['PLEASE GIVE A', 'LITTLE BIT MORE.', '- MANAGEMENT'], C.navy)), storyOnly: true },
+  sign_tape:        { ...hang(() => banner(['TAPE = STAND ON IT'], C.yellow, C.ink)), storyOnly: true },
 
   // ─── Floor props ───────────────────────────────────────────────────────────
 

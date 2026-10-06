@@ -43,7 +43,8 @@ game/
   Stats.ts             — Score, coins, stomps, timer, best-time persistence
   constants.ts         — All physics & tuning values
   InputHandler.ts      — Keyboard + mobile bits; UI-edge callbacks (no window globals)
-  AudioManager.ts      — Web Audio chiptune music + SFX, mute, volume
+  AudioManager.ts      — Web Audio chiptune band + SFX, mute, volume, floor mood
+  music.ts             — The theme song's notes (edit me)
   ParticleSystem.ts    — Confetti / burst / pop, swap-and-pop update
   Camera.ts            — Smooth horizontal follow w/ clamp
   ScreenShake.ts       — Decaying random offset
@@ -203,6 +204,16 @@ levels: {
 The script compiles into the pack's `StoryCard` / `Chapter` data
 (`story/compile.ts`), so user packs can carry story too; dangling card
 references are logged at startup (`story/validate.ts`).
+
+### Music
+
+The theme song is written as plain note names in
+[`game/music.ts`](game/music.ts) (8 eighth-notes per bar, `'-'` holds,
+`'.'` rests, `'da:G5'` makes Tero sing "da"). `AudioManager.ts` plays it
+with Web Audio: square lead, triangle bass, arpeggio, noise drums and a
+formant-filtered toddler voice for the "Da-da!" hook. The higher the floor,
+the worse the muzak: slower, tape-warbly, overdriven and muffled
+(`setFloorMood`), and the penthouse plays a semitone flat.
 
 ### Tuning game feel
 

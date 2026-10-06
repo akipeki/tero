@@ -43,12 +43,10 @@ export const STORY = defineStory({
       id: 'monday',
       name: 'Getting in',
       levels: ['1', '2', '3'],
+      // One card, then play. The rest of the backstory is on the walls
+      // (memo_more, sign_tape in level 1's scenery).
       intro: [
-        { text: 'SIX MONTHS AGO, THE COMPANY ASKED DAD\nTO GIVE A LITTLE BIT MORE.' },
-        { who: 'boss', text: 'Just a few extra hours. For the family.\nThe COMPANY family.' },
-        { text: 'DAD NEVER CAME HOME.' },
-        { text: 'TERO, AGE 2, HAS HAD ENOUGH.' },
-        { who: 'tero', text: 'Dada.' },
+        { text: 'DAD WENT TO WORK SIX MONTHS AGO.\nHE NEVER CAME HOME.' },
       ],
     },
     {
@@ -69,11 +67,6 @@ export const STORY = defineStory({
       decor: 'basement',
       density: 'sparse',
       goalWriting: 'crayon_power',
-      intro: [
-        { text: 'FLOOR 1 — THE MAILROOM.\nTHE PIPES HAVE BEEN LEAKING SINCE 1987.' },
-        { text: 'TIP: YELLOW-BLACK TAPE = YOU CAN STAND\nON IT. EVERYTHING ELSE IS JUST OFFICE.' },
-        { who: 'tero', text: 'Dada? Dada!' },
-      ],
       triggers: [
         {
           atTile: 17,
@@ -97,7 +90,9 @@ export const STORY = defineStory({
         },
       ],
       scenery: [
+        { atTile: 1,  gag: 'memo_more' },
         { atTile: 3,  gag: 'party_aftermath' },
+        { atTile: 6,  gag: 'sign_tape' },
         { atTile: 15, gag: 'banner_mondays' },
         { atTile: 17, gag: 'dad_photo' },
         { atTile: 34, gag: 'copier_slain' },
