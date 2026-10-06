@@ -1,7 +1,9 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
-import { Game } from '@/game/Game';
+import { useEffect, useRef, useState, useCallback, useMemo, useSyncExternalStore } from 'react';
+import { Game, type FinalRun } from '@/game/Game';
+import { renderShareCard, shareText } from '@/game/ShareCard';
+import { formatMs, unlocks } from '@/game/Run';
 import { GameState, Action } from '@/game/types';
 import { VIEWPORT_W, VIEWPORT_H, TILE_SIZE, STARTING_LIVES, BIG_SPRITE_SCALE, TANTRUM_MAX } from '@/game/constants';
 import type { HudData, PlayerRenderData, RunStats, StoryView } from '@/game/types';
@@ -21,6 +23,7 @@ function hideBoxUrl(): string {
 
 interface EndScreenPayload {
   state: 'WIN' | 'GAME_OVER';
+  final?: FinalRun;
   stats: RunStats;
   best: { timeMs: number; score: number } | null;
   newBest: boolean;
@@ -83,7 +86,7 @@ export default function GameContainer() {
 
   const [hud, setHud] = useState<HudData>({
     lives: STARTING_LIVES, maxLives: STARTING_LIVES, isBig: false, coins: 0, state: GameState.TITLE,
-    rage: 0, tantrum: false, sentHome: 0, boss: null, countdown: null,
+    rage: 0, tantrum: false, sentHome: 0, boss: null, countdown: null, runMs: 0,
   });
   /** Big centre-screen shout ("TANTRUM!!"); the key restarts the animation. */
   const [callout, setCallout] = useState<{ id: number; text: string } | null>(null);
@@ -93,6 +96,8 @@ export default function GameContainer() {
   const [endScreen, setEndScreen] = useState<EndScreenPayload | null>(null);
   const [isTouch] = useState(detectTouch);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  /** Speedrun timer in the HUD (T toggles it; remembered). */
+  const [showTimer, setShowTimer] = useState(initialSettings.showTimer ?? false);
   const [score, setScore] = useState(0);
   /** Ephemeral "+50 CHAIN" floaters above the HUD. */
   const [floaters, setFloaters] = useState<{ id: number; text: string }[]>([]);
@@ -238,6 +243,16 @@ export default function GameContainer() {
     saveSettings({ muted, volume });
   }, [muted, volume]);
 
+  // T toggles the speedrun timer.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.repeat || (e.key !== 't' && e.key !== 'T')) return;
+      setShowTimer((v) => { saveSettings({ showTimer: !v }); return !v; });
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
   // Fullscreen state listener
   useEffect(() => {
     const onFs = () => setIsFullscreen(!!document.fullscreenElement);
@@ -307,7 +322,7 @@ export default function GameContainer() {
     else await wrap.requestFullscreen?.();
   }, []);
 
-  const { state, lives, maxLives, isBig, coins, rage, tantrum, sentHome, boss, countdown } = hud;
+  const { state, lives, maxLives, isBig, coins, rage, tantrum, sentHome, boss, countdown, runMs } = hud;
   const isPlaying  = state === GameState.PLAYING;
   const isPaused   = state === GameState.PAUSED;
   const isTitle    = state === GameState.TITLE;
@@ -405,9 +420,10 @@ export default function GameContainer() {
           <p className="pixel-sub mt-3" style={{ color: '#ffd23f', letterSpacing: '0.2em' }}>{GAME_SUBTITLE}</p>
           <p className="pixel-sub mt-6" style={{ color: '#fff1e8' }}>PRESS ENTER OR TAP TO PLAY</p>
           <p className="pixel-hint mt-4" style={{ color: '#a7f070' }}>
-            ARROWS / WASD &nbsp;|&nbsp; SPACE = JUMP &nbsp;|&nbsp; DOWN = DUCK &nbsp;|&nbsp; X = FIRE &nbsp;|&nbsp; M = MUTE
+            ARROWS / WASD &nbsp;|&nbsp; SPACE = JUMP &nbsp;|&nbsp; DOWN = HIDE &nbsp;|&nbsp; X = FIRE &nbsp;|&nbsp; M = MUTE &nbsp;|&nbsp; T = TIMER
           </p>
           <button className="pixel-btn mt-10" onClick={handleStart} aria-label="Start game">▶ PLAY</button>
+          <CasualFridayToggle />
         </PixelOverlay>
       )}
 
@@ -446,8 +462,13 @@ export default function GameContainer() {
         </PixelOverlay>
       )}
 
+      {/* ── THE END: the whole run, and a card to share ── */}
+      {isWin && endScreen?.final && (
+        <FinalScreen run={endScreen.final} onAgain={handleNext} />
+      )}
+
       {/* ── WIN ── */}
-      {isWin && endScreen && (
+      {isWin && endScreen && !endScreen.final && (
         <PixelOverlay dim style={{ background: 'rgba(0,20,0,0.82)' }}>
           <p className="pixel-title" style={{ color: '#a7f070' }}>
             {endScreen.hasNextLevel ? 'LEVEL CLEAR!' : 'YOU WIN!'}
@@ -490,6 +511,15 @@ export default function GameContainer() {
           </div>
 
           {boss && <BossBar boss={boss} />}
+          {showTimer && (
+            <p
+              className="absolute right-4 select-none pointer-events-none"
+              style={{ top: 44, margin: 0, fontFamily: 'var(--font-pixel, monospace)', fontSize: 'clamp(8px, 1.4vw, 13px)', color: '#a7f070', textShadow: '2px 2px 0 #000' }}
+              aria-label="Run time"
+            >
+              RUN {formatMs(runMs)}
+            </p>
+          )}
           {countdown !== null && (
             <p
               className="absolute left-1/2 -translate-x-1/2 select-none pointer-events-none"
@@ -616,6 +646,92 @@ function StatsBlock({
         </p>
       )}
     </div>
+  );
+}
+
+// ─── Casual Friday (unlocked by finishing the game) ───────────────────────────
+// Read from localStorage after hydration (the server always renders "off").
+const modeListeners = new Set<() => void>();
+const subscribeModes = (cb: () => void) => { modeListeners.add(cb); return () => { modeListeners.delete(cb); }; };
+
+function CasualFridayToggle() {
+  const unlocked = useSyncExternalStore(subscribeModes, () => !!unlocks().casualFriday, () => false);
+  const on = useSyncExternalStore(subscribeModes, () => !!loadSettings().casualFriday, () => false);
+  const setOn = (v: boolean) => { saveSettings({ casualFriday: v }); modeListeners.forEach((l) => l()); };
+  if (!unlocked) return null;
+  return (
+    <button
+      className="pixel-btn mt-4"
+      style={{ borderColor: on ? '#ff77a8' : '#83769c', color: on ? '#ff77a8' : '#c2c3c7', fontSize: 'clamp(8px, 1.4vw, 13px)' }}
+      onClick={() => setOn(!on)}
+      aria-pressed={on}
+    >
+      🌺 CASUAL FRIDAY: {on ? 'ON' : 'OFF'}
+    </button>
+  );
+}
+
+// ─── The end ──────────────────────────────────────────────────────────────────
+function FinalScreen({ run, onAgain }: { run: FinalRun; onAgain: () => void }) {
+  const [card, setCard] = useState<HTMLCanvasElement | null>(null);
+  const [note, setNote] = useState('');
+  useEffect(() => {
+    let alive = true;
+    renderShareCard(run).then((c) => { if (alive) setCard(c); });
+    return () => { alive = false; };
+  }, [run]);
+
+  const save = () => {
+    if (!card) return;
+    const a = document.createElement('a');
+    a.href = card.toDataURL('image/png');
+    a.download = 'where-is-dada.png';
+    a.click();
+  };
+  const share = async () => {
+    const text = shareText(run);
+    try {
+      const blob = card ? await new Promise<Blob | null>((r) => card.toBlob(r, 'image/png')) : null;
+      const file = blob ? new File([blob], 'where-is-dada.png', { type: 'image/png' }) : null;
+      if (file && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], text });
+        return;
+      }
+      await navigator.clipboard.writeText(text);
+      setNote('COPIED! PASTE IT ANYWHERE.');
+    } catch {
+      setNote('COULD NOT SHARE. TRY SAVE IMAGE.');
+    }
+  };
+
+  return (
+    <PixelOverlay dim style={{ background: 'rgba(10,12,24,0.94)', overflowY: 'auto', justifyContent: 'flex-start', paddingTop: 16 }}>
+      <p className="pixel-title" style={{ color: '#6cc24a', fontSize: 'clamp(16px, 4vw, 40px)' }}>YOU GOT DAD BACK.</p>
+      {card && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={card.toDataURL('image/png')}
+          alt={shareText(run)}
+          style={{ width: 'min(86vw, 640px)', imageRendering: 'pixelated', marginTop: 12, border: '2px solid #2a2f4a' }}
+        />
+      )}
+      <div className="mt-4 flex flex-wrap justify-center gap-3">
+        <button className="pixel-btn" onClick={save} aria-label="Save the card as an image">⬇ SAVE IMAGE</button>
+        <button className="pixel-btn" onClick={share} aria-label="Share the card">↗ SHARE</button>
+        <button className="pixel-btn" style={{ borderColor: '#a7f070', color: '#a7f070' }} onClick={onAgain} aria-label="Play again">▶ PLAY AGAIN</button>
+      </div>
+      {note && <p className="pixel-hint mt-3" style={{ color: '#ffd23f' }} role="status">{note}</p>}
+      <details className="mt-4" style={{ color: '#c2c3c7', fontFamily: 'var(--font-pixel, monospace)', fontSize: 'clamp(8px, 1.3vw, 12px)' }}>
+        <summary style={{ cursor: 'pointer' }}>SPLITS · {formatMs(run.totalMs)}{run.bestMs !== null ? ` · BEST ${formatMs(run.bestMs)}` : ''}</summary>
+        <table style={{ margin: '8px auto', borderSpacing: '12px 4px' }}>
+          <tbody>
+            {run.splits.map((s) => (
+              <tr key={s.name}><td style={{ textAlign: 'left' }}>{s.name.toUpperCase()}</td><td>{formatMs(s.timeMs)}</td></tr>
+            ))}
+          </tbody>
+        </table>
+      </details>
+    </PixelOverlay>
   );
 }
 

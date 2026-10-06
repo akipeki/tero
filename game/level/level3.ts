@@ -67,6 +67,9 @@ export const level3Spawns: LevelSpawns = {
     { tx: 29, ty: 6 },
     { tx: 59, ty: 6 },
   ],
+  gadgets: [
+    { type: 'thing', tx: 37, ty: 4, id: 'photo' },   // one of Dad's things
+  ],
   goal: { tx: 76, ty: 2 },
   boss: { type: 'halvorsen', arenaTx: 64 },
 };

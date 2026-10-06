@@ -9,6 +9,10 @@ export interface PersistedSettings {
   muted:        boolean;
   volume:       number;     // 0..1
   lastLevelId?: string;
+  /** Speedrun timer in the HUD. */
+  showTimer?:   boolean;
+  /** Casual Friday mode (once unlocked). */
+  casualFriday?: boolean;
 }
 
 const DEFAULTS: PersistedSettings = {
@@ -26,6 +30,8 @@ export function loadSettings(): PersistedSettings {
       muted:       parsed.muted ?? DEFAULTS.muted,
       volume:      typeof parsed.volume === 'number' ? clamp01(parsed.volume) : DEFAULTS.volume,
       lastLevelId: parsed.lastLevelId,
+      showTimer:   parsed.showTimer === true,
+      casualFriday: parsed.casualFriday === true,
     };
   } catch {
     return { ...DEFAULTS };

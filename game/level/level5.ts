@@ -66,6 +66,7 @@ export const level5Spawns: LevelSpawns = {
     { tx: 57, ty: 6 },
   ],
   gadgets: [
+    { type: 'thing', tx: 18, ty: 4, id: 'slipper' },   // one of Dad's things
     { type: 'fax', tx: 11, ty: 7, to: 1 },   // 0: into the clean room
     { type: 'fax', tx: 16, ty: 7 },          // 1: OUT ONLY
     { type: 'fax', tx: 26, ty: 7, to: 3 },   // 2: out of the clean room

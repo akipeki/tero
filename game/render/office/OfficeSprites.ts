@@ -18,6 +18,7 @@ import type { MushroomSpriteProps } from '../sprites/MushroomSprite';
 import type { QuestionBlockSpriteProps } from '../sprites/QuestionBlockSprite';
 import { QUESTION_MARK_GLYPH, drawGlyph } from '../sprites/glyphs';
 import { safetyEdge } from './OfficeTiles';
+import { isCasualFriday } from '../../Mode';
 
 // ─── Character cache ─────────────────────────────────────────────────────────
 
@@ -25,14 +26,27 @@ interface Facings { right: HTMLCanvasElement; left: HTMLCanvasElement }
 const cache = new Map<string, Facings>();
 
 function facings(key: string, make: () => Raster): Facings {
-  let f = cache.get(key);
+  const cf = isCasualFriday();
+  const k = cf ? `cf:${key}` : key;
+  let f = cache.get(k);
   if (!f) {
     const r = make();
     f = { right: r.toCanvas(), left: r.flipX().toCanvas() };
-    cache.set(key, f);
+    if (cf) f = { right: recolor(f.right, HAWAII_SWAP), left: recolor(f.left, HAWAII_SWAP) };
+    cache.set(k, f);
   }
   return f;
 }
+
+/** CASUAL FRIDAY: suit fabric → a loud Hawaiian print (the three shades of
+ *  each jacket become three clashing colours). */
+const HAWAII_SWAP: Record<string, string> = {
+  '#3c4558': '#e8456a', '#566179': '#ffd23f', '#272d3b': '#2f9a8a',   // clerk suits
+  '#7a6a52': '#ff8c3a', '#978566': '#fff0a0', '#57492f': '#3f7fd8',   // managers
+  '#2c3a66': '#3fd84a', '#3f5090': '#ffd23f', '#1d2647': '#d83b3b',   // guards
+  '#26305a': '#ff77a8', '#34407a': '#fff0a0', '#181e3c': '#2f9a8a',   // Halvorsen
+  '#1d1d24': '#7b3fb8', '#33333f': '#ffd23f', '#101014': '#2f9a8a',   // vampires
+};
 
 // ─── Freed: colour comes back ────────────────────────────────────────────────
 // Zombie greys → warm skin; glowing red eye sockets → ordinary eyes.
@@ -46,7 +60,7 @@ function hex(r: number, g: number, b: number): string {
   return '#' + ((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1);
 }
 
-function recolor(src: HTMLCanvasElement): HTMLCanvasElement {
+function recolor(src: HTMLCanvasElement, swap: Record<string, string> = FREED_SWAP): HTMLCanvasElement {
   const c = document.createElement('canvas');
   c.width = src.width;
   c.height = src.height;
@@ -56,7 +70,7 @@ function recolor(src: HTMLCanvasElement): HTMLCanvasElement {
   const d = img.data;
   for (let i = 0; i < d.length; i += 4) {
     if (d[i + 3] === 0) continue;
-    const to = FREED_SWAP[hex(d[i], d[i + 1], d[i + 2])];
+    const to = swap[hex(d[i], d[i + 1], d[i + 2])];
     if (!to) continue;
     d[i]     = parseInt(to.slice(1, 3), 16);
     d[i + 1] = parseInt(to.slice(3, 5), 16);
@@ -67,7 +81,7 @@ function recolor(src: HTMLCanvasElement): HTMLCanvasElement {
 }
 
 function freedFacings(key: string, make: () => Raster): Facings {
-  const k = `freed:${key}`;
+  const k = `freed:${isCasualFriday() ? 'cf:' : ''}${key}`;
   let f = cache.get(k);
   if (!f) {
     const base = facings(key, make);

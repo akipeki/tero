@@ -84,7 +84,9 @@ export type GadgetSpawn =
    *  from straight down; negative = left). */
   | { type: 'camera'; tx: number; ty: number; sweep?: [number, number] }
   /** The golden parachute pickup: hold jump while falling to glide. */
-  | { type: 'chute'; tx: number; ty: number };
+  | { type: 'chute'; tx: number; ty: number }
+  /** One of Dad's things (ids in Gadgets.DAD_THINGS) — one per floor. */
+  | { type: 'thing'; tx: number; ty: number; id: string };
 /** A boss and the left column of its one-screen arena. */
 export interface BossSpawn { type: 'halvorsen' | 'board'; arenaTx: number }
 
@@ -124,6 +126,8 @@ export interface HudData {
   tantrum:  boolean;
   /** Workers freed this run — the "sent home" counter. */
   sentHome: number;
+  /** Whole-game run time so far (speedrun timer), ms. */
+  runMs: number;
   /** Seconds until Monday on the escape run, else null. */
   countdown: number | null;
   /** The boss bar, while a boss fight is on. */

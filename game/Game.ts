@@ -22,7 +22,9 @@ import { drawBubble } from './creaturesAndObjects/freed';
 import { Halvorsen } from './creaturesAndObjects/Halvorsen';
 import { Board } from './creaturesAndObjects/Board';
 import type { Boss } from './creaturesAndObjects/Boss';
-import { Fax, Spring, ChutePickup, drawCanopy } from './creaturesAndObjects/Gadgets';
+import { Fax, Spring, ChutePickup, drawCanopy, DadThing, DAD_THINGS } from './creaturesAndObjects/Gadgets';
+import { Run, bestRun, unlocks } from './Run';
+import { setCasualFriday } from './Mode';
 import { Cctv } from './creaturesAndObjects/Cctv';
 import { DadFollower, Debris, drawFloorSigns } from './creaturesAndObjects/Escape';
 import { overlaps } from './physics/AABB';
@@ -50,8 +52,24 @@ import type { creaturesAndObjects, UpdateCtx } from './creaturesAndObjects/creat
 import type { HudData, PlayerRenderData, RunStats, StoryView } from './types';
 import { FIXED_DT, MAX_FRAME_TIME, VIEWPORT_W, VIEWPORT_H, STARTING_LIVES, TILE_SIZE } from './constants';
 
+/** The whole game, for the share card after the last floor. */
+export interface FinalRun {
+  totalMs: number;
+  splits: { name: string; timeMs: number }[];
+  sentHome: number;
+  deaths: number;
+  tantrums: number;
+  syncs: number;
+  things: string[];
+  thingsTotal: number;
+  bestMs: number | null;
+  newRecord: boolean;
+}
+
 interface EndScreenPayload {
   state: 'WIN' | 'GAME_OVER';
+  /** Set after the last floor: the whole run. */
+  final?: FinalRun;
   stats: RunStats;
   best: { timeMs: number; score: number } | null;
   newBest: boolean;
@@ -92,6 +110,9 @@ export class Game {
   private springs:  Spring[] = [];
   private cameras:  Cctv[] = [];
   private chutes:   ChutePickup[] = [];
+  private things:   DadThing[] = [];
+  private run = new Run();
+  private wasDead = false;
   /** Guards that came down the vents (capped so alarms don't flood the floor). */
   private alarmGuards: Walker[] = [];
   /** Tero is down the phone line, on his way to `to`. */
@@ -297,7 +318,9 @@ export class Game {
         this.currentLevelId = this.builtInPlaylist[idx + 1];
         this.enterPlaying(true);
       } else {
-        // User levels or the last built-in → back to the title.
+        // User levels or the last built-in → back to the title, and the
+        // next PLAY starts a new game from Floor 1.
+        if (idx === this.builtInPlaylist.length - 1) saveSettings({ lastLevelId: this.builtInPlaylist[0] });
         this.state = GameState.TITLE;
         this.syncHud();
       }
@@ -527,6 +550,7 @@ export class Game {
 
     if (this.input.firePressed && !p.isDead && !p.isWin) {
       if (p.startTantrum()) {
+        this.run.event('tantrum');
         this.audio.play('roar');
         this.audio.setTantrum(true);
         this.shake.trigger(8);
@@ -565,6 +589,20 @@ export class Game {
   private updateGadgets(ctx: UpdateCtx): void {
     const p = this.player;
     for (const s of this.springs) { s.update(); s.check(p, ctx); }
+    for (const t of this.things) {
+      t.update();
+      if (t.check(p)) {
+        const info = DAD_THINGS[t.id];
+        this.run.thing(t.id);
+        this.audio.play('dada');
+        this.particles.burst(t.cx, t.cy, 14, '#ff77a8', '#ffffff');
+        this.onCallout?.(info ? `${info.name}: ${info.note}` : 'ONE OF DAD\'S THINGS');
+      }
+    }
+    if (p.isDead !== this.wasDead) {
+      if (p.isDead) this.run.event('death');
+      this.wasDead = p.isDead;
+    }
     for (const c of this.chutes) {
       c.update();
       if (c.check(p)) {
@@ -590,6 +628,7 @@ export class Game {
         continue;
       }
       f.busy = 36;
+      this.run.event('fax');
       this.faxing = { to: this.faxes[f.to], t: 36 };
       this.audio.play('fax');
       return;
@@ -624,6 +663,7 @@ export class Game {
   /** A camera saw Tero: sirens, and guards drop from the vents. */
   private soundAlarm(c: Cctv): void {
     this.audio.play('alarm');
+    this.run.event('alarm');
     this.shake.trigger(3);
     this.player.addRage(RAGE_SYNC);
     this.onCallout?.('INTRUDER!  (IT\'S A BABY)');
@@ -687,6 +727,7 @@ export class Game {
       }
       if (p.syncImmune > 0) continue;
       p.startSync(SYNC_FRAMES);
+      this.run.event('sync');
       w.startTalking(SYNC_FRAMES + 30, p.cx > w.cx);
       this.syncPartner = w;
       p.addRage(RAGE_SYNC);
@@ -825,6 +866,7 @@ export class Game {
       ...this.springs,
       ...this.cameras,
       ...this.chutes,
+      ...this.things,
       ...this.debris,
       ...(this.boss ? [this.boss] : []),
       ...this.flames,
@@ -925,6 +967,10 @@ export class Game {
     this.audio.init();
     this.audio.stopMusic();
     if (this.story.active) { this.story.cancel(); this.onStory?.(null); }
+    if (withIntro && this.currentLevelId === this.builtInPlaylist[0]) this.run.start();
+    const casual = !!unlocks().casualFriday && !!loadSettings().casualFriday;
+    setCasualFriday(casual);
+    this.audio.setCasual(casual);
     this.loadLevel();
     this.audio.setFloorMood(this.floorMood());
     this.audio.setTantrum(false);
@@ -1016,6 +1062,8 @@ export class Game {
     this.springs = [];
     this.cameras = [];
     this.chutes = [];
+    this.things = [];
+    this.wasDead = false;
     this.alarmGuards = [];
     const gadgets = L.spawns.gadgets ?? [];
     const faxIndex = new Map<number, number>();
@@ -1024,7 +1072,11 @@ export class Game {
       if (g.type === 'spring') this.springs.push(new Spring(g.tx, g.ty));
       else if (g.type === 'camera') this.cameras.push(new Cctv(g.tx, g.ty, g.sweep));
       else if (g.type === 'chute') this.chutes.push(new ChutePickup(g.tx, g.ty));
-      else this.faxes.push(new Fax(g.tx, g.ty, g.to !== undefined ? faxIndex.get(g.to) ?? null : null));
+      else if (g.type === 'thing') {
+        // Already found on an earlier attempt this run? Then it's gone.
+        if (!this.run.data.things.includes(g.id)) this.things.push(new DadThing(g.tx, g.ty, g.id));
+      }
+      else if (g.type === 'fax') this.faxes.push(new Fax(g.tx, g.ty, g.to !== undefined ? faxIndex.get(g.to) ?? null : null));
     }
     this.faxing = null;
     this.faxedFrames = 0;
@@ -1070,13 +1122,36 @@ export class Game {
     };
     let best = this.stats.getBest(L.id);
     let newBest = false;
+    let final: FinalRun | undefined;
     if (outcome === 'WIN') {
       newBest = this.stats.saveBestIfBetter(L.id);
       if (newBest) best = { timeMs: stats.timeMs, score: this.stats.score };
+      const idx = this.builtInPlaylist.indexOf(this.currentLevelId);
+      if (idx >= 0) {
+        const last = idx === this.builtInPlaylist.length - 1;
+        const prevBest = bestRun();
+        this.run.floorCleared(this.currentLevelId, L.name, stats.timeMs, stats.sentHome, stats.coins, last);
+        if (last) {
+          const d = this.run.data;
+          final = {
+            totalMs: this.run.totalMs,
+            splits: d.splits.map((s) => ({ name: s.name, timeMs: s.timeMs })),
+            sentHome: d.sentHome,
+            deaths: d.events.death,
+            tantrums: d.events.tantrum,
+            syncs: d.events.sync,
+            things: [...d.things],
+            thingsTotal: Object.keys(DAD_THINGS).length,
+            bestMs: bestRun(),
+            newRecord: prevBest === null || this.run.totalMs < prevBest,
+          };
+        }
+      }
     }
     this.state = outcome === 'WIN' ? GameState.WIN : GameState.GAME_OVER;
     this.onEndScreen?.({
       state: outcome,
+      final,
       stats,
       best,
       newBest,
@@ -1104,6 +1179,7 @@ export class Game {
         : this.player?.rage ?? 0,
       tantrum:  this.player?.isTantrum ?? false,
       sentHome: this.stats.sentHome,
+      runMs:    this.run.totalMs + (this.state === GameState.PLAYING || this.state === GameState.PAUSED ? this.stats.elapsedMs() : 0),
       countdown: this.dad ? Math.max(0, Math.ceil(this.escapeFrames / 60)) : null,
       boss:     this.boss?.fighting
         ? { name: this.boss.name, hp: this.boss.hp, maxHp: this.boss.maxHp, slide: this.boss.subtitle }

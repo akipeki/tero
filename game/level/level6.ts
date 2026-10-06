@@ -63,6 +63,9 @@ export const level6Spawns: LevelSpawns = {
     { tx: 31, ty: 6 },
     { tx: 61, ty: 6 },
   ],
+  gadgets: [
+    { type: 'thing', tx: 41, ty: 3, id: 'remote' },   // one of Dad's things
+  ],
   goal: { tx: 76, ty: 2 },
   boss: { type: 'board', arenaTx: 64 },
 };

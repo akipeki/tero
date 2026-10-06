@@ -26,6 +26,7 @@ npm run dev
 | Fire / TANTRUM | X · F · Shift                | 🔥            |
 | Jump         | Arrow Up · W · Space           | ▲             |
 | Pause/Resume | Esc · P                        | ‖             |
+| Speedrun timer | T                            | —             |
 | Mute         | M                              | 🔊 button     |
 | Start / next | Enter                          | tap PLAY      |
 | Restart run  | R (game over)                  | RETRY button  |
@@ -250,6 +251,22 @@ one-screen arena from `arenaTx` that locks the camera and shuts the door;
 the elevator wears an IN A MEETING sign until the boss walks out. Story
 triggers can start them with `effect: 'boss'`. Gadgets (faxes, springs,
 cameras, the parachute) are listed in a level's `gadgets` spawns.
+
+### Made to be shared (Phase 3)
+
+- **The whole run** (`game/Run.ts`): splits per floor, workers sent home,
+  deaths, tantrums, quick syncs, faxes, alarms — saved to localStorage so a
+  reload doesn't lose it. Starting Floor 1 from the title starts a new run.
+- **The end card** (`game/ShareCard.ts`): after the last floor, "YOU GOT
+  DAD BACK." and a 960×540 PNG ("DAD WAS AT THE OFFICE FOR 4,380 HOURS.
+  TERO GOT HIM BACK IN 14:32.07.") with SAVE IMAGE and SHARE (the Web
+  Share API with the image where supported, otherwise the text is copied).
+- **Speedrun timer**: T toggles it; splits and the best full run are on
+  the end screen.
+- **Dad's things**: one per floor, hidden a little out of the way
+  (`DAD_THINGS` in `Gadgets.ts`). Each tells you something about Dad.
+- **Casual Friday** (`game/Mode.ts`): unlocked by finishing the game.
+  Every suit becomes a loud Hawaiian shirt and the muzak goes ukulele.
 
 ### Music
 

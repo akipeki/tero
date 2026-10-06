@@ -85,6 +85,8 @@ export class AudioManager {
   private metal: WaveShaperNode | null = null;
   private tantrum = false;
   private boss = false;
+  /** Casual Friday: the lead is a plinky ukulele-ish triangle, a bit faster. */
+  private casual = false;
   private lfoDepth: GainNode | null = null;
   private musicNodes = new Set<AudioScheduledSourceNode>();
   private timerId: ReturnType<typeof setInterval> | null = null;
@@ -156,6 +158,8 @@ export class AudioManager {
   }
 
   get isMuted(): boolean { return this.muted; }
+
+  setCasual(on: boolean): void { this.casual = on; }
 
   /** Boss fight: the muzak speeds up and the snare doubles. */
   setBoss(on: boolean): void {
@@ -263,7 +267,7 @@ export class AudioManager {
 
   /** One eighth note. Slower on higher floors — everyone's exhausted. */
   private get stepDur(): number {
-    return 60 / (BPM - this.mood * 18 + (this.boss ? 26 : 0)) / 2;
+    return 60 / (BPM - this.mood * 18 + (this.boss ? 26 : 0) + (this.casual ? 10 : 0)) / 2;
   }
 
   /** The penthouse is a semitone flat. Nobody has noticed. */
@@ -287,7 +291,13 @@ export class AudioManager {
       if (sung) {
         this.voice(f, t, len * sd * 0.92, bus, 1.3, beat + len >= 8);
       } else {
-        this.pitched(f, t, len * sd * 0.9, 'square', 0.32, bus, 0.01);
+        if (this.casual) {
+          // ukulele: a quick triangle pluck an octave up, plus a strum
+          this.pitched(f * 2, t, Math.min(len * sd, 0.22), 'triangle', 0.42, bus, 0.002);
+          this.pitched(f * 1.5, t + 0.012, Math.min(len * sd, 0.18), 'triangle', 0.18, bus, 0.002);
+        } else {
+          this.pitched(f, t, len * sd * 0.9, 'square', 0.32, bus, 0.01);
+        }
         // Upper floors: a second, slightly sour copy of the lead.
         if (this.mood > 0.4) {
           this.pitched(f, t, len * sd * 0.9, 'square', 0.12 * this.mood, bus, 0.01, this.mood * 28);

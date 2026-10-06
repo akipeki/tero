@@ -55,5 +55,8 @@ export const level9Spawns: LevelSpawns = {
     { tx: 88, ty: 6 },
   ],
   escape: { seconds: 80, floors: 33, cols: 4 },
+  gadgets: [
+    { type: 'thing', tx: 30, ty: 4, id: 'key' },   // one of Dad's things
+  ],
   goal: { tx: 137, ty: 2 },
 };

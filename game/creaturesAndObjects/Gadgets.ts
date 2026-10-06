@@ -196,3 +196,55 @@ export function drawCanopy(ctx: CanvasRenderingContext2D, footX: number, footY: 
   }
   ctx.stroke();
 }
+
+// ─── Dad's things ────────────────────────────────────────────────────────────
+// One per floor, tucked somewhere a little out of the way. Each says a bit
+// about who Dad was before the job ate him. The end card counts them.
+
+export const DAD_THINGS: Record<string, { name: string; note: string }> = {
+  watch:    { name: 'DAD\'S WATCH',             note: 'IT STOPPED IN MARCH' },
+  drawing:  { name: 'TERO\'S DRAWING',          note: 'PINNED IN HIS CUBICLE' },
+  photo:    { name: 'THE WEDDING PHOTO',        note: 'FACE DOWN IN A DRAWER' },
+  letter:   { name: 'A RESIGNATION LETTER',     note: 'WRITTEN. NEVER SENT.' },
+  slipper:  { name: 'ONE SLIPPER',              note: 'THE OTHER IS ON FLOOR 21' },
+  buspass:  { name: 'HIS BUS PASS',             note: 'EXPIRED 2019' },
+  book:     { name: '"HOW TO SAY NO"',          note: 'BOOKMARK ON PAGE 2' },
+  remote:   { name: 'THE TV REMOTE',            note: 'SATURDAY CARTOONS' },
+  key:      { name: 'THE HOUSE KEY',            note: 'STILL FITS' },
+};
+
+export class DadThing extends creaturesAndObjects {
+  private t = 0;
+  readonly id: string;
+
+  constructor(tx: number, ty: number, id: string) {
+    super(tx * TILE_SIZE + 8, ty * TILE_SIZE + 8, 16, 16);
+    this.id = id;
+  }
+
+  /** True on the tick Tero picks it up. */
+  check(player: Player): boolean {
+    if (!this.active || player.isDead || !overlaps(player, this)) return false;
+    this.active = false;
+    return true;
+  }
+
+  update(): void { this.t++; }
+
+  draw(ctx: CanvasRenderingContext2D, camX: number): void {
+    const bob = Math.round(Math.sin(this.t / 14) * 2);
+    const x = Math.round(this.x - camX), y = Math.round(this.y) + bob;
+    // a soft heart-shaped glow, so it reads as "Dad's", not "loot"
+    ctx.fillStyle = 'rgba(255,119,168,0.28)';
+    ctx.fillRect(x - 5, y - 5, 26, 26);
+    ctx.fillStyle = '#1b1620';
+    ctx.fillRect(x - 1, y - 1, 18, 18);
+    ctx.fillStyle = '#ff77a8';
+    ctx.fillRect(x, y, 16, 16);
+    ctx.drawImage(label('D'), x + 4, y + 4);
+    if (this.t % 50 < 6) {
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(x + 12, y - 3, 2, 2);
+    }
+  }
+}

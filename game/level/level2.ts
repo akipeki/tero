@@ -66,5 +66,8 @@ export const level2Spawns: LevelSpawns = {
     { tx: 36, ty: 6 },
     { tx: 64, ty: 6 },
   ],
+  gadgets: [
+    { type: 'thing', tx: 55, ty: 3, id: 'drawing' },   // one of Dad's things
+  ],
   goal: { tx: 84, ty: 2 },
 };

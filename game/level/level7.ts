@@ -57,6 +57,7 @@ export const level7Spawns: LevelSpawns = {
     { tx: 57, ty: 6 },
   ],
   gadgets: [
+    { type: 'thing', tx: 48, ty: 3, id: 'buspass' },   // one of Dad's things
     { type: 'camera', tx: 14, ty: 1 },
     { type: 'camera', tx: 25, ty: 1, sweep: [-0.6, 1.0] },
     { type: 'camera', tx: 38, ty: 1 },
