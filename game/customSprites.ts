@@ -7,11 +7,14 @@
 // a time (start with the player's idle animation).
 //
 //   player   public/sprites/player/<animation>.png
-//            idle, walk, jump, fall, duck, hurt, lose, win
+//            idle, walk, jump, fall, duck, hurt, lose, win, breathe, glide
 //   enemies  public/sprites/enemies/<enemy>.png
-//            clerk, manager, guard, rat, pig, robot, plant, gorilla, vampire
+//            clerk, manager, syncer, guard, rat, pig, robot, plant, gorilla, vampire
 //   props    public/sprites/props/<prop id>.png
 //            any id from game/render/office/gags.ts, e.g. fridge_notes
+//   art      public/sprites/art/<slot>.png
+//            bosses, Elvis, Dad's things, fire, gadgets — sizes and frame
+//            order in game/artSlots.ts (and on the /art page)
 //
 // Image rules
 //   • PNG with a transparent background.
@@ -24,6 +27,7 @@
 import type { PlayerFrameName } from './render/sprites/PlayerSpriteAssets';
 import type { WalkerVariant, HopperVariant } from './creaturesAndObjects/enemyKinds';
 import type { GagId } from './render/office/gags';
+import type { ArtSlotId } from './artSlots';
 
 export interface CustomAnim {
   /** Override the frame count when frames aren't square. */
@@ -36,6 +40,7 @@ export interface CustomSprites {
   player: Partial<Record<PlayerFrameName, CustomAnim>>;
   enemies: Partial<Record<WalkerVariant | HopperVariant, CustomAnim>>;
   props: GagId[];
+  art?: ArtSlotId[];
 }
 
 export const CUSTOM_SPRITES: CustomSprites = {
@@ -45,4 +50,6 @@ export const CUSTOM_SPRITES: CustomSprites = {
   enemies: {},
   // e.g. props: ['fridge_notes'],
   props: [],
+  // e.g. art: ['elvis', 'board_heads'],
+  art: [],
 };

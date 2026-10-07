@@ -3,6 +3,13 @@
 *Written 2026-10-07, after Phases 1–3. What's good, what I already fixed in
 code, and exact specs for anything worth redrawing by hand in Aseprite.*
 
+> **Easiest way in:** open **`/art`** in the browser. Every slot is listed
+> there with its exact size and frame order, and **Download template** saves
+> the current art as a PNG at the right size: open it in Aseprite, paint
+> over it, export to the path shown, and add the name to
+> `game/customSprites.ts` (`player`, `enemies`, `props` or `art`). The game
+> uses your file instead of the code-drawn version.
+
 ## The verdict in one paragraph
 
 The code-drawn ("rig") art is **consistent, readable and on-tone**. Every
@@ -179,13 +186,24 @@ above). Plus:
 
 ---
 
+## 2b. Characters added after the first review
+
+| Slot (`art`) | Frame | Frames | Notes |
+|---|---|---|---|
+| `recruiter` (Chad, Floor 6) | 40 × 48 | walk0, walk1, throw, dash, hurt | A pig in a slim-fit suit, TALENT lanyard, sunglasses up, clipboard |
+| `elvis` (The Vents) | 84 × 56 | run0–run3, sit, jump, yelp | Big kind golden office dog; old CHIEF HAPPINESS OFFICER badge on the collar; Tero rides on his back |
+| enemy `syncer` (Floor 6) | 32 × 32 | 4 walk frames | Shirt sleeves, lanyard, mug held out, a grin that means a calendar invite |
+
+The resistance members in the Vents reuse the enemy sprites with the
+colour back in their faces, so they need no extra art.
+
 ## 3. Gameplay objects (priority 3)
 
 All bright, 1 px dark outline `#1b1620`.
 
 | Object | Size | Frames | Notes |
 |---|---|---|---|
-| **Dad's things** (9 icons) | 16 × 16 each | 1 | watch (stopped), crayon drawing, wedding photo, letter, slipper, bus pass, paperback "HOW TO SAY NO", TV remote, house key. One strip `dad_things.png` **144 × 16** in that order. Soft pink glow is drawn by code. |
+| **Dad's things** (10 icons) | 16 × 16 each | 1 | watch (stopped), crayon drawing, wedding photo, letter, slipper, bus pass, paperback "HOW TO SAY NO", TV remote, house key, sandwich wrapper ("FOR THE DOG"). One strip `art/dad_things.png` **160 × 16** in that order. Soft pink glow is drawn by code. |
 | Fireball | 24 × 24 | 4 | Spark → full fireball → fading → smoke. `fireball.png` 96 × 24. Should read as **baby** fire: round, cute, a bit wobbly. |
 | Puff (hiccup) | 16 × 16 | 3 | A sad little smoke ring with one ember |
 | Cardboard hide box | 34 × 24 | 2 | Frame 2: the peephole blinks |

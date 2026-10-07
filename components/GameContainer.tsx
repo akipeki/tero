@@ -11,12 +11,13 @@ import StoryBox from './StoryBox';
 import { GAME_SUBTITLE, GAME_TITLE_LINES } from '@/game/title';
 import { loadSettings, saveSettings } from '@/game/Settings';
 import { framePaths } from '@/game/render/sprites/PlayerSpriteAssets';
-import { initCustomSprites } from '@/game/render/customImages';
+import { initCustomSprites, customArt } from '@/game/render/customImages';
 import { drawHideBox } from '@/game/render/characters/humans';
 
 let hideBoxCache = '';
 /** The cardboard box as a data URL, drawn once by its pixel rig. */
 function hideBoxUrl(): string {
+  if (customArt('hide_box')) return '/sprites/art/hide_box.png';   // your art
   if (!hideBoxCache) hideBoxCache = drawHideBox().toCanvas().toDataURL();
   return hideBoxCache;
 }
@@ -170,7 +171,8 @@ export default function GameContainer() {
       const footY = snap((screenY + (still ? 0 : bobY)) * s);
 
       if (box) {
-        if (!box.style.backgroundImage) box.style.backgroundImage = `url(${hideBoxUrl()})`;
+        const boxUrl = hideBoxUrl();
+        if (box.dataset.src !== boxUrl) { box.dataset.src = boxUrl; box.style.backgroundImage = `url(${boxUrl})`; }
         box.style.display = data.hiding ? 'block' : 'none';
         if (data.hiding) {
           box.style.width  = `${34 * s}px`;

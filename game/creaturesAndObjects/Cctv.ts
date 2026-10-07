@@ -5,6 +5,7 @@
 // with no wall in between — the alarm goes off and Game drops guards from
 // the ceiling vents. A box in the cone just gets a "?".
 
+import { blitArt } from '../render/customImages';
 import { creaturesAndObjects, type UpdateCtx } from './creaturesAndObjects';
 import { TILE_SIZE } from '../constants';
 import { isSolidTile } from '../level/Tilemap';
@@ -91,13 +92,7 @@ export class Cctv extends creaturesAndObjects {
     ctx.fill();
     // arm and body
     const x = Math.round(this.x - camX), y = Math.round(this.y);
-    ctx.fillStyle = '#1b1620';
-    ctx.fillRect(x + 6, y - 2, 4, 6);
-    ctx.fillRect(x - 1, y + 3, this.w + 2, 10);
-    ctx.fillStyle = '#c9ced6';
-    ctx.fillRect(x, y + 4, this.w, 8);
-    ctx.fillStyle = '#8a8f96';
-    ctx.fillRect(x, y + 10, this.w, 2);
+    if (!blitArt(ctx, 'cctv', 0, x, y + 1)) this.drawBody(ctx, x, y);
     // lens points where it looks
     const lx = Math.round(ex + Math.sin(this.angle) * 6), ly = Math.round(ey + Math.cos(this.angle) * 3);
     ctx.fillStyle = '#1b1620';
@@ -106,5 +101,15 @@ export class Cctv extends creaturesAndObjects {
     ctx.fillRect(lx - 1, ly - 1, 2, 2);
     if (this.alarm > 0) drawBubble(ctx, '!', ex, y + 2);
     else if (this.puzzled > 0) drawBubble(ctx, '?', ex, y + 2);
+  }
+
+  private drawBody(ctx: CanvasRenderingContext2D, x: number, y: number): void {
+    ctx.fillStyle = '#1b1620';
+    ctx.fillRect(x + 6, y - 2, 4, 6);
+    ctx.fillRect(x - 1, y + 3, this.w + 2, 10);
+    ctx.fillStyle = '#c9ced6';
+    ctx.fillRect(x, y + 4, this.w, 8);
+    ctx.fillStyle = '#8a8f96';
+    ctx.fillRect(x, y + 10, this.w, 2);
   }
 }

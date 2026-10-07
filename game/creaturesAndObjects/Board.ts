@@ -13,6 +13,7 @@
 // that goes down RESIGNS: out pops that executive, already freed and on
 // the way home (the robot just breaks). The fewer heads, the faster.
 
+import { blitArt } from '../render/customImages';
 import { creaturesAndObjects, type UpdateCtx } from './creaturesAndObjects';
 import { overlaps, stompOverlap } from '../physics/AABB';
 import { TILE_SIZE } from '../constants';
@@ -305,7 +306,7 @@ export class Board extends creaturesAndObjects implements Boss {
     const x = Math.round(h.x - camX), y = Math.round(h.y);
     const alpha = ctx.globalAlpha;
     if (h.hurt > 0) { h.hurt--; ctx.globalAlpha = alpha * 0.55; }
-    ctx.drawImage(img, x, y, HEAD_W, HEAD_H);
+    if (!blitArt(ctx, 'board_heads', HEADS.indexOf(h.def), x, y, HEAD_W, HEAD_H)) ctx.drawImage(img, x, y, HEAD_W, HEAD_H);
     ctx.globalAlpha = alpha;
     if (h.state === 'windup') drawBubble(ctx, h.def.line, x + HEAD_W / 2, y - 2);
     if (h.state === 'down') {

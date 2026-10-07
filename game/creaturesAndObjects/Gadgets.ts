@@ -10,6 +10,7 @@
 // Game owns the teleport itself (it hides Tero while he's on the line);
 // these classes are the machines.
 
+import { blitArt } from '../render/customImages';
 import { creaturesAndObjects, type UpdateCtx } from './creaturesAndObjects';
 import { overlaps } from '../physics/AABB';
 import { TILE_SIZE } from '../constants';
@@ -54,6 +55,7 @@ export class Fax extends creaturesAndObjects {
   draw(ctx: CanvasRenderingContext2D, camX: number): void {
     const x = Math.round(this.x - camX), y = Math.round(this.y);
     const shake = this.busy > 0 ? (this.busy % 4 < 2 ? 1 : -1) : 0;
+    if (blitArt(ctx, 'fax', this.busy > 0 ? 1 : 0, x + shake, y)) { this.drawLabels(ctx, x, y, shake); return; }
     ctx.fillStyle = '#1b1620';
     ctx.fillRect(x - 1 + shake, y + 5, this.w + 2, this.h - 4);
     ctx.fillStyle = '#e4dcc4';                       // beige plastic
@@ -68,7 +70,11 @@ export class Fax extends creaturesAndObjects {
     for (let i = 0; i < 3; i++) ctx.fillRect(x + 4 + i * 5 + shake, y + 15, 3, 2);   // keypad
     ctx.fillStyle = this.jammed > 0 ? '#d83b3b' : this.busy > 0 ? '#ffd23f' : '#3fd84a';
     ctx.fillRect(x + this.w - 7 + shake, y + 14, 3, 3);                             // LED
-    // label
+    this.drawLabels(ctx, x, y, shake);
+  }
+
+  /** FAX/OUT label, the DOWN prompt and JAM — over the built-in or your art. */
+  private drawLabels(ctx: CanvasRenderingContext2D, x: number, y: number, shake: number): void {
     ctx.drawImage(label(this.to === null ? 'OUT' : 'FAX'), x + 4 + shake, y + 19);
     // DOWN prompt when Tero stands here and it can send
     if (this.near && this.to !== null && this.busy === 0) {
@@ -105,6 +111,7 @@ export class Spring extends creaturesAndObjects {
   draw(ctx: CanvasRenderingContext2D, camX: number): void {
     const x = Math.round(this.x - camX);
     const bottom = Math.round(this.y + this.h);
+    if (blitArt(ctx, 'spring', this.squash > 0 ? 1 : 0, x, bottom - 14)) return;
     const h = this.squash > 0 ? 7 : 12;
     // base
     ctx.fillStyle = '#1b1620';
@@ -167,6 +174,7 @@ export class ChutePickup extends creaturesAndObjects {
     const x = Math.round(this.x - camX), y = Math.round(this.y) + bob;
     ctx.fillStyle = 'rgba(255,210,63,0.25)';
     ctx.fillRect(x - 4, y - 4, this.w + 8, this.h + 8);                 // glow
+    if (blitArt(ctx, 'chute', 0, x, y)) return;
     ctx.fillStyle = '#1b1620';
     ctx.fillRect(x + 2, y + 5, this.w - 4, this.h - 5);
     ctx.fillRect(x + 6, y, this.w - 12, 7);
@@ -183,6 +191,7 @@ export class ChutePickup extends creaturesAndObjects {
 /** The canopy over Tero's head while he glides (feet at footX, footY). */
 export function drawCanopy(ctx: CanvasRenderingContext2D, footX: number, footY: number): void {
   const x = Math.round(footX), top = Math.round(footY - 78);
+  if (blitArt(ctx, 'canopy', 0, x - 25, top)) return;
   ctx.fillStyle = '#1b1620';
   ctx.fillRect(x - 25, top + 6, 50, 9);
   ctx.fillRect(x - 21, top + 2, 42, 5);
@@ -242,11 +251,13 @@ export class DadThing extends creaturesAndObjects {
     // a soft heart-shaped glow, so it reads as "Dad's", not "loot"
     ctx.fillStyle = 'rgba(255,119,168,0.28)';
     ctx.fillRect(x - 5, y - 5, 26, 26);
-    ctx.fillStyle = '#1b1620';
-    ctx.fillRect(x - 1, y - 1, 18, 18);
-    ctx.fillStyle = '#ff77a8';
-    ctx.fillRect(x, y, 16, 16);
-    ctx.drawImage(label('D'), x + 4, y + 4);
+    if (!blitArt(ctx, 'dad_things', this.id, x, y)) {
+      ctx.fillStyle = '#1b1620';
+      ctx.fillRect(x - 1, y - 1, 18, 18);
+      ctx.fillStyle = '#ff77a8';
+      ctx.fillRect(x, y, 16, 16);
+      ctx.drawImage(label('D'), x + 4, y + 4);
+    }
     if (this.t % 50 < 6) {
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(x + 12, y - 3, 2, 2);

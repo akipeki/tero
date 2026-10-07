@@ -5,6 +5,7 @@
 // die out. They burn paperwork tiles on the way; Game checks them against
 // enemies (only tantrum flames free workers, see `frees`).
 
+import { blitArt } from '../render/customImages';
 import { creaturesAndObjects, type UpdateCtx } from './creaturesAndObjects';
 import { TILE_SIZE, RAGE_PAPER } from '../constants';
 import { TileType } from '../types';
@@ -88,6 +89,7 @@ export class Flame extends creaturesAndObjects {
     const y = Math.round(this.y);
     const s = Math.round(this.w);
     ctx.globalAlpha = a > 0.75 ? (1 - a) * 4 : 1;
+    if (blitArt(ctx, 'fireball', Math.min(3, Math.floor(a * 4)), x, y, s, s)) { ctx.globalAlpha = 1; return; }
     // Chunky pixel octagon: edge → mid → core; the core shrinks and the
     // edge turns to smoke as it burns out. A tongue licks upward.
     const blob = (inset: number, color: string) => {

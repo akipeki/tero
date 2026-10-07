@@ -4,6 +4,7 @@
 // throws, and the "IN A MEETING" sign that keeps the elevator shut. Gameplay
 // objects are bright; the screen is a big readable sign of what slide we're on.
 
+import { blitArt } from '../customImages';
 import { Raster } from '../pixel/Raster';
 import { drawText, drawTextCentered, textWidth } from '../pixel/font';
 import { drawHalvorsen, HALVORSEN_W, HALVORSEN_H, type HalvorsenPose } from '../characters/humans';
@@ -25,8 +26,12 @@ export function drawHalvorsenAt(
   ctx: CanvasRenderingContext2D, footX: number, footY: number,
   pose: HalvorsenPose, facingRight: boolean, freed: boolean, flash: boolean,
 ): void {
-  const f = riggedFacings(`halvorsen:${pose}`, () => drawHalvorsen(pose), freed);
   if (flash) ctx.globalAlpha *= 0.5;
+  if (blitArt(ctx, 'halvorsen', pose, footX - HALVORSEN_W / 2, footY - HALVORSEN_H, HALVORSEN_W, HALVORSEN_H, !facingRight)) {
+    if (flash) ctx.globalAlpha *= 2;
+    return;
+  }
+  const f = riggedFacings(`halvorsen:${pose}`, () => drawHalvorsen(pose), freed);
   ctx.drawImage(facingRight ? f.right : f.left, Math.round(footX - HALVORSEN_W / 2), Math.round(footY - HALVORSEN_H));
   if (flash) ctx.globalAlpha *= 2;
 }

@@ -4,6 +4,7 @@
 // into, the OUT OF ORDER elevator, the resistance's barrel fire and the
 // grenade they give him.
 
+import { blitArt } from '../customImages';
 import { Raster } from '../pixel/Raster';
 import { drawText, drawTextCentered, textWidth } from '../pixel/font';
 import { drawElvis, ELVIS_W, ELVIS_H, type ElvisPose } from '../characters/creatures';
@@ -19,6 +20,7 @@ function cached(key: string, make: () => Raster): HTMLCanvasElement {
 
 /** Elvis with his paws at (footX, footY) in screen px. */
 export function drawElvisAt(ctx: CanvasRenderingContext2D, footX: number, footY: number, pose: ElvisPose, facingRight: boolean): void {
+  if (blitArt(ctx, 'elvis', pose, footX - ELVIS_W / 2, footY - ELVIS_H + 2, ELVIS_W, ELVIS_H, !facingRight)) return;
   const f = riggedFacings(`elvis:${pose}`, () => drawElvis(pose));
   ctx.drawImage(facingRight ? f.right : f.left, Math.round(footX - ELVIS_W / 2), Math.round(footY - ELVIS_H + 2));
 }

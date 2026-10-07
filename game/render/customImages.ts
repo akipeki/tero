@@ -6,6 +6,7 @@
 
 import { CUSTOM_SPRITES, type CustomAnim, type CustomSprites } from '../customSprites';
 import { framePaths, type PlayerFrameName } from './sprites/PlayerSpriteAssets';
+import { ART_SLOTS, type ArtSlotId } from '../artSlots';
 
 export interface StripImage {
   img: HTMLImageElement;
@@ -23,6 +24,7 @@ export function stripLayout(width: number, height: number, frames?: number): { f
 
 const enemies = new Map<string, StripImage>();
 const props = new Map<string, StripImage>();
+const art = new Map<string, StripImage>();
 const listeners = new Set<() => void>();
 let started = false;
 
@@ -59,6 +61,11 @@ export function initCustomSprites(list: CustomSprites = CUSTOM_SPRITES): Promise
   for (const id of list.props) {
     jobs.push(load(`/sprites/props/${id}.png`, {}).then((s) => { props.set(id, s); }, warn));
   }
+  for (const id of list.art ?? []) {
+    const slot = ART_SLOTS[id];
+    if (!slot) { warn(new Error(`[Tero] unknown art slot: ${id}`)); continue; }
+    jobs.push(load(`/sprites/art/${id}.png`, { frames: slot.frames.length }).then((s) => { art.set(id, s); }, warn));
+  }
   return Promise.all(jobs).then(() => { for (const fn of listeners) fn(); });
 }
 
@@ -68,6 +75,32 @@ export function customEnemy(variant: string): StripImage | undefined {
 
 export function customProp(id: string): StripImage | undefined {
   return props.get(id);
+}
+
+export function customArt(id: ArtSlotId): StripImage | undefined {
+  return art.get(id);
+}
+
+/** Draws frame `frame` (index or name) of your art for `id` with its
+ *  top-left at (x, y), at `w`×`h` (default: the slot's size). Mirrors it
+ *  when `flip`. Returns false if there's no custom art for this slot, so
+ *  the caller draws the built-in version instead. */
+export function blitArt(
+  ctx: CanvasRenderingContext2D, id: ArtSlotId, frame: number | string,
+  x: number, y: number, w?: number, h?: number, flip = false,
+): boolean {
+  const s = art.get(id);
+  if (!s) return false;
+  const slot = ART_SLOTS[id];
+  const i = typeof frame === 'number' ? frame : Math.max(0, slot.frames.indexOf(frame));
+  const dw = w ?? slot.w, dh = h ?? slot.h;
+  ctx.save();
+  ctx.imageSmoothingEnabled = s.fw > slot.w;     // bigger-than-native art is filtered smoothly
+  if (flip) { ctx.translate(Math.round(x + dw), Math.round(y)); ctx.scale(-1, 1); }
+  else ctx.translate(Math.round(x), Math.round(y));
+  ctx.drawImage(s.img, (i % s.frames) * s.fw, 0, s.fw, s.fh, 0, 0, dw, dh);
+  ctx.restore();
+  return true;
 }
 
 /** Called once everything has loaded (renderers drop their caches). */

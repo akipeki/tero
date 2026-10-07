@@ -10,6 +10,7 @@
 // Three stomps (or a good tantrum) and he's freed like everyone else.
 // Same arena rules as the other bosses (see Boss.ts).
 
+import { blitArt } from '../render/customImages';
 import { creaturesAndObjects, type UpdateCtx } from './creaturesAndObjects';
 import { overlaps, stompOverlap } from '../physics/AABB';
 import { TILE_SIZE } from '../constants';
@@ -245,9 +246,12 @@ export class Recruiter extends creaturesAndObjects implements Boss {
       : this.dash > 0 ? 'dash'
       : this.windup > 0 ? 'throw'
       : this.walkPose();
-    const f = riggedFacings(`recruiter:${pose}`, () => drawRecruiter(pose), this.phase === 'freed');
     ctx.globalAlpha = this.alpha * (this.phase === 'fight' && this.invuln > 0 && Math.floor(this.invuln / 4) % 2 === 0 ? 0.5 : 1);
-    ctx.drawImage(this.facingRight ? f.right : f.left, Math.round(this.cx - camX - RECRUITER_W / 2), Math.round(this.bottom - RECRUITER_H + 1));
+    const x = Math.round(this.cx - camX - RECRUITER_W / 2), y = Math.round(this.bottom - RECRUITER_H + 1);
+    if (!blitArt(ctx, 'recruiter', pose, x, y, RECRUITER_W, RECRUITER_H, !this.facingRight)) {
+      const f = riggedFacings(`recruiter:${pose}`, () => drawRecruiter(pose), this.phase === 'freed');
+      ctx.drawImage(this.facingRight ? f.right : f.left, x, y);
+    }
     ctx.globalAlpha = 1;
     for (const p of this.papers) drawContract(ctx, p.x - camX, p.y, p.life);
     if (this.speech) drawBubble(ctx, this.speech.text, this.cx - camX, this.y - 4);
