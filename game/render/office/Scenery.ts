@@ -75,7 +75,7 @@ function canvas(id: GagId): HTMLCanvasElement {
     c = customCanvas(id) ?? raster(id).toCanvas();
     // Props are scenery: muted so platforms and pickups stand out. Tero's
     // crayon slogans stay bright — they mark the exit.
-    if (!id.startsWith('crayon_')) mute(c, 0.7, '#a8a294', 0.2);
+    if (!id.startsWith('crayon_') && !GAGS[id].bright) mute(c, 0.7, '#a8a294', 0.2);
     canvases.set(id, c);
   }
   return c;
@@ -177,16 +177,19 @@ export function layoutScenery(map: Tilemap, opts: LayoutOptions): PlacedGag[] {
   const deck = (kind: 'floor' | 'hang'): GagId[] => {
     const of = (tier: 1 | 2) => shuffled(GAG_IDS.filter((id) => {
       const g: Gag = GAGS[id];
-      return g.kind === kind && g.tier === tier && !g.storyOnly &&
-        (!g.floors || g.floors.includes(opts.decor ?? 'cubicles'));
+      const decor = opts.decor ?? 'cubicles';
+      // The vents are the one place the office never reaches: only their own art.
+      const fits = decor === 'vents' ? !!g.floors?.includes('vents') : (!g.floors || g.floors.includes(decor));
+      return g.kind === kind && g.tier === tier && !g.storyOnly && fits;
     }), rand);
     return opts.mood === 'unhinged' ? [...of(2), ...of(1)] : of(1);
   };
   const decks: Record<'floor' | 'hang', GagId[]> = { floor: deck('floor'), hang: deck('hang') };
   const used = new Set(out.map((g) => g.id));
-  const draw = (kind: 'floor' | 'hang'): GagId => {
+  const draw = (kind: 'floor' | 'hang'): GagId | null => {
     // prefer gags not already in this level; cycle the deck
     const deck = decks[kind];
+    if (deck.length === 0) return null;
     const i = Math.max(0, deck.findIndex((id) => !used.has(id)));
     const [id] = deck.splice(i, 1);
     deck.push(id);
@@ -205,6 +208,7 @@ export function layoutScenery(map: Tilemap, opts: LayoutOptions): PlacedGag[] {
     const tryOrder: ('floor' | 'hang')[] = wantFloor ? ['floor', 'hang'] : ['hang', 'floor'];
     for (const kind of tryOrder) {
       const id = draw(kind);
+      if (!id) continue;
       const gx = Math.round(x);
       const s = spot(map, id, gx);
       if (!s || blocked(kind, gx, raster(id).w)) continue;

@@ -35,6 +35,7 @@ export function shareLines(run: FinalRun): string[] {
     `${n(run.sentHome, 'WORKER', 'WORKERS')} SENT HOME TO THEIR KIDS.`,
     `${n(run.tantrums, 'TANTRUM', 'TANTRUMS')}. ${n(run.deaths, 'DEATH', 'DEATHS')}. ${n(run.syncs, 'QUICK SYNC', 'QUICK SYNCS')}.`,
     `DAD'S THINGS FOUND: ${run.things.length}/${run.thingsTotal}`,
+    ...(run.assist ? ['(BRING YOUR KID TO WORK DAY)'] : []),
   ];
 }
 
@@ -58,10 +59,10 @@ export async function renderShareCard(run: FinalRun): Promise<HTMLCanvasElement>
   drawTextCentered(r, GAME_TITLE, 0, W, 22, '#6cc24a', 4);
   drawTextCentered(r, 'BABY DRAGON STRIKES BACK', 0, W, 46, '#ffd23f', 1);
   const lines = shareLines(run);
-  const colors = ['#fff1e8', '#ffd23f', '#a7f070', '#ff77a8', '#29adff'];
+  const colors = ['#fff1e8', '#ffd23f', '#a7f070', '#ff77a8', '#29adff', '#c2c3c7'];
   lines.forEach((l, i) => {
     const x = Math.round((W - textWidth(l, 2)) / 2);
-    drawText(r, l, Math.max(14, x), 104 + i * 22, colors[i], textWidth(l, 2) > W - 28 ? 1 : 2);
+    drawText(r, l, Math.max(14, x), 96 + i * 20, colors[i], textWidth(l, 2) > W - 28 ? 1 : 2);
   });
   if (run.newRecord) drawTextCentered(r, '* NEW RECORD *', 0, W, 220, '#ff3b1f', 2);
   drawTextCentered(r, '#WHEREISDADA', 0, W, 246, '#83769c', 1);

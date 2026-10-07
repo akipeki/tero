@@ -16,10 +16,11 @@ export type DecorId =
   | 'security'   // floor 27 — steel, CCTV wall, blinds fully shut
   | 'executive'  // floor 30 — 90s Memphis design, Scandinavian furniture
   | 'penthouse'  // floor 33 — marble and gold, open sky
-  | 'stairwell'; // the way home — institutional green, yellow handrail, daylight at last
+  | 'stairwell'  // the way home — institutional green, yellow handrail, daylight at last
+  | 'vents';     // between floors — inside the ventilation ducts: Elvis's happy place
 
 /** What the cubicle-height strip of the background shows. */
-export type MidLayer = 'cubicles' | 'shelving' | 'glass' | 'binders' | 'lab' | 'monitors' | 'memphis' | 'marble';
+export type MidLayer = 'cubicles' | 'shelving' | 'glass' | 'binders' | 'lab' | 'monitors' | 'memphis' | 'marble' | 'pipes';
 
 /** How the desk platforms are built. */
 export type DeskStyle = 'metal' | 'laminate' | 'wood' | 'white' | 'steel' | 'glass' | 'marble';
@@ -38,7 +39,7 @@ export interface Decor {
   /** Window size multiplier (penthouse gets floor-to-ceiling glass). */
   windowScale: number;
   /** 'barred' = small prison windows with metal bars and only black outside. */
-  windows?: 'view' | 'barred';
+  windows?: 'view' | 'barred' | 'grates';
   sky: [string, string, string];
   /** The motivational poster + clock between windows. */
   poster: boolean;
@@ -56,6 +57,15 @@ const DUSK: [string, string, string] = ['#2b3a67', '#c46a6a', '#f2a65a'];
 const FRIDAY: [string, string, string] = ['#7fb8e8', '#cfe6f5', '#fff3c4'];
 
 export const DECORS: Record<DecorId, Decor> = {
+  vents: {
+    id: 'vents',
+    wall: '#8a96a3', wallStripe: '#7c8895', rail: '#5d6875', railLight: '#9aa6b3',
+    wainscot: '#6c7783', wainscotPanel: '#636e7a', wainscotLight: '#7f8a96',
+    blinds: 0, windowScale: 0.6, windows: 'grates', sky: FRIDAY, poster: false,
+    mid: 'pipes',
+    carpet: ['#9aa6b3', '#b9c3cc', '#6c7783'], slab: ['#7c8895', '#9aa6b3', '#5d6875'],
+    desk: 'steel', ceiling: '#a3aeb9', haze: 'rgba(255,240,220,0.10)',
+  },
   stairwell: {
     id: 'stairwell',
     wall: '#8f9e8c', wallStripe: '#869583', rail: '#c9a01f', railLight: '#ffd23f',

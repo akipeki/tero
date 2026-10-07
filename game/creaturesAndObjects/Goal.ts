@@ -6,11 +6,14 @@ import { TILE_SIZE } from '../constants';
 import type { Player } from './Player';
 import { drawCastleSprite, getCastleSize } from '../render/sprites/CastleSprite';
 import { drawMeetingSign } from '../render/office/bossArt';
+import { drawVentHole, drawOutOfOrder } from '../render/office/ventArt';
 
 export class Goal extends creaturesAndObjects {
   triggered = false;
   /** A boss floor keeps the elevator shut until the boss is beaten. */
   locked = false;
+  kind: 'elevator' | 'broken' | 'vent' = 'elevator';
+  label = '';
   private flagWave = 0;
 
   constructor(tx: number, ty: number) {
@@ -40,7 +43,17 @@ export class Goal extends creaturesAndObjects {
   }
 
   draw(ctx: CanvasRenderingContext2D, camX: number): void {
+    const cx = Math.round(this.x + this.w / 2 - camX);
+    const floor = Math.round(this.y + this.h);
+    if (this.kind === 'vent') {
+      drawVentHole(ctx, cx, floor, this.label || 'THIS WAY');
+      return;
+    }
     drawCastleSprite(ctx, camX, this.x, this.y, this.flagWave);
+    if (this.kind === 'broken') {
+      drawOutOfOrder(ctx, cx, floor - 92);
+      drawVentHole(ctx, cx, floor, 'PIPE');   // the way on: jump in
+    }
     if (this.locked) drawMeetingSign(ctx, Math.round(this.x + this.w / 2 - camX), Math.round(this.y + this.h - 64));
   }
 }

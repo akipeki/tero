@@ -25,6 +25,10 @@ export interface RunData {
   /** Dad's things picked up during this run (ids). */
   things:   string[];
   finished: boolean;
+  /** Any floor cleared with Bring Your Kid to Work Day on. */
+  assist?:  boolean;
+  /** Hand grenades carried (the resistance gives one). */
+  grenades?: number;
 }
 
 function fresh(): RunData {
@@ -64,9 +68,19 @@ export class Run {
     this.save();
   }
 
+  giveGrenade(): void { this.data.grenades = 1; this.save(); }
+  /** Uses one if there is one. */
+  useGrenade(): boolean {
+    if (!this.data.grenades) return false;
+    this.data.grenades--;
+    this.save();
+    return true;
+  }
+
   /** Records a cleared floor. Replaces an earlier split for the same floor
    *  (a replay) so the totals stay honest. */
-  floorCleared(levelId: string, name: string, timeMs: number, sentHome: number, coins: number, last: boolean): void {
+  floorCleared(levelId: string, name: string, timeMs: number, sentHome: number, coins: number, last: boolean, assist = false): void {
+    if (assist) this.data.assist = true;
     this.data.splits = this.data.splits.filter((s) => s.levelId !== levelId);
     this.data.splits.push({ levelId, name, timeMs });
     this.data.sentHome += sentHome;
@@ -74,8 +88,9 @@ export class Run {
     if (last) {
       this.data.finished = true;
       write(UNLOCK_KEY, { ...unlocks(), casualFriday: true });
+      // Assisted runs don't set speedrun records.
       const best = bestRun();
-      if (best === null || this.totalMs < best) write(BEST_KEY, this.totalMs);
+      if (!this.data.assist && (best === null || this.totalMs < best)) write(BEST_KEY, this.totalMs);
     }
     this.save();
   }

@@ -35,4 +35,6 @@ export interface Boss extends creaturesAndObjects {
   playerInArena(player: Player): boolean;
   tick(ctx: UpdateCtx, player: Player, flames: Flame[]): void;
   drawBackdrop(ctx: CanvasRenderingContext2D, camX: number): void;
+  /** Caught in the grenade's blast at world x: counts as a hit. */
+  blast(ctx: UpdateCtx, x: number): void;
 }

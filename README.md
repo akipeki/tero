@@ -24,6 +24,8 @@ npm run dev
 | Move L/R     | Arrow Left/Right · A/D         | D-pad         |
 | Duck         | Arrow Down · S                 | ▼             |
 | Fire / TANTRUM | X · F · Shift                | 🔥            |
+| Shout "DADA!" | C                             | 📣            |
+| Throw the grenade | G (once you have it)       | 💣            |
 | Jump         | Arrow Up · W · Space           | ▲             |
 | Pause/Resume | Esc · P                        | ‖             |
 | Speedrun timer | T                            | —             |
@@ -237,7 +239,8 @@ All the numbers are in the Tantrum section of `game/constants.ts`.
 | Floor | Mechanic | Where |
 |---|---|---|
 | 1 Mailroom | the tantrum (Dad's desk fills the meter), the Monday rush, paperwork walls, a secret stash | `level1.ts` |
-| 6 Cubicles | **quick syncs**: syncers who see you trap you in a conversation; duck to hide in a cardboard box | `Walker` (`sees`), `level2.ts` |
+| 6 Cubicles | **quick syncs**: syncers who see you trap you in a conversation; duck to hide in a cardboard box. **Mini-boss: Chad from Talent Acquisition** — asks Tero's age, offers the Junior Trainee Program ("only 10-hour days"), makes him fill in `JOB_APPLICATION.EXE` (only answer E is accepted), gets told off, then fights | `Walker` (`sees`), `Recruiter.ts`, `JobApplication` in `GameContainer.tsx`, `level2.ts` |
+| The Vents (between 6 and 12) | Floor 6's elevator is OUT OF ORDER, so Tero jumps into a pipe. **Ride Elvis**, the abandoned office dog (faster, higher jumps, bumps don't hurt), through the hidden happy place nobody upstairs knows about. **The Resistance** (they resist *leaving*) gives Tero a **hand grenade** full of resignation letters: G throws it, everyone in the blast resigns and goes home, bosses take a hit. No enemies, no pits | `level10.ts`, `ElvisNpc`/`Npc` in `Gadgets.ts`, `Grenade.ts`, `ventArt.ts`, decor `vents` |
 | 12 Boardroom | **boss: Mr. Halvorsen's Q3 review** — slides' bullet points are the platforms | `Halvorsen.ts`, `level3.ts` |
 | 13 Legal | **red tape** (`~`): sticky, slow, flammable | `TileType.TAPE`, `level4.ts` |
 | 21 R&D | **fax teleporters** and the **synergy spring** | `Gadgets.ts`, `level5.ts` |
@@ -246,7 +249,8 @@ All the numbers are in the Tantrum section of `game/constants.ts`.
 | 33 Sanctum | **final boss: THE BOARD**, a five-headed hydra of executives | `Board.ts`, `level6.ts` |
 | The way home | **the escape**: 33 floors of stairs before Monday, Dad following, ceiling falling | `Escape.ts`, `level9.ts` |
 
-Bosses share the `Boss` interface (`creaturesAndObjects/Boss.ts`): a
+Story triggers can also open the job application with `effect: 'quiz'` (the
+world waits in `GameState.QUIZ` until it's submitted). Bosses share the `Boss` interface (`creaturesAndObjects/Boss.ts`): a
 one-screen arena from `arenaTx` that locks the camera and shuts the door;
 the elevator wears an IN A MEETING sign until the boss walks out. Story
 triggers can start them with `effect: 'boss'`. Gadgets (faxes, springs,
@@ -267,6 +271,35 @@ cameras, the parachute) are listed in a level's `gadgets` spawns.
   (`DAD_THINGS` in `Gadgets.ts`). Each tells you something about Dad.
 - **Casual Friday** (`game/Mode.ts`): unlocked by finishing the game.
   Every suit becomes a loud Hawaiian shirt and the muzak goes ukulele.
+
+### The weird stuff (Phase 5)
+
+- **Systems that touch:** fire spreads through paperwork and red tape like a
+  fuse (`level/FireSpread.ts`); a tantrum makes everyone nearby panic and run
+  ("HR!!", "NOT MY JOB").
+- **Everyone does their job** (`Game.updateJobs`): pigs throw floppies as
+  bribes, guards chase you for your badge, robots copy your jumps, rats steal
+  floppies (and drop them when sent home), gorillas shake the floor when they
+  land.
+- **Tero talks** during play in short toddler barks ("Owie!", "Bye bye!",
+  "Shh.", "Dada?" when he's left standing). **C shouts "DADA!!"**: enemies
+  turn round, and Dad's things nearby sparkle back (a hot/cold hint).
+- **Everyone you've freed waits by each elevator, cheering.**
+- **The pause menu is PAUSED.EXE** (quitting: "Your manager will see this");
+  **game over is an HR exit interview** with the cause of death.
+- **A secret ending** if you find all nine of Dad's things.
+
+### Playtesting (Phase 4)
+
+- **`/playtest`**: a report of where players die (and to what), quit, get
+  stuck (20 s without progress) and get rescued, as a table per floor and a
+  heat map on each floor's tiles. It's all local (`game/Playtest.ts`, in
+  localStorage); testers **export** their log as a file and you **import**
+  several at once. How to run a session: [docs/PLAYTEST.md](docs/PLAYTEST.md).
+- **Bring Your Kid to Work Day** (title screen or pause menu): dying costs
+  no lives, pits put you back on the last safe ground, the tantrum meter
+  fills twice as fast and the escape clock runs 1.5× longer. Assisted runs
+  say so on the share card and don't set speedrun records.
 
 ### Music
 

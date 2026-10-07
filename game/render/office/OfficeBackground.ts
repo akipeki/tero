@@ -63,6 +63,13 @@ function buildWall(d: Decor): HTMLCanvasElement {
     rect(ctx, '#5a5f68', 0, 36, VIEWPORT_W, 5); rect(ctx, '#7a7f88', 0, 36, VIEWPORT_W, 1);
     rect(ctx, '#8a4b2a', 0, 46, VIEWPORT_W, 3);
     for (let x = 60; x < VIEWPORT_W; x += 150) { rect(ctx, '#c8323a', x, 33, 6, 11); rect(ctx, '#5a5f68', x + 1, 30, 4, 3); }
+  } else if (d.id === 'vents') {
+    // riveted steel duct: panel seams, rivets, a rounded top shadow
+    for (let x = 0; x < VIEWPORT_W; x += 48) {
+      rect(ctx, d.wallStripe, x, 0, 2, RAIL_Y);
+      for (let y = 10; y < RAIL_Y; y += 22) { rect(ctx, '#b9c3cc', x + 5, y, 1, 1); rect(ctx, '#b9c3cc', x + 42, y, 1, 1); }
+    }
+    for (let i = 0; i < 18; i++) rect(ctx, `rgba(20,24,32,${0.22 - i * 0.012})`, 0, i * 2, VIEWPORT_W, 2);
   } else if (d.id === 'executive') {
     // Memphis confetti on teal
     const marks = ['#ff77a8', '#ffd23f', '#1d1d24', '#ffffff'];
@@ -112,6 +119,21 @@ function barredWindows(ctx: CanvasRenderingContext2D): void {
 
 function buildFar(d: Decor): HTMLCanvasElement {
   const [c, ctx] = canvas(FAR_W, VIEWPORT_H);
+  if (d.windows === 'grates') {
+    // round vent grates with daylight streaming through
+    for (const gx of [120, 600]) {
+      const gy = 70;
+      ctx.fillStyle = 'rgba(255,246,200,0.16)';
+      ctx.beginPath(); ctx.moveTo(gx - 26, gy); ctx.lineTo(gx + 26, gy); ctx.lineTo(gx + 90, VIEWPORT_H); ctx.lineTo(gx + 10, VIEWPORT_H); ctx.fill();
+      circle(ctx, '#4d5662', gx, gy, 30); circle(ctx, '#fff6c8', gx, gy, 26);
+      for (let a = 0; a < 8; a++) {
+        ctx.strokeStyle = '#5d6875'; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.moveTo(gx, gy); ctx.lineTo(gx + Math.cos(a * Math.PI / 4) * 26, gy + Math.sin(a * Math.PI / 4) * 26); ctx.stroke();
+      }
+      circle(ctx, '#5d6875', gx, gy, 5);
+    }
+    return c;
+  }
   if (d.windows === 'barred') {
     barredWindows(ctx);
     const cx = 230, cy = 74;                                             // the 4:57 clock, even down here
@@ -169,6 +191,13 @@ function buildFar(d: Decor): HTMLCanvasElement {
     circle(ctx, '#a8b394', 244, 74, 10); rect(ctx, '#111111', 230, 88, 28, 22);
     rect(ctx, '#e9e6dc', 242, 88, 4, 8); rect(ctx, '#d9d2c4', 234, 62, 20, 5);
     text(ctx, 'FOUNDER', 230, 118, '#c9a24a');
+  } else if (d.id === 'vents') {
+    // riveted steel duct: panel seams, rivets, a rounded top shadow
+    for (let x = 0; x < VIEWPORT_W; x += 48) {
+      rect(ctx, d.wallStripe, x, 0, 2, RAIL_Y);
+      for (let y = 10; y < RAIL_Y; y += 22) { rect(ctx, '#b9c3cc', x + 5, y, 1, 1); rect(ctx, '#b9c3cc', x + 42, y, 1, 1); }
+    }
+    for (let i = 0; i < 18; i++) rect(ctx, `rgba(20,24,32,${0.22 - i * 0.012})`, 0, i * 2, VIEWPORT_W, 2);
   } else if (d.id === 'executive') {
     // Memphis "art" canvas
     rect(ctx, '#1d1d24', 210, 50, 70, 70); rect(ctx, '#f4f1e6', 213, 53, 64, 64);
@@ -217,8 +246,28 @@ function buildMid(d: Decor): HTMLCanvasElement {
     case 'monitors': midMonitors(ctx, top, bottom); break;
     case 'memphis':  midMemphis(ctx, top, bottom); break;
     case 'marble':   midMarble(ctx, top, bottom); break;
+    case 'pipes':    midPipes(ctx, top, bottom); break;
   }
   return c;
+}
+
+/** The vents: pipe joints, a little tent, and fairy lights strung along. */
+function midPipes(ctx: CanvasRenderingContext2D, top: number, bottom: number): void {
+  rect(ctx, '#5d6875', 0, top + 6, MID_W, 8);
+  rect(ctx, '#7f8a96', 0, top + 6, MID_W, 2);
+  for (let x = 40; x < MID_W; x += 128) { rect(ctx, '#4d5662', x, top + 3, 10, 14); rect(ctx, '#9aa6b3', x, top + 3, 10, 2); }
+  // a tent (somebody lives here) and a cardboard sofa
+  ctx.fillStyle = '#d86a4a';
+  ctx.beginPath(); ctx.moveTo(300, bottom); ctx.lineTo(336, top + 20); ctx.lineTo(372, bottom); ctx.fill();
+  rect(ctx, '#3a2420', 330, top + 50, 12, bottom - top - 50);
+  rect(ctx, '#b0874e', 560, top + 44, 70, 18); rect(ctx, '#9a7340', 560, top + 38, 70, 7);
+  // fairy lights
+  const colors = ['#ff77a8', '#ffd23f', '#3fd84a', '#29adff', '#ff8c3a'];
+  for (let x = 0; x < MID_W; x += 12) {
+    const y = top - 18 + Math.round(Math.sin(x / 40) * 6);
+    rect(ctx, '#3a3f48', x, y - 1, 12, 1);
+    rect(ctx, colors[(x / 12) % colors.length], x + 5, y, 3, 3);
+  }
 }
 
 function crt(ctx: CanvasRenderingContext2D, mx: number, y: number): void {
@@ -380,10 +429,12 @@ export function drawOfficeBackground(ctx: CanvasRenderingContext2D, camX: number
   let layers = cache.get(d.id);
   if (!layers) {
     // Scenery is muted so the bright gameplay layer pops (see mute.ts).
+    // The vents are the happy place: muted much less.
+    const k = d.id === 'vents' ? 0.4 : 1;
     layers = {
-      wall: mute(buildWall(d), 0.45, d.wall, 0.12),
-      far:  mute(buildFar(d), 0.5, d.wall, 0.15),
-      mid:  mute(buildMid(d), 0.6, d.wall, 0.18),
+      wall: mute(buildWall(d), 0.45 * k, d.wall, 0.12 * k),
+      far:  mute(buildFar(d), 0.5 * k, d.wall, 0.15 * k),
+      mid:  mute(buildMid(d), 0.6 * k, d.wall, 0.18 * k),
     };
     cache.set(d.id, layers);
   }

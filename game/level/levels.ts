@@ -15,6 +15,7 @@ import { level6Tiles, level6Spawns, LEVEL6_WIDTH, LEVEL6_HEIGHT } from './level6
 import { level7Tiles, level7Spawns, LEVEL7_WIDTH, LEVEL7_HEIGHT } from './level7';
 import { level8Tiles, level8Spawns, LEVEL8_WIDTH, LEVEL8_HEIGHT } from './level8';
 import { level9Tiles, level9Spawns, LEVEL9_WIDTH, LEVEL9_HEIGHT } from './level9';
+import { level10Tiles, level10Spawns, LEVEL10_WIDTH, LEVEL10_HEIGHT } from './level10';
 
 export interface LevelDef {
   id:     string;
@@ -29,6 +30,7 @@ export interface LevelDef {
 export const LEVELS: readonly LevelDef[] = [
   { id: '1', name: 'The Mailroom',  theme: 'office', tiles: level1Tiles, spawns: level1Spawns, width: L1W,         height: L1H },
   { id: '2', name: 'Cubicle Farm',  theme: 'office', tiles: level2Tiles, spawns: level2Spawns, width: LEVEL2_WIDTH, height: LEVEL2_HEIGHT },
+  { id: '10', name: 'The Vents',   theme: 'office', tiles: level10Tiles, spawns: level10Spawns, width: LEVEL10_WIDTH, height: LEVEL10_HEIGHT },
   { id: '3', name: 'The Boardroom', theme: 'office', tiles: level3Tiles, spawns: level3Spawns, width: LEVEL3_WIDTH, height: LEVEL3_HEIGHT },
   { id: '4', name: 'Legal',         theme: 'office', tiles: level4Tiles, spawns: level4Spawns, width: LEVEL4_WIDTH, height: LEVEL4_HEIGHT },
   { id: '5', name: 'R&D',           theme: 'office', tiles: level5Tiles, spawns: level5Spawns, width: LEVEL5_WIDTH, height: LEVEL5_HEIGHT },

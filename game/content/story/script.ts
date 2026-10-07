@@ -37,13 +37,16 @@ export const STORY = defineStory({
     board: { name: 'THE BOARD' },
     guard: { name: 'SECURITY' },
     pig:   { name: 'VP OF SYNERGY' },
+    chad:  { name: 'CHAD, TALENT ACQUISITION' },
+    elvis: { name: 'ELVIS' },
+    marja: { name: 'MARJA, THE RESISTANCE' },
   },
 
   chapters: [
     {
       id: 'monday',
       name: 'Getting in',
-      levels: ['1', '2', '3'],
+      levels: ['1', '2', '10', '3'],
       // One card, then play. The rest of the backstory is on the walls
       // (memo_more, sign_tape in level 1's scenery).
       intro: [
@@ -129,7 +132,7 @@ export const STORY = defineStory({
     '2': {
       decor: 'cubicles',
       // a long, empty corridor after the opening: just the SYNERGY poster
-      quiet: [[19, 34]],
+      quiet: [[19, 34], [73, 91]],
       density: 'sparse',
       goalWriting: 'crayon_want',
       intro: [
@@ -157,10 +160,31 @@ export const STORY = defineStory({
           ],
         },
         {
-          atTile: 77,
+          atTile: 71,
           lines: [
             { who: 'tero', text: 'Das Kapital for Toddlers:\nWho owns our dadas?' },
           ],
+        },
+        {
+          // MINI-BOSS, part 1: the pitch, then the application form
+          atTile: 77,
+          lines: [
+            { who: 'chad', text: 'Heyyy, little buddy! Love the energy.\nHow old are you?' },
+            { who: 'tero', text: 'Two.' },
+            { who: 'chad', text: 'TWO! Perfect. You\'re JUST old enough\nfor our Junior Trainee Program.' },
+            { who: 'chad', text: 'Only 10-hour days! Unpaid, but you get\npaid in EXPOSURE. Quick form first:' },
+          ],
+          effect: 'quiz',
+        },
+        {
+          // part 2: after the form. The door shuts once the lines are done.
+          atTile: 77,
+          lines: [
+            { who: 'tero', text: 'F*** OFF, YOU CAPITALIST PIG.' },
+            { who: 'chad', text: '...Wow. I\'m putting you down as\n"not a culture fit".' },
+            { who: 'chad', text: 'SECURITY! ...Fine. I\'ll do it myself.' },
+          ],
+          effect: 'boss',
         },
       ],
       scenery: [
@@ -169,11 +193,12 @@ export const STORY = defineStory({
         { atTile: 14, gag: 'dad_mug' },
         { atTile: 25, gag: 'poster_synergy' },
         { atTile: 35, gag: 'water_dispenser' },
-        { atTile: 76, gag: 'money_shrine' },
-        { atTile: 80, gag: 'vending_snacks' },
+        { atTile: 69, gag: 'money_shrine' },
       ],
       outro: [
-        { who: 'tero', text: 'Bottle good. More bottle.' },
+        { text: 'THE ELEVATOR IS OUT OF ORDER.\nOF COURSE IT IS.' },
+        { who: 'tero', text: 'Pipe.' },
+        { who: 'tero', text: '...WHEEEE!' },
       ],
     },
 
@@ -184,7 +209,7 @@ export const STORY = defineStory({
       // The arena stays clean: just the projector screen and the elevator.
       quiet: [[60, 79]],
       intro: [
-        { text: 'FLOOR 12 — THE BOARDROOM.' },
+        { text: 'A VENT GRATE CLATTERS TO THE FLOOR.\nFLOOR 12 — THE BOARDROOM.' },
         { who: 'boss', text: 'Your father is in a meeting.\nHe has been in a meeting since March.' },
       ],
       triggers: [
@@ -518,6 +543,79 @@ export const STORY = defineStory({
         { who: 'dad', text: 'Let\'s go home, buddy.' },
         { who: 'tero', text: 'Home.' },
         { text: 'DAD TOOK THE REST OF THE YEAR OFF.\nTHE QUARTERLY REPORT WAS LATE.\nNOBODY DIED.' },
+      ],
+    },
+
+    // ── Between floors: Elvis's happy place ─────────────────────────────────
+    '10': {
+      decor: 'vents',
+      density: 'sparse',
+      goalWriting: 'crayon_elvis',
+      intro: [
+        { text: 'INSIDE THE VENTILATION DUCTS.\nIT IS WARM. IT SMELLS LIKE DOG.' },
+      ],
+      triggers: [
+        {
+          // Meeting Elvis. Then Tero rides him for the rest of the floor.
+          atTile: 6,
+          lines: [
+            { who: 'elvis', text: 'Hi! Who are you, little one?' },
+            { who: 'tero', text: 'Tero.' },
+            { who: 'elvis', text: 'My name is Elvis. I live here.' },
+            { who: 'tero', text: 'Have you seen my Dada?' },
+            { who: 'elvis', text: 'I haven\'t seen anyone.\nNobody comes in here.' },
+            { who: 'elvis', text: 'They got me because it was trendy.\n"Office dog." "Culture." "Vibes."' },
+            { who: 'elvis', text: 'Then they wanted to cut some costs.\nThey stopped feeding me.' },
+            { who: 'elvis', text: 'Since then I eat from the garbage cans\nand live in these ventilation pipes.' },
+            { who: 'tero', text: '...Ride doggy?' },
+            { who: 'elvis', text: 'Hop on, little one.' },
+          ],
+          effect: 'ride',
+        },
+        {
+          // The resistance camp
+          atTile: 40,
+          lines: [
+            { who: 'marja', text: 'HALT! Who goes— oh.\nIt\'s a baby dragon. On Elvis.' },
+            { who: 'marja', text: 'We are the Resistance.\nWe resist... leaving.' },
+            { who: 'marja', text: 'Thirty years in these pipes.\nThey forgot to fire us. We forgot to go.' },
+            { who: 'tero', text: 'Dada?' },
+            { who: 'marja', text: 'Everybody ends up on Floor 33.\nTake this. You might need it.' },
+            { text: 'TERO GOT A HAND GRENADE.\nIT\'S FULL OF RESIGNATION LETTERS. (G)' },
+            { who: 'marja', text: 'Don\'t tell anyone we\'re here.\nThey\'d schedule a meeting about it.' },
+          ],
+          effect: 'grenade',
+        },
+        {
+          // Elvis remembers Dad
+          atTile: 61,
+          lines: [
+            { who: 'elvis', text: 'Wait. A tired dragon came through here\nonce. Grey. Smelled like coffee.' },
+            { who: 'elvis', text: 'He gave me half his sandwich.\nSaid he\'d be home by Friday.' },
+            { who: 'tero', text: '...Which Friday?' },
+            { who: 'elvis', text: 'He didn\'t say.' },
+          ],
+        },
+      ],
+      scenery: [
+        { atTile: 11, gag: 'graffiti_rainbow' },
+        { atTile: 18, gag: 'graffiti_people' },
+        { atTile: 27, gag: 'graffiti_smiley' },
+        { atTile: 32, gag: 'graffiti_nap' },
+        { atTile: 41, gag: 'sign_resistance' },
+        { atTile: 51, gag: 'graffiti_equal' },
+        { atTile: 57, gag: 'graffiti_heart' },
+        { atTile: 64, gag: 'graffiti_unite' },
+        { atTile: 73, gag: 'graffiti_nobosses' },
+        { atTile: 79, gag: 'graffiti_share' },
+        { atTile: 85, gag: 'graffiti_love' },
+        { atTile: 90, gag: 'graffiti_rainbow' },
+      ],
+      outro: [
+        { who: 'elvis', text: 'This pipe comes out on Floor 12.\nI can\'t go up there.' },
+        { who: 'elvis', text: 'They\'d make me a mascot again.' },
+        { who: 'tero', text: 'Bye, Elvis.' },
+        { who: 'elvis', text: 'Come back for walks, little one.\nGo get your Dada.' },
       ],
     },
   },

@@ -10,7 +10,7 @@ import { TILE_SIZE } from '../constants';
 import { drawHopperSprite } from '../render/sprites/HopperSprite';
 import type { Player } from './Player';
 import { HOPPERS, type HopperSpec, type HopperVariant } from './enemyKinds';
-import { FreedMotion, TIE_COLORS, drawFreedBubble } from './freed';
+import { FreedMotion, TIE_COLORS, drawFreedBubble, drawBubble } from './freed';
 
 export class Hopper extends creaturesAndObjects {
   facingRight = false;
@@ -25,6 +25,21 @@ export class Hopper extends creaturesAndObjects {
   private freed: FreedMotion | null = null;
   /** Set on the tick this worker is sent home; Game counts it and clears it. */
   sentHome = false;
+  /** Set on the tick it lands from a hop (the gorilla shakes the floor). */
+  landed = false;
+  private wasAirborne = false;
+  private quip: { text: string; t: number } | null = null;
+  panic = 0;
+  private fleeX = 0;
+
+  say(text: string, frames = 70): void { this.quip = { text, t: frames }; }
+
+  flee(fromX: number, frames: number): void {
+    if (!this.hittable) return;
+    this.panic = frames;
+    this.fleeX = fromX;
+    this.cooldown = Math.min(this.cooldown, 8);   // hop away right now
+  }
 
   constructor(tx: number, ty: number, variant: HopperVariant = 'manager') {
     const spec = HOPPERS[variant];
@@ -51,6 +66,11 @@ export class Hopper extends creaturesAndObjects {
       return;
     }
 
+    if (this.quip && --this.quip.t <= 0) this.quip = null;
+    if (this.panic > 0) { this.panic--; this.facingRight = this.cx > this.fleeX; }
+    this.landed = this.wasAirborne && this.onGround;
+    this.wasAirborne = !this.onGround;
+
     if (this.onGround) {
       this.vx *= 0.8;
       if (Math.abs(this.vx) < 0.05) this.vx = 0;
@@ -58,8 +78,9 @@ export class Hopper extends creaturesAndObjects {
       this.cooldown--;
       if (this.cooldown <= 0) {
         this.vy = this.spec.vy;
-        this.vx = this.facingRight ? this.spec.vx : -this.spec.vx;
-        this.cooldown = this.spec.interval;
+        const k = this.panic > 0 ? 1.6 : 1;
+        this.vx = (this.facingRight ? this.spec.vx : -this.spec.vx) * k;
+        this.cooldown = this.panic > 0 ? 20 : this.spec.interval;
       }
     }
 
@@ -103,7 +124,7 @@ export class Hopper extends creaturesAndObjects {
       { x: player.x + 2, y: player.y + 4, w: player.w - 4, h: player.h - 4 },
       { x: this.x, y: this.y, w: this.w, h: this.h },
     )) {
-      player.hurt(ctx);
+      player.hurt(ctx, this.variant);
     }
     return false;
   }
@@ -147,6 +168,10 @@ export class Hopper extends creaturesAndObjects {
     if (freed) {
       drawFreedBubble(ctx, freed, this, camX);
       ctx.globalAlpha = 1;
+    } else if (this.quip) {
+      drawBubble(ctx, this.quip.text, this.cx - camX, this.y - 3);
+    } else if (this.panic > 0 && this.panic % 40 < 20) {
+      drawBubble(ctx, '!', this.cx - camX, this.y - 3);
     }
   }
 }

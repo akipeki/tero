@@ -192,7 +192,7 @@ export class Halvorsen extends creaturesAndObjects implements Boss {
     if (this.invuln < INVULN - 20 && !player.isInvincible && !player.isTantrum && overlaps(
       { x: player.x + 3, y: player.y + 4, w: player.w - 6, h: player.h - 4 }, this,
     )) {
-      player.hurt(ctx);
+      player.hurt(ctx, 'halvorsen');
     }
   }
 
@@ -294,11 +294,17 @@ export class Halvorsen extends creaturesAndObjects implements Boss {
       if (!player.isDead && overlaps(hitbox, s.box)) {
         // The laser only hurts on the floor; standing on a bullet is safe.
         if (s.kind === 'laser' && player.bottom < this.floorY - 2) continue;
-        player.hurt(ctx);
+        player.hurt(ctx, 'halvorsen');
         if (s.kind !== 'laser') s.active = false;
       }
     }
     this.shots = this.shots.filter((s) => s.active);
+  }
+
+  blast(ctx: UpdateCtx): void {
+    if (this.phase !== 'fight') return;
+    this.invuln = 0;
+    this.takeHit(ctx);
   }
 
   private takeHit(ctx: UpdateCtx): void {

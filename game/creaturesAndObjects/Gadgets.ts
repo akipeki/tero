@@ -16,6 +16,10 @@ import { TILE_SIZE } from '../constants';
 import type { Player } from './Player';
 import { drawText } from '../render/pixel/font';
 import { Raster } from '../render/pixel/Raster';
+import { drawElvisAt, drawBarrelFire } from '../render/office/ventArt';
+import { drawWalkerSprite } from '../render/sprites/WalkerSprite';
+import { drawBubble } from './freed';
+import type { WalkerVariant } from './enemyKinds';
 
 export const SPRING_VY = -17;
 
@@ -211,6 +215,7 @@ export const DAD_THINGS: Record<string, { name: string; note: string }> = {
   book:     { name: '"HOW TO SAY NO"',          note: 'BOOKMARK ON PAGE 2' },
   remote:   { name: 'THE TV REMOTE',            note: 'SATURDAY CARTOONS' },
   key:      { name: 'THE HOUSE KEY',            note: 'STILL FITS' },
+  sandwich: { name: 'HALF A SANDWICH WRAPPER',  note: 'IN DAD\'S WRITING: "FOR THE DOG"' },
 };
 
 export class DadThing extends creaturesAndObjects {
@@ -247,4 +252,54 @@ export class DadThing extends creaturesAndObjects {
       ctx.fillRect(x + 12, y - 3, 2, 2);
     }
   }
+}
+
+// ─── The vents' residents ────────────────────────────────────────────────────
+
+/** Elvis, sitting and wagging until Tero arrives. Once Tero rides him,
+ *  Game draws him under Tero instead and this one hides. */
+export class ElvisNpc extends creaturesAndObjects {
+  t = 0;
+  constructor(tx: number, ty: number) {
+    super(tx * TILE_SIZE - 26, ty * TILE_SIZE + TILE_SIZE - 40, 52, 40);
+  }
+  update(): void { this.t++; }
+  draw(ctx: CanvasRenderingContext2D, camX: number): void {
+    drawElvisAt(ctx, this.cx - camX, this.bottom, this.t % 60 < 30 ? 'sit' : 'run0', false);
+  }
+}
+
+/** One of the people who live in the pipes. Already free: warm faces. */
+export class Npc extends creaturesAndObjects {
+  /** Neighbours take turns talking: each gets its own slot in the cycle. */
+  private static count = 0;
+  private t: number;
+  private lineIdx = 0;
+  constructor(tx: number, ty: number, readonly variant: WalkerVariant, private lines: string[] = [], private facing = false) {
+    super(tx * TILE_SIZE + 5, ty * TILE_SIZE + TILE_SIZE - 24, 22, 24);
+    this.t = (Npc.count++ % 4) * 90;
+  }
+  update(): void {
+    this.t++;
+    if (this.t % 360 === 0 && this.lines.length) this.lineIdx = (this.lineIdx + 1) % this.lines.length;
+  }
+  draw(ctx: CanvasRenderingContext2D, camX: number): void {
+    drawWalkerSprite(ctx, {
+      x: this.x, y: this.y, w: this.w, h: this.h, camX, facingRight: this.facing, animFrame: 0,
+      dying: false, scaleY: 1, variant: this.variant, freed: true, animTick: this.t,
+    });
+    if (this.lines.length && this.t % 360 < 85) drawBubble(ctx, this.lines[this.lineIdx], this.cx - camX, this.y - 3);
+  }
+}
+
+export class Barrel extends creaturesAndObjects {
+  private t = 0;
+  constructor(tx: number, ty: number) {
+    super(tx * TILE_SIZE + 7, ty * TILE_SIZE + TILE_SIZE - 22, 18, 22);
+  }
+  update(ctx: UpdateCtx): void {
+    this.t++;
+    if (this.t % 10 === 0) ctx.particles.burst(this.cx, this.y - 6, 1, '#ffd23f', '#ff8c3a');
+  }
+  draw(ctx: CanvasRenderingContext2D, camX: number): void { drawBarrelFire(ctx, this.cx - camX, this.bottom, this.t); }
 }

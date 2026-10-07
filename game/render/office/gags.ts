@@ -25,6 +25,8 @@ export interface Gag {
   storyOnly?: boolean;
   /** Only auto-fill on these floor décors (e.g. the Ferrari on the penthouse). */
   floors?: DecorId[];
+  /** Not muted like other scenery (the vents' happy graffiti). */
+  bright?: boolean;
   draw: () => Raster;
 }
 
@@ -130,6 +132,28 @@ function crayonWall(lines: string[], colors: string[]): Raster {
   // pale halo so it reads over posters and windows behind it
   return r.outline('#f4ecd2');
 }
+
+/** Spray-paint graffiti on the duct wall: chunky letters, drips. */
+function graffiti(lines: string[], colors: string[]): Raster {
+  const scale = 2;
+  const w = Math.max(...lines.map((l) => textWidth(l, scale))) + 10;
+  const top = 34;
+  const r = new Raster(w, top + lines.length * 14 + 8);
+  lines.forEach((line, li) => {
+    const lw = textWidth(line, scale);
+    const color = colors[li % colors.length];
+    drawTextCentered(r, line, 0, w, top + li * 14, color, scale);
+    // paint drips under a few letters
+    for (let x = Math.floor((w - lw) / 2) + 3; x < (w + lw) / 2; x += 9) {
+      if ((x * 7 + li) % 3) continue;
+      r.rect(x, top + li * 14 + 10, 1, 2 + ((x + li) % 4), color);
+    }
+  });
+  return r.outline('#1b1620');
+}
+
+/** A happy vents gag: bright, only auto-placed in the vents. */
+const vent = (draw: () => Raster): Gag => ({ kind: 'hang', tier: 1, floors: ['vents'], bright: true, draw });
 
 /** A dark silhouette standing on `foot`, `h` px tall. */
 function silhouette(r: Raster, x: number, foot: number, h: number, color: string): void {
@@ -400,6 +424,42 @@ const ROOM_FLOORS: DecorId[] = ['boardroom', 'legal', 'lab', 'security', 'execut
 const CRAYON = { purple: '#7b3fb8', red: '#d8323a', orange: '#f07a1a', blue: '#2f62d8', green: '#2f9a3a' } as const;
 
 export const GAGS = {
+  // ─── The vents: Elvis's happy place ────────────────────────────────────────
+  graffiti_people:   vent(() => graffiti(['PEOPLE OVER', 'PROFIT'], ['#3fd84a', '#ffd23f'])),
+  graffiti_equal:    vent(() => graffiti(['EVERYONE IS', 'EQUAL HERE'], ['#ff77a8', '#ffd23f'])),
+  graffiti_nap:      vent(() => graffiti(['NAPS ARE A', 'HUMAN RIGHT'], ['#29adff', '#ff8c3a'])),
+  graffiti_unite:    vent(() => graffiti(['WORKERS UNITE', '(AFTER SNACKS)'], ['#d83b3b', '#ffd23f'])),
+  graffiti_nobosses: vent(() => graffiti(['NO BOSSES', 'IN THE PIPES'], ['#ffd23f', '#3fd84a'])),
+  graffiti_share:    vent(() => graffiti(['SHARE YOUR', 'LUNCH'], ['#ff8c3a', '#29adff'])),
+  graffiti_love:     vent(() => graffiti(['LOVE IS FREE.', 'RENT IS NOT.'], ['#ff77a8', '#c9ced6'])),
+  graffiti_rainbow:  vent(() => {
+    const r = new Raster(72, 64);
+    const bands = ['#d83b3b', '#ff8c3a', '#ffd23f', '#3fd84a', '#29adff', '#7b3fb8'];
+    bands.forEach((c, i) => {
+      for (let a = 0; a <= 180; a += 2) {
+        const rad = (a * Math.PI) / 180, rr = 32 - i * 3;
+        r.rect(Math.round(36 - Math.cos(rad) * rr), Math.round(62 - Math.sin(rad) * rr), 2, 2, c);
+      }
+    });
+    return r;
+  }),
+  graffiti_smiley:   vent(() => {
+    const r = new Raster(40, 60);
+    r.part('#1b1620', (t) => t.ellipse(20, 40, 15, 15, '#ffd23f'));
+    r.rect(14, 33, 3, 5, '#1b1620'); r.rect(23, 33, 3, 5, '#1b1620');
+    for (let x = 11; x <= 29; x++) r.px(x, 44 + Math.round(Math.sin(((x - 11) / 18) * Math.PI) * 4), '#1b1620');
+    return r;
+  }),
+  graffiti_heart:    vent(() => {
+    const r = new Raster(64, 70);
+    r.part('#1b1620', (t) => { t.ellipse(22, 40, 10, 10, '#ff77a8'); t.ellipse(40, 40, 10, 10, '#ff77a8'); t.tri(12, 44, 50, 44, 31, 64, '#ff77a8'); });
+    drawTextCentered(r, 'ELVIS +', 0, 64, 36, '#ffffff');
+    drawTextCentered(r, 'EVERYONE', 0, 64, 43, '#ffffff');
+    return r;
+  }),
+  /** The resistance's banner over their camp. */
+  sign_resistance:   { ...vent(() => graffiti(['THE RESISTANCE', '(WE RESIST LEAVING)'], ['#ffd23f', '#c9ced6'])), storyOnly: true },
+
   banner_synergy:   hang(() => banner(['SYNERGY: MANDATORY'], C.navy, C.yellow)),
   banner_mondays:   hang(() => banner(['WE ♥ MONDAYS'], C.red, C.white)),
   banner_blame:     hang(() => banner(['TEAMWORK = BLAME'], C.teal, C.white)),
@@ -1500,6 +1560,7 @@ export const GAGS = {
   // ═══ Tero's crayon on the walls — story-only ══════════════════════════════
 
   crayon_power:    clueHang(() => crayonWall(['POWER TO', 'THE DADAS!'], [CRAYON.red, CRAYON.purple])),
+  crayon_elvis:    clueHang(() => crayonWall(['ELVIS IS A', 'GOOD BOY'], [CRAYON.orange, CRAYON.blue])),
   crayon_unite:    clueHang(() => crayonWall(['DADAS OF THE WORLD,', 'UNITE!'], [CRAYON.purple, CRAYON.red])),
   crayon_want:     clueHang(() => crayonWall(['WHAT DO WE WANT? DADA!', 'WHEN DO WE WANT HIM?', 'AFTER NAP!'], [CRAYON.blue, CRAYON.orange, CRAYON.red])),
   crayon_go_home:  clueHang(() => crayonWall(['WORKERS OF THE WORLD —', 'GO HOME'], [CRAYON.green, CRAYON.red])),

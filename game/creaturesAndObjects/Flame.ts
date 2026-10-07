@@ -21,6 +21,8 @@ export class Flame extends creaturesAndObjects {
   readonly frees: boolean;
   /** Paper tiles burnt by this flame this tick — Game turns them into rage. */
   burned = 0;
+  /** Which tiles it burnt this tick (Game spreads the fire from them). */
+  burntTiles: [number, number][] = [];
   private seed = Math.random() * 1000;
 
   constructor(x: number, y: number, vx: number, vy: number, life: number, frees: boolean) {
@@ -37,6 +39,7 @@ export class Flame extends creaturesAndObjects {
 
   update(ctx: UpdateCtx): void {
     this.burned = 0;
+    this.burntTiles = [];
     this.x += this.vx;
     this.y += this.vy;
     this.vy -= 0.04;            // hot air rises
@@ -61,9 +64,9 @@ export class Flame extends creaturesAndObjects {
         const t = ctx.map.tileAt(tx, ty);
         if (t !== TileType.PAPER && t !== TileType.TAPE) continue;
         ctx.map.setTile(tx, ty, TileType.AIR);
-        ctx.particles.burst(tx * TILE_SIZE + 16, ty * TILE_SIZE + 16, 10, '#fbf8ee', MID);
-        ctx.particles.burst(tx * TILE_SIZE + 16, ty * TILE_SIZE + 16, 6, SMOKE, EDGE);
+        burnTileFx(ctx, tx, ty);
         this.burned++;
+        this.burntTiles.push([tx, ty]);
       }
     }
     if (this.burned) ctx.audio.play('burn');
@@ -103,4 +106,10 @@ export class Flame extends creaturesAndObjects {
     ctx.fillRect(tx, y - 3 - flick * 2, 2, 4 + flick * 2);
     ctx.globalAlpha = 1;
   }
+}
+
+/** Sparks, scraps of paper and smoke where a tile went up. */
+export function burnTileFx(ctx: UpdateCtx, tx: number, ty: number): void {
+  ctx.particles.burst(tx * TILE_SIZE + 16, ty * TILE_SIZE + 16, 10, '#fbf8ee', MID);
+  ctx.particles.burst(tx * TILE_SIZE + 16, ty * TILE_SIZE + 16, 6, SMOKE, EDGE);
 }

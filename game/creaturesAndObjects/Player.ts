@@ -77,6 +77,25 @@ export class Player extends creaturesAndObjects {
   syncImmune = 0;
   /** Wading through red tape this tick (slow feet, weak jumps). */
   inTape = false;
+  /** "Bring Your Kid to Work Day": no lives lost, pits put you back on the
+   *  last safe ground, the meter fills twice as fast. Set by Game. */
+  assist = false;
+  /** What last hurt Tero (for the playtest log). */
+  lastCause = 'unknown';
+  /** Last spot he stood safely on (assist mode's pit rescue). */
+  private safeX = 0;
+  private safeY = 0;
+  /** Set for one tick when assist mode rescued him from a pit. */
+  rescued = false;
+  /** Where he was when he last died (die() then moves him to spawn). */
+  deathX = 0;
+  deathY = 0;
+
+  /** Riding Elvis (the vents): faster, higher jumps, bumps don't hurt. */
+  riding = false;
+  /** Set for one tick when a bump knocked him back on Elvis (Elvis yelps). */
+  bumped = false;
+
   /** Picked up the golden parachute on this floor. */
   hasChute = false;
   /** Gliding under it right now (drawn by Game). */
@@ -89,6 +108,8 @@ export class Player extends creaturesAndObjects {
   constructor(x: number, y: number, lives: number) {
     super(x, y, SMALL_W, SMALL_H);
     this.lives = lives;
+    this.safeX = x;
+    this.safeY = y;
     this.syncPrev();
   }
 
@@ -119,7 +140,7 @@ export class Player extends creaturesAndObjects {
   addRage(amount: number): void {
     if (this.isTantrum) return;   // the meter refills only after the tantrum
     const wasFull = this.rageFull;
-    this.rage = Math.min(TANTRUM_MAX, this.rage + amount);
+    this.rage = Math.min(TANTRUM_MAX, this.rage + amount * (this.assist ? 2 : 1));
     if (!wasFull && this.rageFull) this.rageJustFilled = true;
   }
 
@@ -134,9 +155,20 @@ export class Player extends creaturesAndObjects {
     return true;
   }
 
-  /** Called by Game when player touches enemy (side/top from above enemy) */
-  hurt(ctx: UpdateCtx): void {
+  /** Called when something hurts Tero. `cause` is what did it (an enemy
+   *  variant, 'tacks', 'pit', 'boss'…) — the playtest log records it. */
+  hurt(ctx: UpdateCtx, cause = 'unknown'): void {
     if (this.invincible > 0 || this.isTantrum) return;
+    if (this.riding && cause !== 'pit') {
+      // Elvis takes the bump: a yelp, a bounce back, no harm done.
+      this.vx = this.facingRight ? -5 : 5;
+      this.vy = -6;
+      this.invincible = 50;
+      this.bumped = true;
+      ctx.audio.play('hurt');
+      return;
+    }
+    this.lastCause = cause;
     this.justHurt = true;
     this.addRage(RAGE_HURT);
     if (this.isBig) {
@@ -144,7 +176,7 @@ export class Player extends creaturesAndObjects {
       ctx.shake.trigger(4);
       ctx.audio.play('hurt');
     } else {
-      this.die(ctx);
+      this.die(ctx, cause);
     }
   }
 
@@ -163,7 +195,7 @@ export class Player extends creaturesAndObjects {
     const oldBottom = this.bottom;
     this.h = SMALL_H;
     this.y = oldBottom - SMALL_H;
-    this.invincible = INVINCIBLE_FRAMES;
+    this.invincible = INVINCIBLE_FRAMES * (this.assist ? 2 : 1);
     this.setState(PlayerState.HURT_FLASH);
   }
 
@@ -179,8 +211,11 @@ export class Player extends creaturesAndObjects {
     this.squashTimer = 10;
   }
 
-  die(ctx: UpdateCtx): void {
-    this.lives--;
+  die(ctx: UpdateCtx, cause?: string): void {
+    if (cause) this.lastCause = cause;
+    this.deathX = this.cx;
+    this.deathY = this.bottom;
+    if (!this.assist) this.lives--;   // Bring Your Kid to Work Day: dying is free
     this.syncFrames = 0;
     this.tantrumFrames = 0;
     this.justHurt = true;
@@ -205,6 +240,8 @@ export class Player extends creaturesAndObjects {
   }
 
   respawn(tx: number, ty: number): void {
+    this.safeX = tx * TILE_SIZE;
+    this.safeY = ty * TILE_SIZE - SMALL_H;
     this.x = tx * TILE_SIZE;
     this.y = ty * TILE_SIZE - SMALL_H;
     this.vx = 0;
@@ -288,13 +325,13 @@ export class Player extends creaturesAndObjects {
     const a = this.actions;
 
     // Duck (only while grounded and small — Big Tero can't duck through low gaps yet)
-    const wantsDuck = (a & Action.DOWN) !== 0 && this.onGround;
+    const wantsDuck = (a & Action.DOWN) !== 0 && this.onGround && !this.riding;
     this.setDucking(wantsDuck);
 
     // Horizontal — ducking halves walk speed
     const maxSpeed = (this.ducking ? WALK_SPEED * 0.4
       : this.isTantrum ? WALK_SPEED * TANTRUM_SPEED
-      : WALK_SPEED) * (this.inTape ? TAPE_SLOW : 1);
+      : WALK_SPEED) * (this.inTape ? TAPE_SLOW : 1) * (this.riding ? 1.45 : 1);
     if (this.inTape) this.vx = Math.max(-maxSpeed, Math.min(maxSpeed, this.vx));
     if (this.inTape && this.vy > 2) this.vy = 2;   // you sink through it slowly
 
@@ -319,7 +356,7 @@ export class Player extends creaturesAndObjects {
 
     // Execute jump
     if (this.jumpBuffer > 0 && this.coyoteFrames > 0 && !this.ducking) {
-      this.vy = JUMP_FORCE * (this.inTape ? TAPE_JUMP : 1);
+      this.vy = JUMP_FORCE * (this.inTape ? TAPE_JUMP : 1) * (this.riding ? 1.12 : 1);
       this.jumpBuffer = 0;
       this.coyoteFrames = 0;
       this.scaleX = 0.8;
@@ -361,8 +398,29 @@ export class Player extends creaturesAndObjects {
 
     // Hazard probe at both foot corners (single-point probe missed straddle cases).
     if (this.y > VIEWPORT_H + 48) {
-      this.die(ctx);   // a pit is fatal, big or raging
+      if (this.assist) {
+        // Bring Your Kid to Work Day: a grown-up lifts you back out.
+        this.deathX = this.cx;              // where he fell, for the playtest log
+        this.deathY = VIEWPORT_H;
+        this.x = this.safeX;
+        this.y = this.safeY;
+        this.vx = this.vy = 0;
+        this.syncPrev();
+        this.lastCause = 'pit';
+        this.invincible = INVINCIBLE_FRAMES;
+        this.rescued = true;
+        this.addRage(RAGE_HURT);
+        ctx.audio.play('hurt');
+        return;
+      }
+      this.die(ctx, 'pit');   // a pit is fatal, big or raging
       return;
+    }
+    if (this.onGround && !this.inTape) {
+      const below = ctx.map.tileAtWorld(this.cx, this.bottom + 2);
+      const edgeL = ctx.map.solidAt(this.left + 1, this.bottom + 2);
+      const edgeR = ctx.map.solidAt(this.right - 1, this.bottom + 2);
+      if (below !== TileType.HAZARD && edgeL && edgeR) { this.safeX = this.x; this.safeY = this.y; }
     }
     const footY = this.bottom - 1;
     if (
@@ -370,7 +428,7 @@ export class Player extends creaturesAndObjects {
       ctx.map.hazardAt(this.right - 2, footY) ||
       ctx.map.hazardAt(this.cx, footY)
     ) {
-      this.hurt(ctx);
+      this.hurt(ctx, 'tacks');
     }
   }
 

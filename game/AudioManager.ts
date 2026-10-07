@@ -16,7 +16,8 @@ type SfxName =
   | 'jump' | 'stomp' | 'powerup' | 'hurt' | 'death'
   | 'goal' | 'block' | 'coin' | 'checkpoint' | 'text' | 'plop' | 'dada'
   | 'puff' | 'fire' | 'burn' | 'free' | 'ready' | 'roar'
-  | 'laser' | 'bossHit' | 'click' | 'unlock' | 'sync' | 'hide' | 'fax' | 'boing' | 'alarm';
+  | 'laser' | 'bossHit' | 'click' | 'unlock' | 'sync' | 'hide' | 'fax' | 'boing' | 'alarm' | 'error'
+  | 'boom' | 'woof';
 
 interface ToneSpec {
   freq: number;
@@ -65,6 +66,10 @@ const SFX_TONES: Record<Exclude<SfxName, 'dada' | 'roar'>, ToneSpec> = {
   fax:        { freq: 1200, duration: 0.07, type: 'square', freqs: [1200, 2100, 1650, 2400, 980, 2100], gain: 0.07 },
   boing:      { freq: 180, duration: 0.3, type: 'square', slideTo: 720, gain: 0.14 },
   alarm:      { freq: 880, duration: 0.16, type: 'sawtooth', freqs: [880, 660, 880, 660, 880, 660], gain: 0.1 },
+  // The Windows "chord" of disapproval
+  error:      { freq: 220, duration: 0.11, type: 'square', freqs: [440, 330, 165], gain: 0.14 },
+  boom:       { freq: 160, duration: 0.6, type: 'sawtooth', slideTo: 30, gain: 0.22, noise: 0.7, noiseHz: 120 },
+  woof:       { freq: 260, duration: 0.12, type: 'square', freqs: [300, 220], gain: 0.16 },
 };
 
 /** Music bus level before the volume slider. */

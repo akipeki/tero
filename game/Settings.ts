@@ -13,6 +13,8 @@ export interface PersistedSettings {
   showTimer?:   boolean;
   /** Casual Friday mode (once unlocked). */
   casualFriday?: boolean;
+  /** Bring Your Kid to Work Day: the assist mode. */
+  assist?: boolean;
 }
 
 const DEFAULTS: PersistedSettings = {
@@ -32,6 +34,7 @@ export function loadSettings(): PersistedSettings {
       lastLevelId: parsed.lastLevelId,
       showTimer:   parsed.showTimer === true,
       casualFriday: parsed.casualFriday === true,
+      assist:       parsed.assist === true,
     };
   } catch {
     return { ...DEFAULTS };

@@ -51,6 +51,8 @@ export class InputHandler {
   get jumpPressed(): boolean { return this.justPressedAction(Action.JUMP); }
   get pause():       boolean { return this.justPressedAction(Action.PAUSE); }
   get firePressed(): boolean { return this.justPressedAction(Action.FIRE); }
+  get callPressed(): boolean { return this.justPressedAction(Action.CALL); }
+  get throwPressed(): boolean { return this.justPressedAction(Action.THROW); }
 
   /** Mobile: called by React overlay buttons */
   setMobile(action: Action, down: boolean): void {
@@ -120,6 +122,8 @@ function keyToAction(key: string): Action {
     case 'Escape':     case 'p': case 'P': return Action.PAUSE;
     case 'x': case 'X': case 'f': case 'F':
     case 'Shift':                          return Action.FIRE;
+    case 'c': case 'C':                    return Action.CALL;
+    case 'g': case 'G':                    return Action.THROW;
     default: return 0 as Action;
   }
 }

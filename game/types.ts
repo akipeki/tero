@@ -9,6 +9,8 @@ export const enum GameState {
   WIN       = 'WIN',
   /** A story sequence is on screen; the world is frozen behind it. */
   STORY     = 'STORY',
+  /** The job application window is open (Floor 6); the world is frozen. */
+  QUIZ      = 'QUIZ',
 }
 
 // ─── Input ───────────────────────────────────────────────────────────────────
@@ -20,6 +22,10 @@ export const enum Action {
   DOWN  = 1 << 4,
   /** Breathe fire: a little puff, or the full TANTRUM when the meter is full. */
   FIRE  = 1 << 5,
+  /** Shout "DADA!" (useless, mostly. Also a hint: Dad's things answer.) */
+  CALL  = 1 << 6,
+  /** Throw the resistance's grenade (if Tero has it). */
+  THROW = 1 << 7,
 }
 
 // ─── Tiles ───────────────────────────────────────────────────────────────────
@@ -71,7 +77,14 @@ export const enum creaturesAndObjectsType {
 // ─── Spawn definitions (in level data) ───────────────────────────────────────
 export interface EnemySpawn { type: EnemyType; tx: number; ty: number }
 export interface BlockSpawn  { type: 'question'; tx: number; ty: number }
-export interface GoalSpawn   { tx: number; ty: number }
+export interface GoalSpawn   {
+  tx: number; ty: number;
+  /** 'elevator' (default) · 'broken' = OUT OF ORDER, with a vent pipe to jump
+   *  into beside it · 'vent' = just a duct opening (inside the vents). */
+  kind?: 'elevator' | 'broken' | 'vent';
+  /** Sign over a vent opening (e.g. 'FLOOR 12'). */
+  label?: string;
+}
 export interface PlayerSpawn { tx: number; ty: number }
 export interface CoinSpawn   { tx: number; ty: number }
 export interface CheckpointSpawn { tx: number; ty: number }
@@ -86,9 +99,15 @@ export type GadgetSpawn =
   /** The golden parachute pickup: hold jump while falling to glide. */
   | { type: 'chute'; tx: number; ty: number }
   /** One of Dad's things (ids in Gadgets.DAD_THINGS) — one per floor. */
-  | { type: 'thing'; tx: number; ty: number; id: string };
+  | { type: 'thing'; tx: number; ty: number; id: string }
+  /** Elvis, waiting to be met (the vents). */
+  | { type: 'elvis'; tx: number; ty: number }
+  /** Someone who lives here (the resistance). `lines` = idle chatter. */
+  | { type: 'npc'; tx: number; ty: number; variant: 'clerk' | 'guard' | 'syncer' | 'rat' | 'pig'; lines?: string[]; facingRight?: boolean }
+  /** The resistance's oil-drum fire. */
+  | { type: 'barrel'; tx: number; ty: number };
 /** A boss and the left column of its one-screen arena. */
-export interface BossSpawn { type: 'halvorsen' | 'board'; arenaTx: number }
+export interface BossSpawn { type: 'halvorsen' | 'board' | 'recruiter'; arenaTx: number }
 
 export interface LevelSpawns {
   player:      PlayerSpawn;
@@ -126,6 +145,10 @@ export interface HudData {
   tantrum:  boolean;
   /** Workers freed this run — the "sent home" counter. */
   sentHome: number;
+  /** Bring Your Kid to Work Day is on. */
+  assist: boolean;
+  /** Grenades carried. */
+  grenades: number;
   /** Whole-game run time so far (speedrun timer), ms. */
   runMs: number;
   /** Seconds until Monday on the escape run, else null. */

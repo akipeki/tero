@@ -23,6 +23,7 @@ function hideBoxUrl(): string {
 
 interface EndScreenPayload {
   state: 'WIN' | 'GAME_OVER';
+  cause?: string;
   final?: FinalRun;
   stats: RunStats;
   best: { timeMs: number; score: number } | null;
@@ -86,8 +87,10 @@ export default function GameContainer() {
 
   const [hud, setHud] = useState<HudData>({
     lives: STARTING_LIVES, maxLives: STARTING_LIVES, isBig: false, coins: 0, state: GameState.TITLE,
-    rage: 0, tantrum: false, sentHome: 0, boss: null, countdown: null, runMs: 0,
+    rage: 0, tantrum: false, sentHome: 0, boss: null, countdown: null, runMs: 0, assist: false, grenades: 0,
   });
+  /** The job application window (Floor 6). */
+  const [quizOpen, setQuizOpen] = useState(false);
   /** Big centre-screen shout ("TANTRUM!!"); the key restarts the animation. */
   const [callout, setCallout] = useState<{ id: number; text: string } | null>(null);
   const initialSettings = useMemo(() => loadSettings(), []);
@@ -119,6 +122,7 @@ export default function GameContainer() {
     game.onEndScreen = setEndScreen;
     game.onScore = (s) => setScore(s);
     game.onStory = setStory;
+    game.onQuiz = setQuizOpen;
     game.onStoryReveal = (n) => storyRevealRef.current?.(n);
     game.onChain = (chainSize, bonus) => {
       if (bonus > 0) pushFloater(`+${bonus} CHAIN×${chainSize}`);
@@ -206,6 +210,8 @@ export default function GameContainer() {
 
     gameRef.current = game;
     game.start();
+    const onLeave = () => game.recordQuit();
+    window.addEventListener('pagehide', onLeave);
 
     // Honour ?level=<id> — jumps straight into PLAYING with that level.
     // Used by the Field Editor's Test ▶ button: /game?level=u_level_xxx.
@@ -219,6 +225,8 @@ export default function GameContainer() {
     // (AudioManager stores muted flag separately; volume slider scales master gain via setMuted equivalent.)
     return () => {
       mq.removeEventListener('change', onMq);
+      window.removeEventListener('pagehide', onLeave);
+      game.recordQuit();
       game.stop();
       gameRef.current = null;
     };
@@ -322,7 +330,7 @@ export default function GameContainer() {
     else await wrap.requestFullscreen?.();
   }, []);
 
-  const { state, lives, maxLives, isBig, coins, rage, tantrum, sentHome, boss, countdown, runMs } = hud;
+  const { state, lives, maxLives, isBig, coins, rage, tantrum, sentHome, boss, countdown, runMs, assist, grenades } = hud;
   const isPlaying  = state === GameState.PLAYING;
   const isPaused   = state === GameState.PAUSED;
   const isTitle    = state === GameState.TITLE;
@@ -400,6 +408,16 @@ export default function GameContainer() {
           </p>
         )}
 
+        {/* ── JOB APPLICATION ── */}
+        {quizOpen && (
+          <div className="absolute inset-0 flex items-center justify-center" style={{ background: 'rgba(10,10,20,0.55)' }}>
+            <JobApplication
+              onSound={(k) => gameRef.current?.quizSound(k)}
+              onDone={(wrong) => gameRef.current?.quizDone(wrong)}
+            />
+          </div>
+        )}
+
         {/* ── STORY ── inside the viewport so the box sits on the game area */}
         {story && (
           <StoryBox
@@ -420,45 +438,43 @@ export default function GameContainer() {
           <p className="pixel-sub mt-3" style={{ color: '#ffd23f', letterSpacing: '0.2em' }}>{GAME_SUBTITLE}</p>
           <p className="pixel-sub mt-6" style={{ color: '#fff1e8' }}>PRESS ENTER OR TAP TO PLAY</p>
           <p className="pixel-hint mt-4" style={{ color: '#a7f070' }}>
-            ARROWS / WASD &nbsp;|&nbsp; SPACE = JUMP &nbsp;|&nbsp; DOWN = HIDE &nbsp;|&nbsp; X = FIRE &nbsp;|&nbsp; M = MUTE &nbsp;|&nbsp; T = TIMER
+            ARROWS / WASD &nbsp;|&nbsp; SPACE = JUMP &nbsp;|&nbsp; DOWN = HIDE &nbsp;|&nbsp; X = FIRE &nbsp;|&nbsp; C = DADA! &nbsp;|&nbsp; G = GRENADE &nbsp;|&nbsp; M = MUTE &nbsp;|&nbsp; T = TIMER
           </p>
           <button className="pixel-btn mt-10" onClick={handleStart} aria-label="Start game">▶ PLAY</button>
-          <CasualFridayToggle />
-        </PixelOverlay>
-      )}
-
-      {/* ── PAUSED ── */}
-      {isPaused && (
-        <PixelOverlay dim>
-          <p className="pixel-title" style={{ color: '#fff1e8' }}>PAUSED</p>
-          <p className="pixel-hint mt-6" style={{ color: '#c2c3c7' }}>ESC / P TO RESUME</p>
-          <div className="mt-6 flex flex-col items-center gap-3">
-            <button className="pixel-btn" onClick={handlePauseToggle} aria-label="Resume">▶ RESUME</button>
-            <button className="pixel-btn" onClick={handleRetry} aria-label="Restart level">↺ RESTART</button>
-            <button
-              className="pixel-btn"
-              onClick={() => { gameRef.current?.signal('quit'); }}
-              aria-label="Back to title"
-            >
-              ⌂ TITLE
-            </button>
+          <div className="flex flex-wrap justify-center gap-3">
+            <ModeToggle
+              setting="assist" label="♥ BRING YOUR KID TO WORK DAY" color="#a7f070"
+              onChange={(on) => gameRef.current?.setAssist(on)}
+            />
+            <CasualFridayToggle />
           </div>
         </PixelOverlay>
       )}
 
-      {/* ── GAME OVER ── */}
+      {/* ── PAUSED: a Windows 95 dialog ── */}
+      {isPaused && (
+        <PixelOverlay dim>
+          <Win95 title="PAUSED.EXE" onClose={handlePauseToggle}>
+            <p style={{ margin: '4px 0 14px', lineHeight: 1.45 }}>
+              ⓘ&nbsp; This game has performed a legal operation<br />and has been paused. Press ESC to resume.
+            </p>
+            <div className="flex flex-wrap justify-center gap-2">
+              <button style={W95_BTN} onClick={handlePauseToggle} aria-label="Resume">Resume</button>
+              <button style={W95_BTN} onClick={handleRetry} aria-label="Restart level">Restart floor</button>
+              <ModeToggle
+                variant="win95" setting="assist" label="Kid mode" color="#1b5e20"
+                onChange={(on) => gameRef.current?.setAssist(on)}
+              />
+              <QuitButton onQuit={() => gameRef.current?.signal('quit')} />
+            </div>
+          </Win95>
+        </PixelOverlay>
+      )}
+
+      {/* ── GAME OVER: the HR exit interview ── */}
       {isGameOver && endScreen && (
         <PixelOverlay dim style={{ background: 'rgba(10,0,0,0.82)' }}>
-          <p className="pixel-title" style={{ color: '#ff004d' }}>GAME OVER</p>
-          <StatsBlock stats={endScreen.stats} best={endScreen.best} />
-          <button
-            className="pixel-btn mt-8"
-            style={{ borderColor: '#ff004d', color: '#ff004d' }}
-            onClick={handleRetry}
-            aria-label="Retry level"
-          >
-            ↺ RETRY
-          </button>
+          <ExitInterview stats={endScreen.stats} cause={endScreen.cause} onRetry={handleRetry} />
         </PixelOverlay>
       )}
 
@@ -507,6 +523,8 @@ export default function GameContainer() {
             <span style={{ color: '#ffcd75' }}>● {coins}</span>
             <span style={{ color: '#fff1e8' }}>{score.toString().padStart(5, '0')}</span>
             <TantrumMeter rage={rage} tantrum={tantrum} />
+            {assist && <span style={{ color: '#a7f070' }} title="Bring Your Kid to Work Day: no lives lost">♥ KID</span>}
+            {grenades > 0 && <span style={{ color: '#ffd23f' }} title="A hand grenade full of resignation letters. G to throw.">💣 G</span>}
             <span style={{ color: '#a7f070' }} title="Workers sent home to their kids">⌂ {sentHome}</span>
           </div>
 
@@ -587,6 +605,8 @@ export default function GameContainer() {
           </div>
           <div className="absolute bottom-5 right-4 flex gap-2 select-none">
             <MobileBtn onDown={handlePauseToggle} onUp={() => {}}>‖</MobileBtn>
+            <MobileBtn onDown={() => mobileDown(Action.CALL)} onUp={() => mobileUp(Action.CALL)}>📣</MobileBtn>
+            {grenades > 0 && <MobileBtn onDown={() => mobileDown(Action.THROW)} onUp={() => mobileUp(Action.THROW)}>💣</MobileBtn>}
             <MobileBtn onDown={() => mobileDown(Action.FIRE)} onUp={() => mobileUp(Action.FIRE)}>🔥</MobileBtn>
             <MobileBtn large onDown={() => mobileDown(Action.JUMP)} onUp={() => mobileUp(Action.JUMP)}>▲</MobileBtn>
           </div>
@@ -649,6 +669,187 @@ function StatsBlock({
   );
 }
 
+// ─── Windows 95 ───────────────────────────────────────────────────────────────
+const W95_FONT = 'Tahoma, "MS Sans Serif", "Segoe UI", Arial, sans-serif';
+const W95_BTN: React.CSSProperties = {
+  fontFamily: W95_FONT, fontSize: 13, color: '#1b1620', background: '#c0c0c0', padding: '4px 14px',
+  border: '2px solid', borderColor: '#ffffff #404040 #404040 #ffffff', boxShadow: 'inset -1px -1px #808080',
+  cursor: 'pointer', minWidth: 90,
+};
+
+function Win95({ title, children, onClose }: { title: string; children: React.ReactNode; onClose?: () => void }) {
+  return (
+    <div
+      role="dialog"
+      aria-label={title}
+      style={{
+        fontFamily: W95_FONT, fontSize: 13, color: '#1b1620', background: '#c0c0c0', textAlign: 'left',
+        border: '2px solid', borderColor: '#ffffff #404040 #404040 #ffffff', boxShadow: '4px 4px 0 rgba(0,0,0,0.5)',
+        width: 'min(92vw, 440px)', padding: 3,
+      }}
+    >
+      <div style={{ background: 'linear-gradient(90deg, #000080, #1084d0)', color: '#fff', fontWeight: 700, padding: '3px 4px', display: 'flex', alignItems: 'center' }}>
+        <span style={{ flex: 1 }}>{title}</span>
+        <span aria-hidden style={{ ...W95_BTN, minWidth: 0, padding: '0 5px', fontSize: 11, marginRight: 2 }}>_</span>
+        <span aria-hidden style={{ ...W95_BTN, minWidth: 0, padding: '0 5px', fontSize: 11, marginRight: 2 }}>□</span>
+        <button style={{ ...W95_BTN, minWidth: 0, padding: '0 5px', fontSize: 11 }} onClick={onClose} aria-label="Close">×</button>
+      </div>
+      <div style={{ padding: '12px 14px 14px' }}>{children}</div>
+    </div>
+  );
+}
+
+// ─── The job application (Floor 6) ────────────────────────────────────────────
+const ANSWERS = [
+  { key: 'A', text: 'Bring equality to this world.' },
+  { key: 'B', text: 'Stop climate change.' },
+  { key: 'C', text: 'A home, food and education for my loved ones.' },
+  { key: 'D', text: 'Bring peace and justice for all of us.' },
+  { key: 'E', text: 'Make more millions for the owners of this company.' },
+] as const;
+const RIGHT = 'E';
+const REJECTIONS = [
+  'ERROR 403: ANSWER NOT ALIGNED WITH COMPANY VALUES.',
+  'THAT\'S NOT VERY TEAM PLAYER OF YOU.',
+  'HAVE YOU TRIED WANTING MONEY?',
+  'PLEASE TRY AGAIN. WITH PASSION.',
+  'THIS ANSWER HAS BEEN FORWARDED TO HR.',
+];
+
+/** Only one answer is accepted. The others shake, go red and get an error. */
+function JobApplication({ onSound, onDone }: { onSound: (k: 'error' | 'yes') => void; onDone: (wrong: number) => void }) {
+  const [wrong, setWrong] = useState<string[]>([]);
+  const [shaking, setShaking] = useState<string | null>(null);
+  const [error, setError] = useState('');
+  const [accepted, setAccepted] = useState(false);
+  const rejections = useRef(0);
+  const done = useRef(onDone);
+  useEffect(() => { done.current = onDone; }, [onDone]);
+
+  useEffect(() => {
+    if (!accepted) return;
+    const t = setTimeout(() => done.current(rejections.current), 2600);
+    return () => clearTimeout(t);
+  }, [accepted]);
+
+  const choose = (key: string) => {
+    if (accepted) return;
+    if (key !== RIGHT) {
+      setWrong((w) => (w.includes(key) ? w : [...w, key]));
+      setShaking(key);
+      setTimeout(() => setShaking((s) => (s === key ? null : s)), 450);
+      setError(REJECTIONS[rejections.current % REJECTIONS.length]);
+      rejections.current++;
+      onSound('error');
+      return;
+    }
+    setAccepted(true);
+    setError('');
+    onSound('yes');
+  };
+
+  return (
+    <Win95 title="JOB_APPLICATION.EXE">
+      <p style={{ margin: '0 0 2px', fontWeight: 700 }}>JUNIOR TRAINEE PROGRAM · APPLICANT: TERO (AGE 2)</p>
+      <p style={{ margin: '0 0 10px' }}>Q1 of 1: <b>Why do you want to work?</b></p>
+      <div role="radiogroup" aria-label="Why do you want to work?" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {ANSWERS.map((a) => {
+          const isWrong = wrong.includes(a.key);
+          const isRight = accepted && a.key === RIGHT;
+          return (
+            <button
+              key={a.key}
+              role="radio"
+              aria-checked={isRight}
+              onClick={() => choose(a.key)}
+              style={{
+                ...W95_BTN, textAlign: 'left', width: '100%',
+                background: isRight ? '#3fd84a' : isWrong ? '#d83b3b' : W95_BTN.background,
+                color: isWrong ? '#ffffff' : '#1b1620',
+                animation: shaking === a.key ? 'tero-shake 0.45s' : undefined,
+              }}
+            >
+              {a.key}) {a.text}
+            </button>
+          );
+        })}
+      </div>
+      <p role="status" style={{ minHeight: 20, margin: '10px 0 0', color: accepted ? '#1b5e20' : '#b00020', fontWeight: 700 }}>
+        {accepted ? '✔ CHAD: YES!! So happy to hear that. Good vibes only. ✨' : error && `⛔ ${error}`}
+      </p>
+      {accepted && (
+        <div style={{ textAlign: 'right', marginTop: 8 }}>
+          <button style={W95_BTN} onClick={() => onDone(rejections.current)} autoFocus>Submit</button>
+        </div>
+      )}
+    </Win95>
+  );
+}
+
+/** Quitting asks first. */
+function QuitButton({ onQuit }: { onQuit: () => void }) {
+  const [asking, setAsking] = useState(false);
+  if (!asking) return <button style={W95_BTN} onClick={() => setAsking(true)} aria-label="Quit to title">Quit to title</button>;
+  return (
+    <div style={{ width: '100%', marginTop: 10, borderTop: '1px solid #808080', paddingTop: 10, textAlign: 'center' }} role="alertdialog" aria-label="Are you sure?">
+      <p style={{ margin: '0 0 8px' }}>⚠ Are you sure? Your manager will see this.</p>
+      <button style={{ ...W95_BTN, marginRight: 8 }} onClick={onQuit}>Yes</button>
+      <button style={W95_BTN} onClick={() => setAsking(false)} autoFocus>No</button>
+    </div>
+  );
+}
+
+// ─── Game over: the HR exit interview ─────────────────────────────────────────
+const CAUSE_TEXT: Record<string, string> = {
+  pit: 'Fell through the org chart', tacks: 'Workplace hazard (thumbtacks)', walker: 'A coworker', clerk: 'A coworker',
+  hopper: 'Middle management', manager: 'Middle management', guard: 'Security', rat: 'A rat (corporate)',
+  pig: 'A VP', robot: 'Automation', plant: 'The office plant', gorilla: 'Senior leadership',
+  vampire: 'Legal', syncer: 'A quick sync', halvorsen: 'A PowerPoint', 'the board': 'The Board',
+  recruiter: 'Talent Acquisition',
+  'ceiling tile': 'The building itself', unknown: 'Synergy',
+};
+
+function ExitInterview({ stats, cause, onRetry }: { stats: RunStats; cause?: string; onRetry: () => void }) {
+  const PAPER = '#f4f1e6', INK = '#1b1620';
+  const box = (checked: boolean) => (checked ? '☒' : '☐');
+  return (
+    <div
+      role="dialog"
+      aria-label="Exit interview"
+      style={{
+        background: PAPER, color: INK, width: 'min(92vw, 460px)', padding: '18px 22px 20px', textAlign: 'left',
+        fontFamily: '"Courier New", Courier, monospace', fontSize: 13, boxShadow: '6px 6px 0 rgba(0,0,0,0.6)',
+        transform: 'rotate(-1deg)', border: '1px solid #c9bf9f',
+      }}
+    >
+      <p style={{ margin: 0, fontWeight: 700, letterSpacing: 1 }}>EXIT INTERVIEW · FORM HR-404</p>
+      <p style={{ margin: '2px 0 12px', fontSize: 11 }}>Please complete in triplicate. Crayon accepted.</p>
+      <p style={{ margin: '6px 0' }}>EMPLOYEE: <b>TERO (AGE 2)</b></p>
+      <p style={{ margin: '6px 0' }}>REASON FOR LEAVING:<br />
+        {box(true)} Died &nbsp; {box(false)} Promoted &nbsp; {box(false)} Quiet quitting
+      </p>
+      <p style={{ margin: '6px 0' }}>CAUSE: <u>{CAUSE_TEXT[cause ?? 'unknown'] ?? cause}</u></p>
+      <p style={{ margin: '6px 0' }}>
+        TIME SERVED: {formatTime(stats.timeMs)} &nbsp; FLOPPIES: {stats.coins} &nbsp; SENT HOME: {stats.sentHome}
+      </p>
+      <p style={{ margin: '6px 0' }}>WOULD YOU RECOMMEND THIS COMPANY TO A FRIEND?<br />
+        {box(false)} No &nbsp; {box(true)} No
+      </p>
+      <p style={{ margin: '10px 0 0' }}>SIGNATURE: <span style={{ fontFamily: 'var(--font-pixel, monospace)', color: '#d83b3b', fontSize: 15, display: 'inline-block', transform: 'rotate(-6deg)' }}>TERO</span></p>
+      <div style={{ textAlign: 'center', marginTop: 16 }}>
+        <button
+          className="pixel-btn"
+          style={{ borderColor: '#d83b3b', color: '#d83b3b', background: PAPER }}
+          onClick={onRetry}
+          aria-label="Retry level"
+        >
+          ↺ RE-APPLY
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ─── Casual Friday (unlocked by finishing the game) ───────────────────────────
 // Read from localStorage after hydration (the server always renders "off").
 const modeListeners = new Set<() => void>();
@@ -656,17 +857,36 @@ const subscribeModes = (cb: () => void) => { modeListeners.add(cb); return () =>
 
 function CasualFridayToggle() {
   const unlocked = useSyncExternalStore(subscribeModes, () => !!unlocks().casualFriday, () => false);
-  const on = useSyncExternalStore(subscribeModes, () => !!loadSettings().casualFriday, () => false);
-  const setOn = (v: boolean) => { saveSettings({ casualFriday: v }); modeListeners.forEach((l) => l()); };
   if (!unlocked) return null;
+  return <ModeToggle setting="casualFriday" label="🌺 CASUAL FRIDAY" color="#ff77a8" />;
+}
+
+/** On/off button for a saved setting; `onChange` tells the running game. */
+function ModeToggle({ setting, label, color, onChange, variant = 'pixel' }: {
+  setting: 'casualFriday' | 'assist'; label: string; color: string; onChange?: (on: boolean) => void;
+  variant?: 'pixel' | 'win95';
+}) {
+  const on = useSyncExternalStore(subscribeModes, () => !!loadSettings()[setting], () => false);
+  const toggle = () => {
+    saveSettings({ [setting]: !on });
+    onChange?.(!on);
+    modeListeners.forEach((l) => l());
+  };
+  if (variant === 'win95') {
+    return (
+      <button style={{ ...W95_BTN, color: on ? color : '#1b1620' }} onClick={toggle} aria-pressed={on}>
+        {on ? '☑' : '☐'} {label}
+      </button>
+    );
+  }
   return (
     <button
       className="pixel-btn mt-4"
-      style={{ borderColor: on ? '#ff77a8' : '#83769c', color: on ? '#ff77a8' : '#c2c3c7', fontSize: 'clamp(8px, 1.4vw, 13px)' }}
-      onClick={() => setOn(!on)}
+      style={{ borderColor: on ? color : '#83769c', color: on ? color : '#c2c3c7', fontSize: 'clamp(8px, 1.4vw, 13px)' }}
+      onClick={toggle}
       aria-pressed={on}
     >
-      🌺 CASUAL FRIDAY: {on ? 'ON' : 'OFF'}
+      {label}: {on ? 'ON' : 'OFF'}
     </button>
   );
 }

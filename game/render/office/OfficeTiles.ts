@@ -226,6 +226,7 @@ function drawLeak(ctx: CanvasRenderingContext2D, sx: number, sy: number, tx: num
 
 export function drawOfficeHazard(ctx: CanvasRenderingContext2D, sx: number, sy: number, tx: number): void {
   if (getDecor().id === 'basement') return drawLeak(ctx, sx, sy, tx);
+  if (getDecor().id === 'vents') return drawFan(ctx, sx, sy, tx);
   // A floor gap full of upturned thumbtacks. Hazards sit in the ground row,
   // whose lower half is below the viewport, so the pins live in the top half.
   const [carpet, , carpetDark] = getDecor().carpet;
@@ -335,4 +336,20 @@ export function drawTapeTile(ctx: CanvasRenderingContext2D, sx: number, sy: numb
     ctx.fillRect(sx + 10, sy + 14 + sway, 10, 1);
     ctx.fillRect(sx + 10, sy + 16 + sway, 7, 1);
   }
+}
+
+/** The vents' hazard: a floor fan grille, blades spinning underneath. */
+function drawFan(ctx: CanvasRenderingContext2D, sx: number, sy: number, tx: number): void {
+  ctx.fillStyle = '#1b1620';
+  ctx.fillRect(sx, sy + 8, S, S - 8);
+  const a = performance.now() / 60 + tx;
+  ctx.fillStyle = '#d83b3b';
+  for (let k = 0; k < 3; k++) {
+    const ang = a + (k * Math.PI * 2) / 3;
+    ctx.fillRect(Math.round(sx + 16 + Math.cos(ang) * 8) - 3, Math.round(sy + 20 + Math.sin(ang) * 4) - 1, 6, 3);
+  }
+  ctx.fillStyle = '#c9ced6';
+  for (let x = 1; x < S; x += 5) ctx.fillRect(sx + x, sy + 8, 2, S - 8);   // the grille
+  ctx.fillStyle = '#ffd23f';
+  ctx.fillRect(sx, sy + 7, S, 2);
 }

@@ -191,7 +191,7 @@ export class Board extends creaturesAndObjects implements Boss {
       // A lunging head hurts
       if ((h.state === 'lunge' || h.state === 'back') && !player.isInvincible && !player.isTantrum &&
         overlaps({ x: player.x + 3, y: player.y + 4, w: player.w - 6, h: player.h - 4 }, box)) {
-        player.hurt(ctx);
+        player.hurt(ctx, 'the board');
       }
     }
   }
@@ -240,6 +240,15 @@ export class Board extends creaturesAndObjects implements Boss {
     }
   }
 
+  /** The grenade takes out the head nearest the blast. */
+  blast(ctx: UpdateCtx, x: number): void {
+    if (this.phase !== 'fight') return;
+    const alive = this.heads.filter((h) => h.state !== 'gone');
+    if (!alive.length) return;
+    alive.sort((a, b) => Math.abs(a.x + HEAD_W / 2 - x) - Math.abs(b.x + HEAD_W / 2 - x));
+    this.defeat(alive[0], ctx);
+  }
+
   private defeat(h: Head, ctx: UpdateCtx): void {
     h.state = 'gone';
     this.justHit = true;
@@ -266,7 +275,7 @@ export class Board extends creaturesAndObjects implements Boss {
       const box = { x: c.x - 5, y: c.y - 5, w: 10, h: 10 };
       for (const f of flames) if (f.active && overlaps(f, box)) { c.active = false; ctx.particles.burst(c.x, c.y, 4, '#ffd23f', '#ffb347'); }
       if (c.active && !player.isDead && overlaps({ x: player.x + 3, y: player.y + 3, w: player.w - 6, h: player.h - 3 }, box)) {
-        player.hurt(ctx);
+        player.hurt(ctx, 'the board');
         c.active = false;
       }
     }

@@ -313,3 +313,136 @@ export function drawVampire(airborne: boolean): Raster {
   r.px(hx + 2, hy + 4, C.white); r.px(hx + 5, hy + 4, C.white);          // fangs
   return r;
 }
+
+// ─── Chad from Talent Acquisition (the Floor 6 mini-boss) ────────────────────
+
+export const RECRUITER_W = 40;
+export const RECRUITER_H = 48;
+export type RecruiterPose = 'walk0' | 'walk1' | 'throw' | 'dash' | 'hurt';
+
+/** A pig in a slim-fit suit, sunglasses pushed up, TALENT lanyard, a
+ *  clipboard of contracts. Faces right; feet on the bottom edge. */
+export function drawRecruiter(pose: RecruiterPose): Raster {
+  const r = new Raster(RECRUITER_W, RECRUITER_H);
+  const pink = '#f0a0a8', pinkDark = '#c97880', pinkLight = '#ffc6cc';
+  const suit = '#3a3f58', suitLight = '#545b7c', suitDark = '#262a3c';
+  const lean = pose === 'dash' ? 3 : pose === 'hurt' ? -2 : 0;
+  const stride = pose === 'walk0' ? 3 : pose === 'walk1' ? -3 : pose === 'dash' ? 5 : 0;
+
+  // legs: skinny trousers, pointy shoes
+  r.part(INK, (t) => {
+    t.capsule(17, 34, 15 - stride, 44, 2.4, suitDark);
+    t.capsule(23, 34, 25 + stride, 44, 2.4, suit);
+    t.rect(11 - stride, 44, 8, 3, INK);
+    t.rect(22 + stride, 44, 9, 3, INK);
+  });
+  // back arm with the clipboard
+  r.part(INK, (t) => {
+    if (pose === 'throw') {
+      t.capsule(17 + lean, 22, 12 + lean, 10, 2, suitDark);
+      t.rect(7 + lean, 4, 9, 11, '#f4f1e6');                 // a contract, mid-throw
+    } else {
+      t.capsule(17 + lean, 22, 14 + lean, 31, 2, suitDark);
+      t.rect(9 + lean, 26, 8, 10, '#a87b4a');                // clipboard
+      t.rect(10 + lean, 27, 6, 8, '#f4f1e6');
+    }
+  });
+  // torso: slim-fit jacket, open collar, no tie (he's "disruptive")
+  r.part(INK, (t) => t.shadedEllipse(20 + lean, 27, 8, 9, suit, suitLight, suitDark));
+  r.tri(18 + lean, 19, 23 + lean, 19, 20 + lean, 25, '#e9e6dc');
+  // TALENT lanyard
+  r.line(17 + lean, 20, 20 + lean, 28, '#ff77a8');
+  r.line(23 + lean, 20, 21 + lean, 28, '#ff77a8');
+  r.rect(18 + lean, 28, 5, 4, '#ffffff');
+  r.rect(19 + lean, 29, 3, 1, '#d83b3b');
+  // head
+  const hx = 21 + lean, hy = 12;
+  r.part(INK, (t) => {
+    t.tri(hx - 6, hy - 4, hx - 3, hy - 10, hx - 1, hy - 5, pink);
+    t.tri(hx + 1, hy - 5, hx + 3, hy - 11, hx + 5, hy - 4, pink);
+    t.shadedEllipse(hx, hy, 8, 7, pink, pinkLight, pinkDark);
+  });
+  r.part(INK, (t) => t.ellipse(hx + 8, hy + 2, 3, 3.5, pinkLight));        // snout
+  r.px(hx + 8, hy + 1, INK); r.px(hx + 8, hy + 3, INK);
+  // sunglasses pushed up on the forehead
+  r.rect(hx - 3, hy - 6, 10, 2, INK);
+  r.rect(hx - 2, hy - 6, 3, 2, '#29adff'); r.rect(hx + 3, hy - 6, 3, 2, '#29adff');
+  // eyes + the grin
+  if (pose === 'hurt') { r.px(hx + 2, hy - 1, INK); r.px(hx + 4, hy - 2, INK); r.rect(hx + 3, hy + 4, 3, 2, '#5a1f2b'); }
+  else {
+    r.rect(hx + 2, hy - 2, 2, 2, INK); r.px(hx + 2, hy - 2, '#ffffff');
+    r.line(hx + 1, hy + 5, hx + 6, hy + 5, '#5a1f2b');
+    r.rect(hx + 2, hy + 5, 4, 1, '#ffffff');
+  }
+  // front arm: pen out, pointing (or pumping a fist on the dash)
+  r.part(INK, (t) => {
+    if (pose === 'dash') {
+      t.capsule(22 + lean, 22, 32, 18, 2, suit);
+      t.ellipse(33, 18, 2, 2, pink);
+    } else {
+      t.capsule(22 + lean, 22, 30, 26, 2, suit);
+      t.ellipse(31, 26, 2, 2, pink);
+      t.rect(32, 23, 1, 5, '#22336b');                       // the pen
+    }
+  });
+  return r;
+}
+
+// ─── Elvis, the office dog (The Vents) ───────────────────────────────────────
+
+export const ELVIS_W = 84;
+export const ELVIS_H = 56;
+export type ElvisPose = 'run0' | 'run1' | 'run2' | 'run3' | 'sit' | 'jump' | 'yelp';
+
+/** A big, kind, scruffy golden office dog — big enough for a toddler to
+ *  ride. Faces right; paws on the bottom edge. His old company badge still
+ *  hangs off the collar: CHIEF HAPPINESS OFFICER. */
+export function drawElvis(pose: ElvisPose): Raster {
+  const k = 1.3;                                // the rig is drawn at 1.3× its sketch size
+  const r = new Raster(ELVIS_W, ELVIS_H);
+  const fur = '#d9a35b', furLight = '#f0c98a', furDark = '#a8743a', chest = '#f7ead2';
+  const run = pose.startsWith('run') ? Number(pose.slice(3)) : -1;
+  const sit = pose === 'sit';
+  const air = pose === 'jump';
+  const bob = run === 1 || run === 3 ? -1 : 0;
+  const by = ((sit ? 24 : 26) + bob) * k;       // body centre y
+
+  r.part(INK, (t) => {
+    const wag = run >= 0 ? (run % 2 ? -4 : 2) : sit ? -6 : air ? -2 : 0;
+    t.capsule(13 * k, by - 2 * k, 4 * k, by + (-8 + wag) * k, 3.4, fur);
+    t.ellipse(4 * k, by + (-8 + wag) * k, 3.8, 3.2, furLight);
+  });
+  const leg = (x: number, phase: number, back: boolean) => {
+    const swing = run >= 0 ? [5, 1, -5, 1][(run + phase) % 4] : 0;
+    const lift = run >= 0 ? [0, 2, 0, 3][(run + phase) % 4] : 0;
+    r.part(INK, (t) => {
+      const fx = (air ? x + (back ? -4 : 4) : x + swing) * k;
+      const fy = air ? by + 10 * k : sit && back ? by + 12 * k : ELVIS_H - 3 - lift * k;
+      t.capsule(x * k, by + 4 * k, fx, fy, 3.6, back ? furDark : fur);
+      t.ellipse(fx + 1, fy + 1, 4.4, 2.8, back ? furDark : furLight);
+    });
+  };
+  leg(16, 2, true);
+  leg(40, 0, true);
+  r.part(INK, (t) => t.shadedEllipse(28 * k, by, 17 * k, 9.5 * k, fur, furLight, furDark));
+  r.shadedEllipse(38 * k, by + 4 * k, 7 * k, 5 * k, chest);
+  leg(20, 0, false);
+  leg(44, 2, false);
+  const hx = 48 * k, hy = ((sit ? 12 : 15) + bob + (air ? -2 : 0)) * k;
+  r.part(INK, (t) => {
+    t.shadedEllipse(hx, hy, 9 * k, 8 * k, fur, furLight, furDark);
+    t.shadedEllipse(hx + 8 * k, hy + 3 * k, 5.5 * k, 4 * k, furLight, '#fff3d9', fur);
+  });
+  r.part(INK, (t) => t.ellipse(hx - 5 * k, hy + 1 * k, 3.2 * k, 6 * k, furDark));
+  r.ellipse(hx + 13 * k, hy + 1 * k, 2.6, 2, INK);
+  if (pose === 'yelp') { r.line(hx + 3, hy - 4, hx + 7, hy - 3, INK); }
+  else { r.rect(hx + 4, hy - 4, 3, 3, INK); r.px(hx + 4, hy - 4, '#ffffff'); r.line(hx + 1, hy - 7, hx + 7, hy - 7, furDark); }
+  if (pose === 'yelp') r.rect(hx + 11, hy + 6, 4, 3, '#5a1f2b');
+  else { r.rect(hx + 10, hy + 8, 4, 5, '#ff6f86'); r.px(hx + 11, hy + 12, '#d84a6a'); }
+  r.rect(hx - 8, hy + 8, 12, 3, '#d83b3b');
+  r.line(hx - 3, hy + 11, hx - 3, hy + 14, '#ff77a8');
+  r.rect(hx - 6, hy + 14, 7, 5, '#ffffff');
+  r.rect(hx - 5, hy + 15, 5, 1, '#22336b');
+  r.rect(hx - 5, hy + 17, 3, 1, '#d83b3b');
+  return r;
+}
