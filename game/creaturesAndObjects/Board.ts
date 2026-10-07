@@ -13,6 +13,7 @@
 // that goes down RESIGNS: out pops that executive, already freed and on
 // the way home (the robot just breaks). The fewer heads, the faster.
 
+import { t, tf } from '../i18n';
 import { blitArt } from '../render/customImages';
 import { creaturesAndObjects, type UpdateCtx } from './creaturesAndObjects';
 import { overlaps, stompOverlap } from '../physics/AABB';
@@ -99,7 +100,7 @@ export class Board extends creaturesAndObjects implements Boss {
   get floorY():     number { return FLOOR_ROW * TILE_SIZE; }
   get hp():         number { return this.heads.filter((h) => h.state !== 'gone').length; }
   get fighting():   boolean { return this.phase === 'fight'; }
-  get subtitle():   string { return this.phase === 'fight' ? `${this.hp} HEADS LEFT` : 'HAS RESIGNED'; }
+  get subtitle():   string { return this.phase === 'fight' ? tf('{n} HEADS LEFT', { n: this.hp }) : 'HAS RESIGNED'; }
 
   private makeHeads(): void {
     this.heads = HEADS.map((def, i) => {
@@ -372,7 +373,7 @@ function drawTable(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
   ctx.fillRect(x, y, w, 2);
   ctx.fillStyle = '#3e2614';                       // the front panel
   ctx.fillRect(x + 4, y + 10, w - 8, h - 10);
-  const plaque = plaqueCanvas(resigned ? 'RESIGNED' : 'THE BOARD');
+  const plaque = plaqueCanvas(t(resigned ? 'RESIGNED' : 'THE BOARD'));
   ctx.drawImage(plaque, Math.round(x + w / 2 - plaque.width / 2), y + 22);
 }
 

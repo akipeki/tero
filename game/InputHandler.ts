@@ -33,11 +33,33 @@ export class InputHandler {
   /** Call once per game tick, after reading bits */
   tick(): void {
     this.prevBits   = this.bits;
-    this.bits       = this.keyboardBits | this.mobileBits;
+    this.bits       = this.keyboardBits | this.mobileBits | this.gamepadBits();
     this.justPressed = (this.bits & ~this.prevBits) | this.pressedSinceTick;
     this.pressedSinceTick = 0;
     // mute one-shot is consumed by Game each frame
     if (!this.muteKeyDown) this.muteJustPressed = false;
+  }
+
+  /** Any connected gamepad (standard mapping): stick or d-pad moves,
+   *  A jumps, B/X breathe fire, Y shouts DADA, shoulders throw the grenade,
+   *  Start pauses. */
+  private gamepadBits(): number {
+    if (typeof navigator === 'undefined' || !navigator.getGamepads) return 0;
+    let b = 0;
+    for (const pad of navigator.getGamepads()) {
+      if (!pad) continue;
+      const btn = (i: number) => !!pad.buttons[i]?.pressed;
+      const ax = pad.axes[0] ?? 0, ay = pad.axes[1] ?? 0;
+      if (ax < -0.4 || btn(14)) b |= Action.LEFT;
+      if (ax > 0.4 || btn(15))  b |= Action.RIGHT;
+      if (ay > 0.55 || btn(13)) b |= Action.DOWN;
+      if (btn(0))               b |= Action.JUMP;
+      if (btn(1) || btn(2))     b |= Action.FIRE;
+      if (btn(3))               b |= Action.CALL;
+      if (btn(4) || btn(5))     b |= Action.THROW;
+      if (btn(9))               b |= Action.PAUSE;
+    }
+    return b;
   }
 
   held(action: Action):         boolean { return (this.bits        & action) !== 0; }

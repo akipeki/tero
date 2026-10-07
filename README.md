@@ -26,6 +26,17 @@ npm run dev
 | Fire / TANTRUM | X · F · Shift                | 🔥            |
 | Shout "DADA!" | C                             | 📣            |
 | Throw the grenade | G (once you have it)       | 💣            |
+
+**Gamepads** work too (standard mapping): stick or d-pad moves, A jumps,
+B/X breathe fire, Y shouts DADA, a shoulder button throws the grenade,
+Start pauses.
+
+**⚙ Settings** (title screen or pause menu): music and sound-effects
+volume, screen shake (off by default if your OS asks for reduced motion),
+speedrun timer, kid mode, and **language: English or Suomi**. Finnish lives
+in `game/content/lang/fi.ts` as English → Finnish pairs (`t()` /
+`tf()` in `game/i18n.ts`); a test checks that every story line has one.
+Adding a language = one more dictionary file.
 | Jump         | Arrow Up · W · Space           | ▲             |
 | Pause/Resume | Esc · P                        | ‖             |
 | Speedrun timer | T                            | —             |

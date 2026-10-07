@@ -4,6 +4,8 @@ import { useEffect, useRef, useState, useCallback, useMemo, useSyncExternalStore
 import { Game, type FinalRun } from '@/game/Game';
 import { renderShareCard, shareText } from '@/game/ShareCard';
 import { formatMs, unlocks } from '@/game/Run';
+import { t, tf, setLang, getLang, subscribeLang, LANGS, type Lang } from '@/game/i18n';
+import { setShakeEnabled } from '@/game/ScreenShake';
 import { GameState, Action } from '@/game/types';
 import { VIEWPORT_W, VIEWPORT_H, TILE_SIZE, STARTING_LIVES, BIG_SPRITE_SCALE, TANTRUM_MAX } from '@/game/constants';
 import type { HudData, PlayerRenderData, RunStats, StoryView } from '@/game/types';
@@ -102,6 +104,16 @@ export default function GameContainer() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   /** Speedrun timer in the HUD (T toggles it; remembered). */
   const [showTimer, setShowTimer] = useState(initialSettings.showTimer ?? false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  /** Re-render when the language changes. */
+  const lang = useSyncExternalStore(subscribeLang, getLang, () => 'en' as Lang);
+  // Saved language and screen shake (shake defaults off with reduced motion).
+  useEffect(() => {
+    const s = loadSettings();
+    setLang(s.lang ?? 'en');
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    setShakeEnabled(s.shake ?? !reduce);
+  }, []);
   const [score, setScore] = useState(0);
   /** Ephemeral "+50 CHAIN" floaters above the HUD. */
   const [floaters, setFloaters] = useState<{ id: number; text: string }[]>([]);
@@ -404,7 +416,7 @@ export default function GameContainer() {
               margin: 0,
             }}
           >
-            {callout.text}
+            {t(callout.text)}
           </p>
         )}
 
@@ -435,13 +447,18 @@ export default function GameContainer() {
           <h1 className="pixel-title" style={{ color: '#6cc24a', fontSize: 'clamp(26px, 6.5vw, 72px)', lineHeight: 1.15 }}>
             {GAME_TITLE_LINES.map((line) => <span key={line} className="block">{line}</span>)}
           </h1>
-          <p className="pixel-sub mt-3" style={{ color: '#ffd23f', letterSpacing: '0.2em' }}>{GAME_SUBTITLE}</p>
-          <p className="pixel-sub mt-6" style={{ color: '#fff1e8' }}>PRESS ENTER OR TAP TO PLAY</p>
-          <p className="pixel-hint mt-4" style={{ color: '#a7f070' }}>
-            ARROWS / WASD &nbsp;|&nbsp; SPACE = JUMP &nbsp;|&nbsp; DOWN = HIDE &nbsp;|&nbsp; X = FIRE &nbsp;|&nbsp; C = DADA! &nbsp;|&nbsp; G = GRENADE &nbsp;|&nbsp; M = MUTE &nbsp;|&nbsp; T = TIMER
+          <p className="pixel-sub mt-3" style={{ color: '#ffd23f', letterSpacing: '0.2em' }}>{t(GAME_SUBTITLE)}</p>
+          <p className="pixel-sub mt-6" style={{ color: '#fff1e8' }}>{t('PRESS ENTER OR TAP TO PLAY')}</p>
+          <p className="pixel-hint mt-4" style={{ color: '#a7f070', maxWidth: 760 }}>
+            {lang === 'fi'
+              ? <>NUOLET / WASD &nbsp;|&nbsp; VÄLILYÖNTI = HYPPY &nbsp;|&nbsp; ALAS = PIILO &nbsp;|&nbsp; X = TULI &nbsp;|&nbsp; C = ISI! &nbsp;|&nbsp; G = KRANAATTI &nbsp;|&nbsp; M = MYKISTÄ &nbsp;|&nbsp; T = AJASTIN</>
+              : <>ARROWS / WASD &nbsp;|&nbsp; SPACE = JUMP &nbsp;|&nbsp; DOWN = HIDE &nbsp;|&nbsp; X = FIRE &nbsp;|&nbsp; C = DADA! &nbsp;|&nbsp; G = GRENADE &nbsp;|&nbsp; M = MUTE &nbsp;|&nbsp; T = TIMER</>}
           </p>
-          <button className="pixel-btn mt-10" onClick={handleStart} aria-label="Start game">▶ PLAY</button>
+          <button className="pixel-btn mt-10" onClick={handleStart} aria-label="Start game">{t('▶ PLAY')}</button>
           <div className="flex flex-wrap justify-center gap-3">
+            <button className="pixel-btn mt-4" style={{ fontSize: 'clamp(8px, 1.4vw, 13px)' }} onClick={() => setSettingsOpen(true)}>
+              {t('⚙ SETTINGS')}
+            </button>
             <ModeToggle
               setting="assist" label="♥ BRING YOUR KID TO WORK DAY" color="#a7f070"
               onChange={(on) => gameRef.current?.setAssist(on)}
@@ -456,11 +473,12 @@ export default function GameContainer() {
         <PixelOverlay dim>
           <Win95 title="PAUSED.EXE" onClose={handlePauseToggle}>
             <p style={{ margin: '4px 0 14px', lineHeight: 1.45 }}>
-              ⓘ&nbsp; This game has performed a legal operation<br />and has been paused. Press ESC to resume.
+              ⓘ&nbsp; {t('This game has performed a legal operation')}<br />{t('and has been paused. Press ESC to resume.')}
             </p>
             <div className="flex flex-wrap justify-center gap-2">
-              <button style={W95_BTN} onClick={handlePauseToggle} aria-label="Resume">Resume</button>
-              <button style={W95_BTN} onClick={handleRetry} aria-label="Restart level">Restart floor</button>
+              <button style={W95_BTN} onClick={handlePauseToggle} aria-label="Resume">{t('Resume')}</button>
+              <button style={W95_BTN} onClick={handleRetry} aria-label="Restart level">{t('Restart floor')}</button>
+              <button style={W95_BTN} onClick={() => setSettingsOpen(true)} aria-label="Settings">{t('Settings…')}</button>
               <ModeToggle
                 variant="win95" setting="assist" label="Kid mode" color="#1b5e20"
                 onChange={(on) => gameRef.current?.setAssist(on)}
@@ -468,6 +486,19 @@ export default function GameContainer() {
               <QuitButton onQuit={() => gameRef.current?.signal('quit')} />
             </div>
           </Win95>
+        </PixelOverlay>
+      )}
+
+      {/* ── SETTINGS ── */}
+      {settingsOpen && (isPaused || isTitle) && (
+        <PixelOverlay dim style={{ zIndex: 30 }}>
+          <SettingsWindow
+            onClose={() => setSettingsOpen(false)}
+            volume={volume} setVolume={(v) => { setMuted(false); setVolume(v); }}
+            sfxVolume={sfxVolume} setSfxVolume={(v) => { setMuted(false); setSfxVolume(v); }}
+            showTimer={showTimer} setShowTimer={(v) => { setShowTimer(v); saveSettings({ showTimer: v }); }}
+            onAssist={(on) => gameRef.current?.setAssist(on)}
+          />
         </PixelOverlay>
       )}
 
@@ -487,11 +518,11 @@ export default function GameContainer() {
       {isWin && endScreen && !endScreen.final && (
         <PixelOverlay dim style={{ background: 'rgba(0,20,0,0.82)' }}>
           <p className="pixel-title" style={{ color: '#a7f070' }}>
-            {endScreen.hasNextLevel ? 'LEVEL CLEAR!' : 'YOU WIN!'}
+            {t(endScreen.hasNextLevel ? 'LEVEL CLEAR!' : 'YOU WIN!')}
           </p>
           <p className="pixel-hint mt-2" style={{ color: '#fff1e8' }}>{endScreen.levelName}</p>
           {endScreen.newBest && (
-            <p className="pixel-hint mt-2" style={{ color: '#ffcd75' }}>★ NEW BEST ★</p>
+            <p className="pixel-hint mt-2" style={{ color: '#ffcd75' }}>{t('★ NEW BEST ★')}</p>
           )}
           <StatsBlock stats={endScreen.stats} best={endScreen.best} />
           <button
@@ -500,7 +531,7 @@ export default function GameContainer() {
             onClick={handleNext}
             aria-label={endScreen.hasNextLevel ? 'Next level' : 'Back to title'}
           >
-            {endScreen.hasNextLevel ? '▶ NEXT' : '▶ PLAY AGAIN'}
+            {t(endScreen.hasNextLevel ? '▶ NEXT' : '▶ PLAY AGAIN')}
           </button>
         </PixelOverlay>
       )}
@@ -535,7 +566,7 @@ export default function GameContainer() {
               style={{ top: 44, margin: 0, fontFamily: 'var(--font-pixel, monospace)', fontSize: 'clamp(8px, 1.4vw, 13px)', color: '#a7f070', textShadow: '2px 2px 0 #000' }}
               aria-label="Run time"
             >
-              RUN {formatMs(runMs)}
+              {t('RUN')} {formatMs(runMs)}
             </p>
           )}
           {countdown !== null && (
@@ -548,7 +579,7 @@ export default function GameContainer() {
               }}
               role="timer"
             >
-              WEEKEND IN {Math.floor(countdown / 60)}:{String(countdown % 60).padStart(2, '0')}
+              {t('WEEKEND IN')} {Math.floor(countdown / 60)}:{String(countdown % 60).padStart(2, '0')}
             </p>
           )}
 
@@ -662,19 +693,19 @@ function StatsBlock({
   return (
     <div className="mt-6" style={{ fontFamily: 'var(--font-pixel, monospace)' }}>
       <p className="pixel-sub" style={{ color: '#fff1e8' }}>
-        TIME&nbsp;{formatTime(stats.timeMs)}
+        {t('TIME')}&nbsp;{formatTime(stats.timeMs)}
       </p>
       <p className="pixel-sub mt-2" style={{ color: '#ffcd75' }}>
         ● {stats.coins} &nbsp;|&nbsp; ⌂ {stats.sentHome}
       </p>
       <p className="pixel-hint mt-2" style={{ color: '#a7f070' }}>
-        {stats.sentHome === 0 ? 'NOBODY WENT HOME.'
-          : stats.sentHome === 1 ? '1 WORKER SENT HOME TO THEIR KIDS.'
-          : `${stats.sentHome} WORKERS SENT HOME TO THEIR KIDS.`}
+        {stats.sentHome === 0 ? t('NOBODY WENT HOME.')
+          : stats.sentHome === 1 ? t('1 WORKER SENT HOME TO THEIR KIDS.')
+          : tf('{n} WORKERS SENT HOME TO THEIR KIDS.', { n: stats.sentHome })}
       </p>
       {best && (
         <p className="pixel-hint mt-3" style={{ color: '#c2c3c7' }}>
-          BEST&nbsp;{formatTime(best.timeMs)}&nbsp;·&nbsp;{best.score}
+          {t('BEST')}&nbsp;{formatTime(best.timeMs)}&nbsp;·&nbsp;{best.score}
         </p>
       )}
     </div>
@@ -708,6 +739,56 @@ function Win95({ title, children, onClose }: { title: string; children: React.Re
       </div>
       <div style={{ padding: '12px 14px 14px' }}>{children}</div>
     </div>
+  );
+}
+
+// ─── Settings ─────────────────────────────────────────────────────────────────
+function SettingsWindow({ onClose, volume, setVolume, sfxVolume, setSfxVolume, showTimer, setShowTimer, onAssist }: {
+  onClose: () => void;
+  volume: number; setVolume: (v: number) => void;
+  sfxVolume: number; setSfxVolume: (v: number) => void;
+  showTimer: boolean; setShowTimer: (v: boolean) => void;
+  onAssist: (on: boolean) => void;
+}) {
+  const lang = useSyncExternalStore(subscribeLang, getLang, () => 'en' as Lang);
+  const [shake, setShake] = useState(() => {
+    const s = loadSettings().shake;
+    return s ?? !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  });
+  const row: React.CSSProperties = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, margin: '8px 0' };
+  return (
+    <Win95 title="SETTINGS.EXE" onClose={onClose}>
+      <label style={row}>{t('Music')}
+        <input type="range" min={0} max={1} step={0.05} value={volume} onChange={(e) => setVolume(parseFloat(e.target.value))} />
+      </label>
+      <label style={row}>{t('Sound effects')}
+        <input type="range" min={0} max={1} step={0.05} value={sfxVolume} onChange={(e) => setSfxVolume(parseFloat(e.target.value))} />
+      </label>
+      <label style={row}>{t('Screen shake')}
+        <input type="checkbox" checked={shake} onChange={(e) => { setShake(e.target.checked); setShakeEnabled(e.target.checked); saveSettings({ shake: e.target.checked }); }} />
+      </label>
+      <label style={row}>{t('Speedrun timer (T)')}
+        <input type="checkbox" checked={showTimer} onChange={(e) => setShowTimer(e.target.checked)} />
+      </label>
+      <div style={row}>{t('Kid mode')}
+        <ModeToggle variant="win95" setting="assist" label="Kid mode" color="#1b5e20" onChange={onAssist} />
+      </div>
+      <label style={row}>{t('Language')}
+        <select
+          value={lang}
+          onChange={(e) => { const l = e.target.value as Lang; setLang(l); saveSettings({ lang: l }); }}
+          style={{ fontFamily: W95_FONT, fontSize: 13 }}
+        >
+          {LANGS.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
+        </select>
+      </label>
+      <p style={{ fontSize: 12, margin: '10px 0' }}>
+        {t('Controls: arrows/WASD move · Space jump · Down hide · X fire · C DADA! · G grenade · Esc pause. Gamepads work too.')}
+      </p>
+      <div style={{ textAlign: 'right' }}>
+        <button style={W95_BTN} onClick={onClose} autoFocus>{t('Close')}</button>
+      </div>
+    </Win95>
   );
 }
 
@@ -762,9 +843,9 @@ function JobApplication({ onSound, onDone }: { onSound: (k: 'error' | 'yes') => 
 
   return (
     <Win95 title="JOB_APPLICATION.EXE">
-      <p style={{ margin: '0 0 2px', fontWeight: 700 }}>JUNIOR TRAINEE PROGRAM · APPLICANT: TERO (AGE 2)</p>
-      <p style={{ margin: '0 0 10px' }}>Q1 of 1: <b>Why do you want to work?</b></p>
-      <div role="radiogroup" aria-label="Why do you want to work?" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <p style={{ margin: '0 0 2px', fontWeight: 700 }}>{t('JUNIOR TRAINEE PROGRAM · APPLICANT: TERO (AGE 2)')}</p>
+      <p style={{ margin: '0 0 10px' }}>{t('Q1 of 1:')} <b>{t('Why do you want to work?')}</b></p>
+      <div role="radiogroup" aria-label={t('Why do you want to work?')} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         {ANSWERS.map((a) => {
           const isWrong = wrong.includes(a.key);
           const isRight = accepted && a.key === RIGHT;
@@ -781,17 +862,17 @@ function JobApplication({ onSound, onDone }: { onSound: (k: 'error' | 'yes') => 
                 animation: shaking === a.key ? 'tero-shake 0.45s' : undefined,
               }}
             >
-              {a.key}) {a.text}
+              {a.key}) {t(a.text)}
             </button>
           );
         })}
       </div>
       <p role="status" style={{ minHeight: 20, margin: '10px 0 0', color: accepted ? '#1b5e20' : '#b00020', fontWeight: 700 }}>
-        {accepted ? '✔ CHAD: YES!! So happy to hear that. Good vibes only. ✨' : error && `⛔ ${error}`}
+        {accepted ? `✔ ${t('CHAD: YES!! So happy to hear that. Good vibes only. ✨')}` : error && `⛔ ${t(error)}`}
       </p>
       {accepted && (
         <div style={{ textAlign: 'right', marginTop: 8 }}>
-          <button style={W95_BTN} onClick={() => onDone(rejections.current)} autoFocus>Submit</button>
+          <button style={W95_BTN} onClick={() => onDone(rejections.current)} autoFocus>{t('Submit')}</button>
         </div>
       )}
     </Win95>
@@ -801,12 +882,12 @@ function JobApplication({ onSound, onDone }: { onSound: (k: 'error' | 'yes') => 
 /** Quitting asks first. */
 function QuitButton({ onQuit }: { onQuit: () => void }) {
   const [asking, setAsking] = useState(false);
-  if (!asking) return <button style={W95_BTN} onClick={() => setAsking(true)} aria-label="Quit to title">Quit to title</button>;
+  if (!asking) return <button style={W95_BTN} onClick={() => setAsking(true)} aria-label="Quit to title">{t('Quit to title')}</button>;
   return (
     <div style={{ width: '100%', marginTop: 10, borderTop: '1px solid #808080', paddingTop: 10, textAlign: 'center' }} role="alertdialog" aria-label="Are you sure?">
-      <p style={{ margin: '0 0 8px' }}>⚠ Are you sure? Your manager will see this.</p>
-      <button style={{ ...W95_BTN, marginRight: 8 }} onClick={onQuit}>Yes</button>
-      <button style={W95_BTN} onClick={() => setAsking(false)} autoFocus>No</button>
+      <p style={{ margin: '0 0 8px' }}>{t('⚠ Are you sure? Your manager will see this.')}</p>
+      <button style={{ ...W95_BTN, marginRight: 8 }} onClick={onQuit}>{t('Yes')}</button>
+      <button style={W95_BTN} onClick={() => setAsking(false)} autoFocus>{t('No')}</button>
     </div>
   );
 }
@@ -834,20 +915,20 @@ function ExitInterview({ stats, cause, onRetry }: { stats: RunStats; cause?: str
         transform: 'rotate(-1deg)', border: '1px solid #c9bf9f',
       }}
     >
-      <p style={{ margin: 0, fontWeight: 700, letterSpacing: 1 }}>EXIT INTERVIEW · FORM HR-404</p>
-      <p style={{ margin: '2px 0 12px', fontSize: 11 }}>Please complete in triplicate. Crayon accepted.</p>
-      <p style={{ margin: '6px 0' }}>EMPLOYEE: <b>TERO (AGE 2)</b></p>
-      <p style={{ margin: '6px 0' }}>REASON FOR LEAVING:<br />
-        {box(true)} Died &nbsp; {box(false)} Promoted &nbsp; {box(false)} Quiet quitting
+      <p style={{ margin: 0, fontWeight: 700, letterSpacing: 1 }}>{t('EXIT INTERVIEW · FORM HR-404')}</p>
+      <p style={{ margin: '2px 0 12px', fontSize: 11 }}>{t('Please complete in triplicate. Crayon accepted.')}</p>
+      <p style={{ margin: '6px 0' }}>{t('EMPLOYEE:')} <b>{t('TERO (AGE 2)')}</b></p>
+      <p style={{ margin: '6px 0' }}>{t('REASON FOR LEAVING:')}<br />
+        {box(true)} {t('Died')} &nbsp; {box(false)} {t('Promoted')} &nbsp; {box(false)} {t('Quiet quitting')}
       </p>
-      <p style={{ margin: '6px 0' }}>CAUSE: <u>{CAUSE_TEXT[cause ?? 'unknown'] ?? cause}</u></p>
+      <p style={{ margin: '6px 0' }}>{t('CAUSE:')} <u>{t(CAUSE_TEXT[cause ?? 'unknown'] ?? cause ?? '')}</u></p>
       <p style={{ margin: '6px 0' }}>
-        TIME SERVED: {formatTime(stats.timeMs)} &nbsp; FLOPPIES: {stats.coins} &nbsp; SENT HOME: {stats.sentHome}
+        {t('TIME SERVED:')} {formatTime(stats.timeMs)} &nbsp; {t('FLOPPIES:')} {stats.coins} &nbsp; {t('SENT HOME:')} {stats.sentHome}
       </p>
-      <p style={{ margin: '6px 0' }}>WOULD YOU RECOMMEND THIS COMPANY TO A FRIEND?<br />
-        {box(false)} No &nbsp; {box(true)} No
+      <p style={{ margin: '6px 0' }}>{t('WOULD YOU RECOMMEND THIS COMPANY TO A FRIEND?')}<br />
+        {box(false)} {t('No')} &nbsp; {box(true)} {t('No')}
       </p>
-      <p style={{ margin: '10px 0 0' }}>SIGNATURE: <span style={{ fontFamily: 'var(--font-pixel, monospace)', color: '#d83b3b', fontSize: 15, display: 'inline-block', transform: 'rotate(-6deg)' }}>TERO</span></p>
+      <p style={{ margin: '10px 0 0' }}>{t('SIGNATURE:')} <span style={{ fontFamily: 'var(--font-pixel, monospace)', color: '#d83b3b', fontSize: 15, display: 'inline-block', transform: 'rotate(-6deg)' }}>TERO</span></p>
       <div style={{ textAlign: 'center', marginTop: 16 }}>
         <button
           className="pixel-btn"
@@ -855,7 +936,7 @@ function ExitInterview({ stats, cause, onRetry }: { stats: RunStats; cause?: str
           onClick={onRetry}
           aria-label="Retry level"
         >
-          ↺ RE-APPLY
+          {t('↺ RE-APPLY')}
         </button>
       </div>
     </div>
@@ -887,7 +968,7 @@ function ModeToggle({ setting, label, color, onChange, variant = 'pixel' }: {
   if (variant === 'win95') {
     return (
       <button style={{ ...W95_BTN, color: on ? color : '#1b1620' }} onClick={toggle} aria-pressed={on}>
-        {on ? '☑' : '☐'} {label}
+        {on ? '☑' : '☐'} {t(label)}
       </button>
     );
   }
@@ -898,7 +979,7 @@ function ModeToggle({ setting, label, color, onChange, variant = 'pixel' }: {
       onClick={toggle}
       aria-pressed={on}
     >
-      {label}: {on ? 'ON' : 'OFF'}
+      {t(label)}: {t(on ? 'ON' : 'OFF')}
     </button>
   );
 }
@@ -930,15 +1011,15 @@ function FinalScreen({ run, onAgain }: { run: FinalRun; onAgain: () => void }) {
         return;
       }
       await navigator.clipboard.writeText(text);
-      setNote('COPIED! PASTE IT ANYWHERE.');
+      setNote(t('COPIED! PASTE IT ANYWHERE.'));
     } catch {
-      setNote('COULD NOT SHARE. TRY SAVE IMAGE.');
+      setNote(t('COULD NOT SHARE. TRY SAVE IMAGE.'));
     }
   };
 
   return (
     <PixelOverlay dim style={{ background: 'rgba(10,12,24,0.94)', overflowY: 'auto', justifyContent: 'flex-start', paddingTop: 16 }}>
-      <p className="pixel-title" style={{ color: '#6cc24a', fontSize: 'clamp(16px, 4vw, 40px)' }}>YOU GOT DAD BACK.</p>
+      <p className="pixel-title" style={{ color: '#6cc24a', fontSize: 'clamp(16px, 4vw, 40px)' }}>{t('YOU GOT DAD BACK.')}</p>
       {card && (
         // eslint-disable-next-line @next/next/no-img-element
         <img
@@ -948,13 +1029,13 @@ function FinalScreen({ run, onAgain }: { run: FinalRun; onAgain: () => void }) {
         />
       )}
       <div className="mt-4 flex flex-wrap justify-center gap-3">
-        <button className="pixel-btn" onClick={save} aria-label="Save the card as an image">⬇ SAVE IMAGE</button>
-        <button className="pixel-btn" onClick={share} aria-label="Share the card">↗ SHARE</button>
-        <button className="pixel-btn" style={{ borderColor: '#a7f070', color: '#a7f070' }} onClick={onAgain} aria-label="Play again">▶ PLAY AGAIN</button>
+        <button className="pixel-btn" onClick={save} aria-label="Save the card as an image">{t('⬇ SAVE IMAGE')}</button>
+        <button className="pixel-btn" onClick={share} aria-label="Share the card">{t('↗ SHARE')}</button>
+        <button className="pixel-btn" style={{ borderColor: '#a7f070', color: '#a7f070' }} onClick={onAgain} aria-label="Play again">{t('▶ PLAY AGAIN')}</button>
       </div>
       {note && <p className="pixel-hint mt-3" style={{ color: '#ffd23f' }} role="status">{note}</p>}
       <details className="mt-4" style={{ color: '#c2c3c7', fontFamily: 'var(--font-pixel, monospace)', fontSize: 'clamp(8px, 1.3vw, 12px)' }}>
-        <summary style={{ cursor: 'pointer' }}>SPLITS · {formatMs(run.totalMs)}{run.bestMs !== null ? ` · BEST ${formatMs(run.bestMs)}` : ''}</summary>
+        <summary style={{ cursor: 'pointer' }}>{t('SPLITS')} · {formatMs(run.totalMs)}{run.bestMs !== null ? ` · ${t('BEST')} ${formatMs(run.bestMs)}` : ''}</summary>
         <table style={{ margin: '8px auto', borderSpacing: '12px 4px' }}>
           <tbody>
             {run.splits.map((s) => (
@@ -977,7 +1058,7 @@ function BossBar({ boss }: { boss: NonNullable<HudData['boss']> }) {
       aria-label={`${boss.name}: ${boss.hp} of ${boss.maxHp}`}
     >
       <p style={{ color: '#fff1e8', textShadow: '2px 2px 0 #000', margin: '0 0 4px' }}>
-        {boss.name} <span style={{ color: '#ffd23f' }}>· {boss.slide}</span>
+        {t(boss.name)} <span style={{ color: '#ffd23f' }}>· {t(boss.slide)}</span>
       </p>
       <div style={{ height: '0.9em', border: '2px solid #fff1e8', background: '#1b1620', position: 'relative' }}>
         <div style={{ position: 'absolute', inset: 0, width: `${pct}%`, background: '#d83b3b', transition: 'width 200ms steps(4)' }} />

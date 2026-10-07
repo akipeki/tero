@@ -4,6 +4,7 @@
 // Pixel font, Tero and Dad, and the numbers that make it a joke and a
 // brag at the same time ("Dad was at the office for 4,380 hours").
 
+import { t, tf, getLang } from './i18n';
 import { Raster } from './render/pixel/Raster';
 import { drawText, drawTextCentered, textWidth } from './render/pixel/font';
 import { GAME_TITLE } from './title';
@@ -29,6 +30,16 @@ function n(count: number, one: string, many: string): string {
 
 /** The words, in one place, for the PNG and the copy-paste text. */
 export function shareLines(run: FinalRun): string[] {
+  if (getLang() === 'fi') {
+    return [
+      tf('DAD WAS AT THE OFFICE FOR {h} HOURS.', { h: DAD_HOURS.replace(',', ' ') }),
+      tf('TERO GOT HIM BACK IN {t}.', { t: formatMs(run.totalMs) }),
+      tf('{n} SENT HOME TO THEIR KIDS.', { n: run.sentHome }),
+      `RAIVAREITA ${run.tantrums}. KUOLEMIA ${run.deaths}. SYNKKOJA ${run.syncs}.`,
+      tf('DAD\'S THINGS FOUND: {n}/{m}', { n: run.things.length, m: run.thingsTotal }),
+      ...(run.assist ? [t('(BRING YOUR KID TO WORK DAY)')] : []),
+    ];
+  }
   return [
     `DAD WAS AT THE OFFICE FOR ${DAD_HOURS} HOURS.`,
     `TERO GOT HIM BACK IN ${formatMs(run.totalMs)}.`,
@@ -57,14 +68,14 @@ export async function renderShareCard(run: FinalRun): Promise<HTMLCanvasElement>
   r.rect(8, 8, W - 16, H - 16, '#2a2f4a');
   r.rect(10, 10, W - 20, H - 20, '#1a1c2c');
   drawTextCentered(r, GAME_TITLE, 0, W, 22, '#6cc24a', 4);
-  drawTextCentered(r, 'BABY DRAGON STRIKES BACK', 0, W, 46, '#ffd23f', 1);
+  drawTextCentered(r, t('BABY DRAGON STRIKES BACK'), 0, W, 46, '#ffd23f', 1);
   const lines = shareLines(run);
   const colors = ['#fff1e8', '#ffd23f', '#a7f070', '#ff77a8', '#29adff', '#c2c3c7'];
   lines.forEach((l, i) => {
     const x = Math.round((W - textWidth(l, 2)) / 2);
     drawText(r, l, Math.max(14, x), 96 + i * 20, colors[i], textWidth(l, 2) > W - 28 ? 1 : 2);
   });
-  if (run.newRecord) drawTextCentered(r, '* NEW RECORD *', 0, W, 220, '#ff3b1f', 2);
+  if (run.newRecord) drawTextCentered(r, t('* NEW RECORD *'), 0, W, 220, '#ff3b1f', 2);
   drawTextCentered(r, '#WHEREISDADA', 0, W, 246, '#83769c', 1);
 
   const c = document.createElement('canvas');

@@ -1,5 +1,6 @@
 // file: game/Game.ts
 
+import { t, tf } from './i18n';
 import { setTheme } from './render/Theme';
 import { Tilemap } from './level/Tilemap';
 import { LEVELS, validateLevel as validateBuiltinLevel, type LevelDef } from './level/levels';
@@ -419,7 +420,8 @@ export class Game {
     const store = contentStore();
     const cards = [...(cardIds ?? [])
       .map((id) => store.getCard(id))
-      .filter((c): c is StoryCard => c !== null), ...extra];
+      .filter((c): c is StoryCard => c !== null), ...extra]
+      .map((c) => ({ ...c, text: t(c.text), speaker: c.speaker && t(c.speaker) }));   // in the player's language
     if (cards.length === 0) { then(); return; }
 
     this.stats.pause();
@@ -736,7 +738,7 @@ export class Game {
       }
     }
     this.note('grenade', n);
-    this.onCallout?.(n ? `${n} RESIGNATION${n === 1 ? '' : 'S'}!` : 'BOOM. (NOBODY THERE.)');
+    this.onCallout?.(n === 1 ? '1 RESIGNATION!' : n ? tf('{n} RESIGNATIONS!', { n }) : 'BOOM. (NOBODY THERE.)');
   }
 
   /** "DADA!!" — useless, mostly. Enemies look round; Dad's things answer. */
@@ -909,16 +911,16 @@ export class Game {
       if (g.exploded) this.blast(ctx, g.cx, g.cy);
     }
     this.grenades = this.grenades.filter((g) => g.active);
-    for (const t of this.things) {
-      t.update();
-      if (t.check(p)) {
-        const info = DAD_THINGS[t.id];
-        this.run.thing(t.id);
-        this.note('thing', t.id);
+    for (const thing of this.things) {
+      thing.update();
+      if (thing.check(p)) {
+        const info = DAD_THINGS[thing.id];
+        this.run.thing(thing.id);
+        this.note('thing', thing.id);
         this.say('Dada\'s!', true);
         this.audio.play('dada');
-        this.particles.burst(t.cx, t.cy, 14, '#ff77a8', '#ffffff');
-        this.onCallout?.(info ? `${info.name}: ${info.note}` : 'ONE OF DAD\'S THINGS');
+        this.particles.burst(thing.cx, thing.cy, 14, '#ff77a8', '#ffffff');
+        this.onCallout?.(info ? `${t(info.name)}: ${t(info.note)}` : 'ONE OF DAD\'S THINGS');
       }
     }
     if (p.rescued) { p.rescued = false; this.note('rescue', undefined, p.deathX, p.deathY); }

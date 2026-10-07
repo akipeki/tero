@@ -17,6 +17,10 @@ export interface PersistedSettings {
   assist?: boolean;
   /** Sound effects volume, 0..1 (music is `volume`). */
   sfxVolume?: number;
+  /** Screen shake. Undefined = follow the OS "reduce motion" setting. */
+  shake?: boolean;
+  /** UI and story language. */
+  lang?: 'en' | 'fi';
 }
 
 const DEFAULTS: PersistedSettings = {
@@ -38,6 +42,8 @@ export function loadSettings(): PersistedSettings {
       casualFriday: parsed.casualFriday === true,
       assist:       parsed.assist === true,
       sfxVolume:    typeof parsed.sfxVolume === 'number' ? clamp01(parsed.sfxVolume) : 1,
+      shake:        typeof parsed.shake === 'boolean' ? parsed.shake : undefined,
+      lang:         parsed.lang === 'fi' ? 'fi' : 'en',
     };
   } catch {
     return { ...DEFAULTS };

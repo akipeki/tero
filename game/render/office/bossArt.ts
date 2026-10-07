@@ -4,6 +4,7 @@
 // throws, and the "IN A MEETING" sign that keeps the elevator shut. Gameplay
 // objects are bright; the screen is a big readable sign of what slide we're on.
 
+import { t } from '../../i18n';
 import { blitArt } from '../customImages';
 import { Raster } from '../pixel/Raster';
 import { drawText, drawTextCentered, textWidth } from '../pixel/font';
@@ -57,6 +58,8 @@ export const SCREEN_H = 92;
 export function drawProjectorScreen(
   ctx: CanvasRenderingContext2D, sx: number, sy: number, header: string, title: string,
 ): void {
+  header = t(header);
+  title = t(title);
   const c = cached(`screen:${header}:${title}`, () => {
     const r = new Raster(SCREEN_W, SCREEN_H);
     r.rect(0, 0, SCREEN_W, 4, '#5a5f68');                         // the roller

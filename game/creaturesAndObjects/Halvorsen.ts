@@ -16,6 +16,7 @@
 // The arena is the 15 columns from `arenaTx`, exactly one screen. Game locks
 // the camera and closes the door at `arenaTx - 1` while the fight is on.
 
+import { tf } from '../i18n';
 import { creaturesAndObjects, type UpdateCtx } from './creaturesAndObjects';
 import { overlaps, stompOverlap } from '../physics/AABB';
 import { TILE_SIZE } from '../constants';
@@ -380,7 +381,7 @@ export class Halvorsen extends creaturesAndObjects implements Boss {
 
   /** The projector screen sits behind everything else in the arena. */
   drawBackdrop(ctx: CanvasRenderingContext2D, camX: number): void {
-    const header = this.phase === 'fight' ? `SLIDE ${this.slide + 1}/47` : 'Q3 REVIEW';
+    const header = this.phase === 'fight' ? tf('SLIDE {n}/47', { n: this.slide + 1 }) : 'Q3 REVIEW';
     drawProjectorScreen(ctx, this.arenaLeft + 2 * TILE_SIZE - camX, TILE_SIZE + 4, header,
       this.phase === 'waiting' ? 'WELCOME, TEAM!' : this.slideTitle);
   }

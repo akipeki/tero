@@ -4,6 +4,7 @@
 // into, the OUT OF ORDER elevator, the resistance's barrel fire and the
 // grenade they give him.
 
+import { t, t as tr, getLang } from '../../i18n';
 import { blitArt } from '../customImages';
 import { Raster } from '../pixel/Raster';
 import { drawText, drawTextCentered, textWidth } from '../pixel/font';
@@ -27,6 +28,7 @@ export function drawElvisAt(ctx: CanvasRenderingContext2D, footX: number, footY:
 
 /** A duct opening in the wall at floor level, bottom-centre at (cx, floorY). */
 export function drawVentHole(ctx: CanvasRenderingContext2D, cx: number, floorY: number, label: string): void {
+  label = t(label);
   const c = cached(`vent:${label}`, () => {
     const w = 56, h = 46;
     const r = new Raster(w, h + 14);
@@ -45,14 +47,14 @@ export function drawVentHole(ctx: CanvasRenderingContext2D, cx: number, floorY: 
 
 /** Yellow-and-black tape across the elevator doors + the sign. */
 export function drawOutOfOrder(ctx: CanvasRenderingContext2D, cx: number, top: number): void {
-  const c = cached('ooo', () => {
+  const c = cached(`ooo:${getLang()}`, () => {
     const r = new Raster(70, 84);
     for (let i = 0; i < 70; i++) {
       const y1 = 10 + Math.round(i * 0.9), y2 = 73 - Math.round(i * 0.9);
       const col = Math.floor(i / 5) % 2 ? INK : '#ffd23f';
       r.rect(i, y1, 1, 5, col); r.rect(i, y2, 1, 5, col);
     }
-    const t = 'OUT OF ORDER';
+    const t = tr('OUT OF ORDER');
     // the sign sits at the top of the doors, clear of the pipe below
     r.rect(Math.floor((70 - textWidth(t) - 6) / 2), 12, textWidth(t) + 6, 11, '#ffffff');
     drawTextCentered(r, t, 0, 70, 15, '#d83b3b');

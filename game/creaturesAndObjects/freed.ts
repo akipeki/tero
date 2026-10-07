@@ -4,6 +4,7 @@
 // they drop the tie, shout something and skip off home, fading out.
 // Walkers and Hoppers both use this; robots and plants can't be freed.
 
+import { t } from '../i18n';
 import { Raster } from '../render/pixel/Raster';
 import { drawText, textWidth } from '../render/pixel/font';
 import { stepBody } from '../physics/Physics';
@@ -107,7 +108,7 @@ function bubble(text: string): HTMLCanvasElement {
 
 /** A speech bubble whose tail points down at (x, y) in screen px. */
 export function drawBubble(ctx: CanvasRenderingContext2D, text: string, x: number, y: number): void {
-  const c = bubble(text);
+  const c = bubble(t(text));
   ctx.drawImage(c, Math.round(x - 5), Math.round(y - c.height));
 }
 
