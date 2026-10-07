@@ -353,4 +353,12 @@ npm run dev        # next dev
 npm run build      # production build
 npm run lint       # eslint
 npm run typecheck  # tsc --noEmit
+npm run build:web  # static site in out/ (any static host)
+npm run serve:web  # serve out/ on http://localhost:3005
 ```
+
+### Launching
+
+`/press` is the press kit, and the share card, icon and install manifest are
+built automatically. Hosting options, store copy (EN and FI), the trailer
+shot list and the launch checklist are in [docs/LAUNCH.md](docs/LAUNCH.md).

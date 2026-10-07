@@ -1,7 +1,16 @@
-import { redirect } from 'next/navigation';
+import Link from 'next/link';
 
-// The game's own title screen is the front door. The level/sprite studio
-// still lives at /editor, it just isn't advertised to players.
+// `/` sends players straight to the game. A meta refresh (not a server
+// redirect) so it also works in the static build, on any host.
 export default function Home() {
-  redirect('/game');
+  return (
+    <>
+      <meta httpEquiv="refresh" content="0; url=game/" />
+      <main className="flex h-full items-center justify-center bg-black text-white">
+        <Link href="/game" className="font-[family-name:var(--font-press-start)] text-sm">
+          PRESS START ▶
+        </Link>
+      </main>
+    </>
+  );
 }

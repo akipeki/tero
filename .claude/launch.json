@@ -4,9 +4,20 @@
     {
       "name": "tero-dev",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
       "port": 3000,
       "autoPort": true
+    },
+    {
+      "name": "tero-static",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "scripts/serve-web.mjs"
+      ],
+      "port": 3005
     }
   ]
 }

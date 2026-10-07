@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:web": "STATIC_EXPORT=1 next build",
+    "serve:web": "node scripts/serve-web.mjs",
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
