@@ -66,3 +66,75 @@ export function chordTones(token: string): number[] {
   const root = midi(minor ? token.slice(0, -1) : token);
   return [root, root + (minor ? 3 : 4), root + 7];
 }
+
+// ─── More songs ──────────────────────────────────────────────────────────────
+
+export type SongId = 'main' | 'boss' | 'vents';
+
+export interface Song {
+  bpm: number;
+  melody: string[][];
+  chords: string[][];
+  drums: string;
+}
+
+/** BOSS: the theme's angry cousin, in A minor. Plays while a boss fights. */
+const BOSS_MELODY: string[][] = [
+  ['A4', '-', 'C5', '-', 'E5', '-', 'A5', '-'],       // Am
+  ['G5', '-', 'E5', '-', 'C5', '-', 'D5', 'E5'],      // F
+  ['F5', '-', 'E5', '-', 'D5', '-', 'B4', '-'],       // G
+  ['E5', '-', '-', '-', 'G#4', '-', 'B4', '-'],       // E
+  ['A4', '-', 'C5', '-', 'E5', '-', 'A5', '-'],       // Am
+  ['B5', '-', 'A5', '-', 'G5', '-', 'E5', '-'],       // F
+  ['F5', '-', 'D5', '-', 'G5', '-', 'B4', '-'],       // G
+  ['A4', '-', '-', '.', 'E5', 'D5', 'C5', 'B4'],      // E
+];
+
+/** THE VENTS: Elvis's song. Bouncy, G major, and the "Da-da!" is happy. */
+const VENTS_MELODY: string[][] = [
+  ['G5', '-', 'B5', '-', 'D6', '-', 'B5', '-'],       // G
+  ['C6', '-', 'E6', '-', 'D6', '-', 'C6', '-'],       // C
+  ['B5', '-', 'G5', '-', 'E5', '-', 'G5', '-'],       // Em
+  ['A5', '-', '-', '.', 'da:D6', '-', 'da:B5', '-'],  // D   "Da-da!"
+  ['G5', '-', 'B5', '-', 'D6', '-', 'G6', '-'],       // G
+  ['E6', '-', 'D6', '-', 'C6', '-', 'A5', '-'],       // C
+  ['B5', '-', 'G5', '-', 'A5', '-', 'F#5', '-'],      // D
+  ['G5', '-', '-', '.', 'G5', 'A5', 'B5', '-'],       // G
+];
+
+export const SONGS: Record<SongId, Song> = {
+  main:  { bpm: BPM, melody: MELODY, chords: CHORDS, drums: DRUMS },
+  boss:  { bpm: 150, melody: BOSS_MELODY, chords: [['A2m'], ['F2'], ['G2'], ['E2'], ['A2m'], ['F2'], ['G2'], ['E2']], drums: 'kkshkksh' },
+  vents: { bpm: 136, melody: VENTS_MELODY, chords: [['G2'], ['C3'], ['E2m'], ['D3'], ['G2'], ['C3'], ['D3'], ['G2']], drums: 'khshkhsh' },
+};
+
+// ─── Arrangements: every floor plays the theme its own way ───────────────────
+
+export interface Arrangement {
+  /** Lead instrument. */
+  lead: OscillatorType;
+  /** Semitones up/down from the written key. */
+  transpose: number;
+  /** BPM added to the song's. */
+  bpm: number;
+  /** Arpeggio: 'up' = one note per eighth, 'fast' = two, 'off' = none. */
+  arp: 'up' | 'fast' | 'off';
+  /** Drum pattern override (k kick · s snare · h hat · . rest). */
+  drums?: string;
+  leadGain?: number;
+}
+
+export const ARRANGEMENTS: Record<string, Arrangement> = {
+  basement:  { lead: 'triangle', transpose: 0,  bpm: -10, arp: 'off',  drums: 'k.h.k.h.' },                 // the boiler-room lullaby
+  cubicles:  { lead: 'square',   transpose: 0,  bpm: 0,   arp: 'up' },
+  boardroom: { lead: 'square',   transpose: -2, bpm: -4,  arp: 'up',   drums: 'k.hsk.hs' },                 // a bossa nova nobody asked for
+  legal:     { lead: 'sawtooth', transpose: -3, bpm: -6,  arp: 'up',   leadGain: 0.2 },                     // billed hourly
+  lab:       { lead: 'square',   transpose: 2,  bpm: 4,   arp: 'fast' },
+  security:  { lead: 'square',   transpose: 0,  bpm: 6,   arp: 'up',   drums: 'kkhskkhs' },
+  executive: { lead: 'triangle', transpose: 5,  bpm: -12, arp: 'off',  drums: 'k..hk..h' },                 // lobby lounge
+  penthouse: { lead: 'sine',     transpose: 0,  bpm: -6,  arp: 'up',   leadGain: 0.42 },
+  vents:     { lead: 'triangle', transpose: 0,  bpm: 0,   arp: 'up',   leadGain: 0.4 },
+  stairwell: { lead: 'square',   transpose: 0,  bpm: 38,  arp: 'fast', drums: 'kkskkkks' },                // RUN
+};
+
+export const DEFAULT_ARRANGEMENT: Arrangement = ARRANGEMENTS.cubicles;

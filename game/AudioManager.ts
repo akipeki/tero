@@ -10,7 +10,8 @@
 // bolts a distorted power-chord guitar and double kick onto whatever is
 // playing: the muzak turns into metal while Tero rages.
 
-import { BPM, CHORDS, DRUMS, MELODY, chordTones, hz, midi } from './music';
+import { SONGS, ARRANGEMENTS, DEFAULT_ARRANGEMENT, chordTones, hz, midi, type SongId, type Arrangement } from './music';
+import { CUSTOM_SOUNDS } from './customSounds';
 
 type SfxName =
   | 'jump' | 'stomp' | 'powerup' | 'hurt' | 'death'
@@ -90,6 +91,16 @@ export class AudioManager {
   private metal: WaveShaperNode | null = null;
   private tantrum = false;
   private boss = false;
+  /** The song for the current floor; the boss song replaces it in fights. */
+  private baseSong: SongId = 'main';
+  private song: SongId = 'main';
+  private arr: Arrangement = DEFAULT_ARRANGEMENT;
+  /** Everything that isn't music goes through here (its own volume). */
+  private sfxOut: GainNode | null = null;
+  private sfxScale = 1;
+  /** Recordings from customSounds.ts, once decoded. */
+  private customMusic = new Map<SongId, AudioBuffer>();
+  private customSfx = new Map<string, AudioBuffer>();
   /** Casual Friday: the lead is a plinky ukulele-ish triangle, a bit faster. */
   private casual = false;
   private lfoDepth: GainNode | null = null;
@@ -109,6 +120,10 @@ export class AudioManager {
         (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       if (!Ctor) return;
       this.ac = new Ctor();
+      this.sfxOut = this.ac.createGain();
+      this.sfxOut.connect(this.ac.destination);
+      this.applySfxLevel();
+      this.loadCustomSounds();
       this.startMusic();
     } catch {
       // Some locked-down browsers throw; degrade gracefully to silent.
@@ -119,16 +134,24 @@ export class AudioManager {
   play(name: SfxName): void {
     if (this.muted || !this.ac) return;
     const now = this.ac.currentTime;
+    const custom = this.customSfx.get(name);
+    if (custom) {
+      const src = this.ac.createBufferSource();
+      src.buffer = custom;
+      src.connect(this.out);
+      src.start(now);
+      return;
+    }
     if (name === 'roar') {
       // "RAAAAH" — Tero's war cry, sliding down an octave
-      this.voice(hz(midi('G5')), now, 0.75, this.ac.destination, 0.9, true, hz(midi('G4')));
-      this.noise(now, 0.4, 0.15, this.ac.destination, 600);
+      this.voice(hz(midi('G5')), now, 0.75, this.out, 0.9, true, hz(midi('G4')));
+      this.noise(now, 0.4, 0.15, this.out, 600);
       return;
     }
     if (name === 'dada') {
       // "Da-da?" — rising, like the title
-      this.voice(hz(midi('E5')), now, 0.22, this.ac.destination, 0.8, false);
-      this.voice(hz(midi('G5')), now + 0.26, 0.42, this.ac.destination, 0.8, true);
+      this.voice(hz(midi('E5')), now, 0.22, this.out, 0.8, false);
+      this.voice(hz(midi('G5')), now + 0.26, 0.42, this.out, 0.8, true);
       return;
     }
     const spec = SFX_TONES[name];
@@ -143,7 +166,7 @@ export class AudioManager {
     }
     if (spec.noise) {
       const noiseGain = spec.noiseOnly ? gain : 0.25;
-      this.noise(now, spec.noise, noiseGain, this.ac.destination, spec.noiseHz ?? 1800);
+      this.noise(now, spec.noise, noiseGain, this.out, spec.noiseHz ?? 1800);
     }
   }
 
@@ -154,21 +177,73 @@ export class AudioManager {
   setMuted(muted: boolean): void {
     this.muted = muted;
     this.applyMusicLevel();
+    this.applySfxLevel();
   }
 
-  /** 0..1, multiplies the music gain. (SFX uses fixed per-tone gains.) */
+  /** 0..1, multiplies the music gain. */
   setMasterVolume(scale: number): void {
     this.masterScale = Math.max(0, Math.min(1, scale));
     this.applyMusicLevel();
+  }
+
+  /** 0..1, the sound effects' own volume. */
+  setSfxVolume(scale: number): void {
+    this.sfxScale = Math.max(0, Math.min(1, scale));
+    this.applySfxLevel();
+  }
+
+  private applySfxLevel(): void {
+    if (this.sfxOut) this.sfxOut.gain.value = this.muted ? 0 : this.sfxScale;
+  }
+
+  /** Where sound effects go: their own bus (falls back to the speakers). */
+  private get out(): AudioNode {
+    return this.sfxOut ?? this.ac!.destination;
+  }
+
+  /** The floor's song ('vents' in the vents, 'main' elsewhere). */
+  setBaseSong(id: SongId): void {
+    this.baseSong = id;
+    this.setSong(this.boss ? 'boss' : id);
+  }
+
+  /** How the floor plays it (by décor id; unknown ids get the default). */
+  setArrangement(decor: string | undefined): void {
+    this.arr = (decor && ARRANGEMENTS[decor]) || DEFAULT_ARRANGEMENT;
+  }
+
+  private setSong(id: SongId): void {
+    if (this.song === id) return;
+    this.song = id;
+    if (this.musicGain) this.startMusic();   // switch right away
+  }
+
+  /** Fetches and decodes the recordings listed in customSounds.ts. */
+  private loadCustomSounds(): void {
+    const ac = this.ac;
+    if (!ac || typeof fetch === 'undefined') return;
+    const get = (file: string) => fetch(`/audio/${file}`)
+      .then((r) => { if (!r.ok) throw new Error(`[Tero] sound not found: /audio/${file}`); return r.arrayBuffer(); })
+      .then((b) => ac.decodeAudioData(b));
+    for (const [id, file] of Object.entries(CUSTOM_SOUNDS.music) as [SongId, string][]) {
+      get(file).then((buf) => {
+        this.customMusic.set(id, buf);
+        if (id === this.song && this.musicGain) this.startMusic();
+      }, (e) => console.warn((e as Error).message));
+    }
+    for (const [name, file] of Object.entries(CUSTOM_SOUNDS.sfx)) {
+      get(file).then((buf) => { this.customSfx.set(name, buf); }, (e) => console.warn((e as Error).message));
+    }
   }
 
   get isMuted(): boolean { return this.muted; }
 
   setCasual(on: boolean): void { this.casual = on; }
 
-  /** Boss fight: the muzak speeds up and the snare doubles. */
+  /** Boss fight: the boss song takes over (and the snare doubles). */
   setBoss(on: boolean): void {
     this.boss = on;
+    this.setSong(on ? 'boss' : this.baseSong);
   }
 
   /** Metal mode on/off — applies from the next eighth note. */
@@ -245,6 +320,19 @@ export class AudioManager {
     this.lfoDepth = depth;
     this.musicNodes.add(lfo);
 
+    // A recording for this song? Loop it through the same bus (so floors
+    // still muffle it) instead of running the sequencer.
+    const rec = this.customMusic.get(this.song);
+    if (rec) {
+      const src = ac.createBufferSource();
+      src.buffer = rec;
+      src.loop = true;
+      src.connect(bus);
+      src.start(ac.currentTime + 0.05);
+      this.musicNodes.add(src);
+      return;
+    }
+
     this.step = 0;
     this.nextStepAt = ac.currentTime + 0.1;
     this.timerId = setInterval(() => this.scheduleAhead(), TICK_MS);
@@ -266,22 +354,26 @@ export class AudioManager {
     while (this.nextStepAt < this.ac.currentTime + LOOKAHEAD_S) {
       this.playStep(this.step, this.nextStepAt);
       this.nextStepAt += this.stepDur;
-      this.step = (this.step + 1) % (MELODY.length * 8);
+      this.step = (this.step + 1) % (SONGS[this.song].melody.length * 8);
     }
   }
 
   /** One eighth note. Slower on higher floors — everyone's exhausted. */
   private get stepDur(): number {
-    return 60 / (BPM - this.mood * 18 + (this.boss ? 26 : 0) + (this.casual ? 10 : 0)) / 2;
+    const bpm = SONGS[this.song].bpm + (this.song === 'boss' ? 0 : this.arr.bpm);
+    return 60 / (bpm - this.mood * 18 + (this.casual ? 10 : 0)) / 2;
   }
 
   /** The penthouse is a semitone flat. Nobody has noticed. */
   private get transpose(): number {
-    return this.mood >= 0.95 ? -1 : 0;
+    return this.arr.transpose + (this.mood >= 0.95 ? -1 : 0);
   }
 
   private playStep(step: number, t: number): void {
     const bus = this.bus!;
+    const song = SONGS[this.song];
+    const MELODY = song.melody, CHORDS = song.chords;
+    const DRUMS = this.song === 'boss' ? song.drums : (this.arr.drums ?? song.drums);
     const bar = Math.floor(step / 8);
     const beat = step % 8;
     const sd = this.stepDur;
@@ -301,7 +393,7 @@ export class AudioManager {
           this.pitched(f * 2, t, Math.min(len * sd, 0.22), 'triangle', 0.42, bus, 0.002);
           this.pitched(f * 1.5, t + 0.012, Math.min(len * sd, 0.18), 'triangle', 0.18, bus, 0.002);
         } else {
-          this.pitched(f, t, len * sd * 0.9, 'square', 0.32, bus, 0.01);
+          this.pitched(f, t, len * sd * 0.9, this.song === 'boss' ? 'square' : this.arr.lead, this.arr.leadGain ?? 0.32, bus, 0.01);
         }
         // Upper floors: a second, slightly sour copy of the lead.
         if (this.mood > 0.4) {
@@ -319,9 +411,13 @@ export class AudioManager {
     const bassNote = chord[0] + (beat % 2 === 1 ? 12 : 0);
     this.pitched(hz(bassNote), t, sd * 0.8, 'triangle', 0.55, bus, 0.005);
 
-    // Arpeggio two octaves up, quiet: 1-3-5-3 …
-    const arp = [0, 1, 2, 1][beat % 4];
-    this.pitched(hz(chord[arp] + 24), t, sd * 0.5, 'square', 0.07, bus, 0.003);
+    // Arpeggio two octaves up, quiet: 1-3-5-3 … ('fast' doubles it, 'off' skips it)
+    const arpMode = this.song === 'boss' ? 'fast' : this.arr.arp;
+    if (arpMode !== 'off') {
+      const arp = [0, 1, 2, 1][beat % 4];
+      this.pitched(hz(chord[arp] + 24), t, sd * 0.5, 'square', 0.07, bus, 0.003);
+      if (arpMode === 'fast') this.pitched(hz(chord[(arp + 1) % 3] + 24), t + sd / 2, sd * 0.45, 'square', 0.06, bus, 0.003);
+    }
 
     // Tantrum: fuzz power chords on every eighth and a double kick.
     if (this.tantrum && this.metal) {
@@ -394,7 +490,7 @@ export class AudioManager {
     g.connect(dest);
     src.start(t, Math.random() * 0.5);
     src.stop(t + dur + 0.01);
-    if (dest !== ac.destination) this.musicNodes.add(src);
+    if (dest !== ac.destination && dest !== this.sfxOut) this.musicNodes.add(src);
     src.onended = () => {
       this.musicNodes.delete(src);
       try { src.disconnect(); hp.disconnect(); g.disconnect(); } catch { /* ignore */ }
@@ -504,7 +600,7 @@ export class AudioManager {
     const t0 = startAt ?? this.ac.currentTime;
     g.gain.setValueAtTime(gain, t0);
     g.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
-    g.connect(this.ac.destination);
+    g.connect(this.out);
 
     const o = this.ac.createOscillator();
     o.type = type;

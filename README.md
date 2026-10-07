@@ -311,6 +311,19 @@ formant-filtered toddler voice for the "Da-da!" hook. The higher the floor,
 the worse the muzak: slower, tape-warbly, overdriven and muffled
 (`setFloorMood`), and the penthouse plays a semitone flat.
 
+Every floor also has its own **arrangement** of the theme (`ARRANGEMENTS` in
+`music.ts`: lead instrument, key, tempo, drum groove: a boiler-room lullaby
+in the basement, a bossa nova in the boardroom, lounge music in the
+executive wing, a sprint in the stairwell). Bosses switch to the **boss
+theme**; the vents play **Elvis's song**. Music and sound effects have
+separate volume sliders.
+
+**Real recordings** (a toddler actually saying "dada", a composer's
+soundtrack): put the files in `public/audio/` and list them in
+`game/customSounds.ts`. A listed song loops instead of the sequencer
+(still muffled on the high floors); a listed sound effect replaces the
+synth one.
+
 ### Tuning game feel
 
 All numbers live in [`game/constants.ts`](game/constants.ts). The settings

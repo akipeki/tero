@@ -27,3 +27,25 @@ describe('theme song', () => {
     expect(midi('C4')).toBe(60);
   });
 });
+
+import { SONGS, ARRANGEMENTS } from './music';
+import { DECORS } from './render/office/decor';
+
+describe('more songs and arrangements', () => {
+  it('every song is well formed', () => {
+    for (const s of Object.values(SONGS)) {
+      expect(s.melody.length).toBe(s.chords.length);
+      for (const bar of s.melody) {
+        expect(bar).toHaveLength(8);
+        for (const tok of bar) if (tok !== '-' && tok !== '.') expect(() => midi(tok.replace(/^da:/, ''))).not.toThrow();
+      }
+      for (const bar of s.chords) for (const c of bar) expect(chordTones(c)).toHaveLength(3);
+      expect(s.drums).toHaveLength(8);
+    }
+  });
+
+  it('every floor décor has its own arrangement', () => {
+    for (const id of Object.keys(DECORS)) expect(ARRANGEMENTS[id], id).toBeDefined();
+    for (const a of Object.values(ARRANGEMENTS)) if (a.drums) expect(a.drums).toHaveLength(8);
+  });
+});

@@ -240,18 +240,16 @@ export default function GameContainer() {
   // Reduced-motion: pause screen shake by toggling a global flag on the canvas.
   // (Not wired all the way through — kept lightweight; future: pass into Game.)
 
-  // Volume effect — set the master gain scale directly (proportional, not just mute).
+  // Volume effect — music and sound effects have their own levels; mute silences both.
+  const [sfxVolume, setSfxVolume] = useState(initialSettings.sfxVolume ?? 1);
   useEffect(() => {
     const g = gameRef.current?.audioManager;
     if (!g) return;
-    if (muted || volume === 0) {
-      g.setMuted(true);
-    } else {
-      g.setMuted(false);
-      g.setMasterVolume(volume);
-    }
-    saveSettings({ muted, volume });
-  }, [muted, volume]);
+    g.setMuted(muted);
+    g.setMasterVolume(volume);
+    g.setSfxVolume(sfxVolume);
+    saveSettings({ muted, volume, sfxVolume });
+  }, [muted, volume, sfxVolume]);
 
   // T toggles the speedrun timer.
   useEffect(() => {
@@ -590,8 +588,20 @@ export default function GameContainer() {
               step={0.05}
               value={muted ? 0 : volume}
               onChange={(e) => { setMuted(false); setVolume(parseFloat(e.target.value)); }}
-              aria-label="Volume"
+              aria-label="Music volume"
+              title="Music"
               style={{ width: 64, accentColor: '#ef7d57' }}
+            />
+            <input
+              type="range"
+              min={0}
+              max={1}
+              step={0.05}
+              value={muted ? 0 : sfxVolume}
+              onChange={(e) => { setMuted(false); setSfxVolume(parseFloat(e.target.value)); }}
+              aria-label="Sound effects volume"
+              title="Sound effects"
+              style={{ width: 48, accentColor: '#29adff' }}
             />
           </div>
         </>

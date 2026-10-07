@@ -15,6 +15,8 @@ export interface PersistedSettings {
   casualFriday?: boolean;
   /** Bring Your Kid to Work Day: the assist mode. */
   assist?: boolean;
+  /** Sound effects volume, 0..1 (music is `volume`). */
+  sfxVolume?: number;
 }
 
 const DEFAULTS: PersistedSettings = {
@@ -35,6 +37,7 @@ export function loadSettings(): PersistedSettings {
       showTimer:   parsed.showTimer === true,
       casualFriday: parsed.casualFriday === true,
       assist:       parsed.assist === true,
+      sfxVolume:    typeof parsed.sfxVolume === 'number' ? clamp01(parsed.sfxVolume) : 1,
     };
   } catch {
     return { ...DEFAULTS };

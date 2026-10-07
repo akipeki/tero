@@ -1332,6 +1332,10 @@ export class Game {
     this.stuckTicks = 0;
     this.note('start');
     this.audio.setFloorMood(this.floorMood());
+    // Every floor plays the theme its own way; the vents have Elvis's song.
+    const decor = this.levelPack?.decor;
+    this.audio.setArrangement(decor);
+    this.audio.setBaseSong(decor === 'vents' ? 'vents' : 'main');
     this.audio.setTantrum(false);
     this.audio.setBoss(false);
     this.wasTantrum = false;
