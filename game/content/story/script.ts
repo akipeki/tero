@@ -47,11 +47,8 @@ export const STORY = defineStory({
       id: 'monday',
       name: 'Getting in',
       levels: ['1', '2', '10', '3'],
-      // One card, then play. The rest of the backstory is on the walls
-      // (memo_more, sign_tape in level 1's scenery).
-      intro: [
-        { text: 'DAD WENT TO WORK SIX MONTHS AGO.\nHE NEVER CAME HOME.' },
-      ],
+      // Cold open: no card before play. The memo comes a few steps in (a
+      // trigger in level 1), the rest of the backstory is on the walls.
     },
     {
       id: 'tuesday',
@@ -83,6 +80,13 @@ export const STORY = defineStory({
       quiet: [[19, 31], [49, 56]],
       triggers: [
         {
+          // The cold open: a few steps of play first, then why.
+          atTile: 7,
+          lines: [
+            { text: 'DAD WENT TO WORK SIX MONTHS AGO.\nHE NEVER CAME HOME.' },
+          ],
+        },
+        {
           // Dad's old desk. This is what makes Tero angry enough to breathe fire.
           atTile: 12,
           lines: [
@@ -110,6 +114,15 @@ export const STORY = defineStory({
             { who: 'it', text: 'A baby in a dragon suit? In the mailroom?\nOh. You\'re #4471\'s kid.' },
             { who: 'it', text: 'You sent Brenda HOME? She\'s been\nhere since 1987. Your dad\'s on 6.' },
           ],
+        },
+        {
+          // MANDATORY ONBOARDING (game/interludes/onboarding.ts)
+          atTile: 46,
+          lines: [
+            { who: 'it', text: 'Wait! Nobody goes upstairs\nwithout ONBOARDING.' },
+            { who: 'it', text: 'It\'s a short video.\n(It is not a short video.)' },
+          ],
+          effect: 'interlude:onboarding',
         },
       ],
       scenery: [
@@ -152,6 +165,15 @@ export const STORY = defineStory({
           lines: [
             { text: 'TIP: DON\'T MAKE EYE CONTACT.\nHOLD DOWN TO HIDE IN A BOX.' },
           ],
+        },
+        {
+          // THE CAPTCHA (game/interludes/captcha.ts)
+          atTile: 40,
+          lines: [
+            { text: 'A SECURITY DOOR. A SCREEN:\n"PLEASE CONFIRM YOU ARE NOT A BABY."' },
+            { who: 'tero', text: '...Hmm.' },
+          ],
+          effect: 'interlude:captcha',
         },
         {
           atTile: 66,
@@ -218,6 +240,15 @@ export const STORY = defineStory({
           lines: [
             { text: 'DAD\'S CALENDAR. EVERY DAY CROSSED OUT.\nONE DAY CIRCLED: "HOME?"' },
           ],
+        },
+        {
+          // "YOU'RE ON MUTE" (game/interludes/mute.ts)
+          atTile: 28,
+          lines: [
+            { text: 'A LAPTOP ON THE TABLE CHIMES.\n"YOU HAVE BEEN ADDED TO: ALL-HANDS SYNC."' },
+            { who: 'tero', text: 'Dada in there?' },
+          ],
+          effect: 'interlude:mute',
         },
         {
           atTile: 47,
@@ -593,6 +624,16 @@ export const STORY = defineStory({
             { who: 'tero', text: 'One. Second.' },
           ],
           effect: 'interlude:nap',
+        },
+        {
+          // THE OFFICE CHAIR GP (game/interludes/kart.ts)
+          atTile: 112,
+          lines: [
+            { who: 'dad', text: 'Wait. An office chair.\nWith wheels.' },
+            { who: 'tero', text: 'VROOM VROOM!' },
+            { who: 'dad', text: 'Hold on, buddy.' },
+          ],
+          effect: 'interlude:kart',
         },
       ],
       outro: [

@@ -8,6 +8,10 @@ import { ElevatorMuzak } from './muzak';
 import { TermsAndConditions } from './terms';
 import { NapTime } from './nap';
 import { DesktopCrash } from './desktop';
+import { OnboardingVhs } from './onboarding';
+import { Captcha } from './captcha';
+import { OnMute } from './mute';
+import { OfficeChairGP } from './kart';
 
 const MAKERS: Partial<Record<InterludeId, () => Interlude>> = {
   acquisition: () => new AcquisitionIntro(),
@@ -18,6 +22,10 @@ const MAKERS: Partial<Record<InterludeId, () => Interlude>> = {
   terms: () => new TermsAndConditions(),
   nap: () => new NapTime(),
   desktop: () => new DesktopCrash(),
+  onboarding: () => new OnboardingVhs(),
+  captcha: () => new Captcha(),
+  mute: () => new OnMute(),
+  kart: () => new OfficeChairGP(),
 };
 
 export function makeInterlude(id: InterludeId): Interlude {

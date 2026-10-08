@@ -16,6 +16,7 @@ import type { ScreenShake } from '../ScreenShake';
 
 export const INTERLUDE_IDS = [
   'acquisition', 'unskippable_ad', 'cubicle3d', 'review', 'muzak', 'terms', 'nap', 'desktop',
+  'onboarding', 'captcha', 'mute', 'kart',
 ] as const;
 export type InterludeId = typeof INTERLUDE_IDS[number];
 
