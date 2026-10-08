@@ -13,7 +13,7 @@
 import { SONGS, ARRANGEMENTS, DEFAULT_ARRANGEMENT, chordTones, hz, midi, type SongId, type Arrangement } from './music';
 import { CUSTOM_SOUNDS } from './customSounds';
 
-type SfxName =
+export type SfxName =
   | 'jump' | 'stomp' | 'powerup' | 'hurt' | 'death'
   | 'goal' | 'block' | 'coin' | 'checkpoint' | 'text' | 'plop' | 'dada'
   | 'puff' | 'fire' | 'burn' | 'free' | 'ready' | 'roar'

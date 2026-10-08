@@ -58,6 +58,9 @@ import { setDecor, isDecorId } from './render/office/decor';
 import { getPlayerFrame, framePaths } from './render/sprites/PlayerSpriteAssets';
 import type { creaturesAndObjects, UpdateCtx } from './creaturesAndObjects/creaturesAndObjects';
 import type { HudData, PlayerRenderData, RunStats, StoryView } from './types';
+import { Interlude, type InterludeId, type InterludeHost } from './interludes/Interlude';
+import { makeInterlude } from './interludes/registry';
+import { PremiumMode } from './interludes/acquisition';
 import { FIXED_DT, MAX_FRAME_TIME, VIEWPORT_W, VIEWPORT_H, STARTING_LIVES, TILE_SIZE } from './constants';
 
 /** The whole game, for the share card after the last floor. */
@@ -167,6 +170,11 @@ export class Game {
   private syncTipShown = false;
 
   private state: GameState = GameState.TITLE;
+  /** The genre-break running right now (GameState.INTERLUDE). */
+  private interlude: Interlude | null = null;
+  private interludeThen: (() => void) | null = null;
+  /** Floor 30 after the acquisition: ads, DadaCoins, debt. */
+  private premium: PremiumMode | null = null;
   private accumulator = 0;
   private lastTime    = 0;
   private rafId       = 0;
@@ -319,6 +327,76 @@ export class Game {
       case GameState.WIN:       return this.updateWin();
       case GameState.STORY:     return this.updateStory();
       case GameState.QUIZ:      return;   // React has the window open
+      case GameState.INTERLUDE: return this.updateInterlude();
+    }
+  }
+
+  // ─── Interludes: the office takes over the game for a bit ─────────────────
+
+  private get interludeHost(): InterludeHost {
+    return {
+      input: this.input,
+      audio: this.audio,
+      shake: this.shake,
+      callout: (text) => this.onCallout?.(t(text)),
+    };
+  }
+
+  /** Freezes the level and hands the screen to an interlude; `then` runs
+   *  when it's done (default: back to the platformer). */
+  startInterlude(id: InterludeId, then?: () => void): void {
+    this.audio.init();
+    this.stats.pause();
+    this.interlude = makeInterlude(id);
+    this.interludeThen = then ?? null;
+    this.state = GameState.INTERLUDE;
+    this.note('interlude', id);
+    this.syncHud();
+  }
+
+  private updateInterlude(): void {
+    const il = this.interlude;
+    if (!il) { this.state = GameState.PLAYING; return; }
+    il.update(this.interludeHost);
+    this.shake.update();
+    if (!il.done) return;
+    this.interlude = null;
+    this.stats.resume();
+    this.state = GameState.PLAYING;
+    const then = this.interludeThen;
+    this.interludeThen = null;
+    this.afterInterlude(il.id);
+    then?.();
+    this.syncHud();
+  }
+
+  /** What an interlude leaves behind in the level. */
+  private afterInterlude(id: InterludeId): void {
+    if (id === 'acquisition') {
+      this.premium = new PremiumMode();
+      this.onCallout?.(t('ADS EVERYWHERE. BURN THEM! (X)'));
+      this.say('Burn. The. Ads.', true);
+    }
+  }
+
+  /** Premium mode (after the acquisition): charge for jumps, burn ads. */
+  private updatePremium(): void {
+    const pm = this.premium;
+    if (!pm) return;
+    const p = this.player;
+    if (p.justJumped) pm.charge({ x: p.cx, y: p.top - 8 });
+    const mouth = { x: p.cx, y: p.top + p.h * 0.35 };
+    const flames = this.flames.filter((f) => f.active);
+    pm.update(mouth, flames, this.camera.x, this.audio);
+    if (pm.justEnded) {
+      this.onCallout?.(t('WHERE IS DADA? IS FREE AGAIN!'));
+      this.say('Mine again.', true);
+    }
+    if (!pm.active) { this.premium = null; return; }
+    if (pm.wantsAd) {
+      pm.wantsAd = false;
+      pm.adShown = true;
+      this.startInterlude('unskippable_ad');
     }
   }
 
@@ -489,6 +567,8 @@ export class Game {
     this.player.jumpHeld        = this.input.jump;
 
     this.player.update(ctx);
+    this.updatePremium();
+    if (this.state !== GameState.PLAYING) return;
     this.watchProgress();
     this.updateFire();
     this.updateGadgets(ctx);
@@ -579,6 +659,7 @@ export class Game {
     this.goal.update(ctx);
     if (this.goal.checkTrigger(this.player, ctx)) {
       this.stats.pause(); // stop the clock at the goal, not after the outro
+      this.premium = null;
       this.playStory(this.levelPack?.outro, () => this.endRun('WIN'), this.secretEnding());
       return;
     }
@@ -1179,6 +1260,10 @@ export class Game {
         if (effect === 'boss' && this.boss) this.boss.introDone = true;
         if (effect === 'quiz') { this.openQuiz(); return; }
         if (effect === 'ride') this.startRide();
+        if (effect?.startsWith('interlude:')) {
+          this.startInterlude(effect.slice('interlude:'.length) as InterludeId);
+          return;
+        }
         if (effect === 'grenade') {
           this.run.giveGrenade();
           this.audio.play('powerup');
@@ -1223,6 +1308,9 @@ export class Game {
         updateBackground(Math.round(this.camera?.x ?? 0));
         this.renderer.drawTitleBackground();
         break;
+      case GameState.INTERLUDE:
+        if (!this.interlude?.overlay) { this.interlude?.draw(ctx); break; }
+        // falls through: an overlay interlude draws on top of the frozen level
       case GameState.PLAYING:
       case GameState.PAUSED:
       case GameState.GAME_OVER:
@@ -1252,6 +1340,8 @@ export class Game {
           // Tero's side of the conversation (or whatever he's yelling)
           drawBubble(ctx, say, this.player.cx - Math.round(this.camera.at(alpha)) + this.shake.offsetX, this.player.bottom - 46);
         }
+        this.premium?.draw(ctx, Math.round(this.camera.at(alpha)) - this.shake.offsetX);
+        if (this.state === GameState.INTERLUDE) this.interlude?.draw(ctx);
         break;
     }
 
@@ -1261,7 +1351,8 @@ export class Game {
   private syncPlayerOverlay(alpha: number): void {
     if (!this.onPlayerRender) return;
     const visible =
-      this.player && this.camera && this.state !== GameState.TITLE && !this.faxing;
+      this.player && this.camera && this.state !== GameState.TITLE && !this.faxing &&
+      !(this.state === GameState.INTERLUDE && this.interlude?.hidesPlayer);
     if (!visible) { this.onPlayerRender(null); return; }
 
     const p = this.player;

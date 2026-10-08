@@ -639,7 +639,7 @@ export default function GameContainer() {
       )}
 
       {/* ── Mobile D-pad (only on touch devices) ── */}
-      {isPlaying && isTouch && (
+      {(isPlaying || state === GameState.INTERLUDE) && isTouch && (
         <>
           <div className="absolute bottom-5 left-4 flex gap-2 select-none">
             <MobileBtn onDown={() => mobileDown(Action.LEFT)} onUp={() => mobileUp(Action.LEFT)}>◀</MobileBtn>

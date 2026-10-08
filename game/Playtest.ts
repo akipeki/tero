@@ -17,6 +17,7 @@ export type PlaytestEventType =
   | 'stuck'     // 20 s without getting any further
   | 'quiz'      // the job application (detail: answers rejected first)
   | 'grenade'   // the grenade went off (detail: how many resigned)
+  | 'interlude' // a genre break started (detail: which)
   | 'tantrum' | 'sync' | 'alarm' | 'thing' | 'rescue';
 
 export interface PlaytestEvent {

@@ -431,6 +431,16 @@ export const STORY = defineStory({
           ],
         },
         {
+          // THE ACQUISITION: the game itself gets bought (game/interludes/acquisition.ts)
+          atTile: 26,
+          lines: [
+            { who: 'pig', text: 'Q3 numbers are in.\nThis GAME is underperforming.' },
+            { who: 'pig', text: 'Too much joy. Not enough\nmonetisation. Call the lawyers.' },
+            { who: 'tero', text: '...Uh oh.' },
+          ],
+          effect: 'interlude:acquisition',
+        },
+        {
           atTile: 60,
           lines: [
             { who: 'tero', text: 'Drip. ...Drip.\n...Nothing.' },

@@ -100,6 +100,8 @@ export class Player extends creaturesAndObjects {
   hasChute = false;
   /** Gliding under it right now (drawn by Game). */
   gliding = false;
+  /** True on the tick a jump starts (Game reads it; premium charges for it). */
+  justJumped = false;
 
   // Respawn anchor — re-pointed by checkpoints
   spawnX = 0;
@@ -355,7 +357,9 @@ export class Player extends creaturesAndObjects {
     else if (this.coyoteFrames > 0) this.coyoteFrames--;
 
     // Execute jump
+    this.justJumped = false;
     if (this.jumpBuffer > 0 && this.coyoteFrames > 0 && !this.ducking) {
+      this.justJumped = true;
       this.vy = JUMP_FORCE * (this.inTape ? TAPE_JUMP : 1) * (this.riding ? 1.12 : 1);
       this.jumpBuffer = 0;
       this.coyoteFrames = 0;

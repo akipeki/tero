@@ -6,6 +6,8 @@
 // localStorage. Editors mutate the user pack; the runtime merges built-in
 // and user (user wins on id collisions).
 
+import type { InterludeId } from '../interludes/Interlude';
+
 import type { LevelSpawns } from '../types';
 import type { ThemeName } from '../render/Theme';
 
@@ -154,8 +156,9 @@ export interface StoryTrigger {
 
 /** 'tantrum' fills Tero's meter; 'boss' lets the floor's boss start the
  *  fight; 'quiz' opens the job application window; 'ride' puts Tero on
- *  Elvis; 'grenade' gives him the resistance's grenade. */
-export type TriggerEffect = 'tantrum' | 'boss' | 'quiz' | 'ride' | 'grenade';
+ *  Elvis; 'grenade' gives him the resistance's grenade; 'interlude:<id>'
+ *  hands the game over to an interlude (game/interludes/). */
+export type TriggerEffect = 'tantrum' | 'boss' | 'quiz' | 'ride' | 'grenade' | `interlude:${InterludeId}`;
 
 export interface Chapter {
   id:       ChapterId;

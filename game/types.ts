@@ -11,6 +11,8 @@ export const enum GameState {
   STORY     = 'STORY',
   /** The job application window is open (Floor 6); the world is frozen. */
   QUIZ      = 'QUIZ',
+  /** The office took over the game for a moment (game/interludes/). */
+  INTERLUDE = 'INTERLUDE',
 }
 
 // ─── Input ───────────────────────────────────────────────────────────────────
