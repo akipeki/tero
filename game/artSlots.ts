@@ -26,7 +26,7 @@ export interface ArtSlot {
 
 export const ART_SLOT_IDS = [
   'halvorsen', 'recruiter', 'board_heads', 'elvis', 'dad_things', 'fireball',
-  'hide_box', 'fax', 'spring', 'chute', 'canopy', 'cctv',
+  'hide_box', 'fax', 'spring', 'chute', 'canopy', 'cctv', 'clippo', 'review_form',
 ] as const;
 export type ArtSlotId = typeof ART_SLOT_IDS[number];
 
@@ -90,5 +90,15 @@ export const ART_SLOTS: Record<ArtSlotId, ArtSlot> = {
     id: 'cctv', title: 'Security camera (Floor 27)', w: 16, h: 12,
     frames: ['camera'],
     notes: 'Hangs from the ceiling. The cone of light and the lens dot are drawn by code.',
+  },
+  clippo: {
+    id: 'clippo', title: 'Clippo, the paperclip assistant (Blue Screen, Floor 33)', w: 32, h: 44,
+    frames: ['idle', 'talk', 'hurt', 'broken'],
+    notes: 'A bent paperclip with googly eyes, centred, about 20 px wide. The eyes at y ≈ 12–19. His speech bubble and the tips he throws are drawn by code.',
+  },
+  review_form: {
+    id: 'review_form', title: 'THE PERFORMANCE REVIEW (RPG battle, after Floor 12)', w: 132, h: 116,
+    frames: ['idle', 'attack', 'hurt', 'defeated'],
+    notes: 'A sentient A4 form (about 90 × 110, right side of the frame) with an angry face, a 1-of-5 star rating, and a red pen arm sticking out to the left. Faces LEFT, towards Tero.',
   },
 };

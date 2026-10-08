@@ -12,6 +12,41 @@ import { VIEWPORT_W, VIEWPORT_H } from '../constants';
 import { Interlude, type InterludeHost } from './Interlude';
 import { text, win95, button, bevel, noise, W95 } from './pixtext';
 import { drawTero, preloadTero } from './teroSprite';
+import { blitArt } from '../render/customImages';
+
+export const CLIPPO_W = 32, CLIPPO_H = 44;
+export type ClippoFrame = 'idle' | 'talk' | 'hurt' | 'broken';
+
+/** Clippo, the paperclip assistant, in a CLIPPO_W × CLIPPO_H box at (x0, y0).
+ *  `look` (-1, 0, 1) is where his eyes point. */
+export function drawClippo(ctx: CanvasRenderingContext2D, x0: number, y0: number, frame: ClippoFrame, look = 0): void {
+  const x = x0 + CLIPPO_W / 2, y = y0 + 20;
+  ctx.save();
+  ctx.lineCap = 'round';
+  const wire = () => {
+    ctx.beginPath();
+    if (frame === 'broken') {
+      // bent straight, the way paperclips end up
+      ctx.moveTo(x - 10, y + 22); ctx.lineTo(x - 4, y + 4); ctx.lineTo(x + 6, y + 10); ctx.lineTo(x + 2, y - 14);
+    } else {
+      ctx.moveTo(x - 6, y + 20); ctx.lineTo(x - 6, y - 10); ctx.arc(x, y - 10, 6, Math.PI, 0);
+      ctx.lineTo(x + 6, y + 14); ctx.arc(x + 2, y + 14, 4, 0, Math.PI); ctx.lineTo(x - 2, y - 4);
+    }
+    ctx.stroke();
+  };
+  ctx.strokeStyle = '#1b1620'; ctx.lineWidth = 4; wire();
+  ctx.strokeStyle = '#c9ccd1'; ctx.lineWidth = 2; wire();
+  // googly eyes (X eyes when hurt or broken)
+  for (const ex of [-5, 5]) {
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(x + ex - 3, y - 8, 7, 7);
+    ctx.fillStyle = '#1b1620';
+    if (frame === 'hurt' || frame === 'broken') {
+      for (let k = 0; k < 5; k++) { ctx.fillRect(x + ex - 2 + k, y - 7 + k, 1, 1); ctx.fillRect(x + ex + 2 - k, y - 7 + k, 1, 1); }
+    } else ctx.fillRect(x + ex - 1 + look, y - 5, 3, 3);
+  }
+  if (frame === 'talk') { ctx.fillStyle = '#1b1620'; ctx.fillRect(x - 3, y + 2, 6, 3); }
+  ctx.restore();
+}
 
 const W = VIEWPORT_W, H = VIEWPORT_H;
 const FLOOR = H - 22;                 // the taskbar's top edge
@@ -318,16 +353,8 @@ export class DesktopCrash extends Interlude {
     if (c.dead) { ctx.globalAlpha = Math.max(0, 1 - c.dead / 60); ctx.translate(0, c.dead * 0.6); }
     if (c.hit > 0 && c.hit % 6 < 3) ctx.globalAlpha *= 0.4;
     const x = Math.round(c.x), y = Math.round(c.y);
-    // a paperclip: nested loops of wire
-    ctx.strokeStyle = '#1b1620'; ctx.lineWidth = 4;
-    ctx.beginPath(); ctx.moveTo(x - 6, y + 20); ctx.lineTo(x - 6, y - 10); ctx.arc(x, y - 10, 6, Math.PI, 0); ctx.lineTo(x + 6, y + 14); ctx.arc(x + 2, y + 14, 4, 0, Math.PI); ctx.lineTo(x - 2, y - 4); ctx.stroke();
-    ctx.strokeStyle = '#c9ccd1'; ctx.lineWidth = 2;
-    ctx.stroke();
-    // googly eyes
-    for (const ex of [-5, 5]) {
-      ctx.fillStyle = '#ffffff'; ctx.fillRect(x + ex - 3, y - 8, 7, 7);
-      ctx.fillStyle = '#1b1620'; ctx.fillRect(x + ex - 1 + Math.sign(this.x - x), y - 5, 3, 3);
-    }
+    const frame: ClippoFrame = c.dead ? 'broken' : c.hit > 0 ? 'hurt' : this.bubbleT > 0 ? 'talk' : 'idle';
+    if (!blitArt(ctx, 'clippo', frame, x - CLIPPO_W / 2, y - 20)) drawClippo(ctx, x - CLIPPO_W / 2, y - 20, frame, Math.sign(this.x - x));
     ctx.restore();
     if (this.bubbleT > 0) {
       const lines = this.bubble.split('\n');

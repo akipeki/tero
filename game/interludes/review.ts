@@ -15,6 +15,49 @@ import { text, shadowText, noise } from './pixtext';
 import { drawTero, preloadTero } from './teroSprite';
 import { t } from '../i18n';
 import { Action } from '../types';
+import { blitArt } from '../render/customImages';
+
+export const REVIEW_W = 132, REVIEW_H = 116;
+export type ReviewFrame = 'idle' | 'attack' | 'hurt' | 'defeated';
+
+/** THE PERFORMANCE REVIEW in a REVIEW_W × REVIEW_H box at (x0, y0): a
+ *  sentient form with a face and a red pen arm on the left. `pen` bobs it. */
+export function drawReviewForm(ctx: CanvasRenderingContext2D, x0: number, y0: number, frame: ReviewFrame, pen = 0): void {
+  const x = x0 + 40, y = y0 + 2;
+  ctx.save();
+  if (frame === 'defeated') { ctx.translate(x + 30, y + 110); ctx.rotate(0.1); ctx.translate(-(x + 30), -(y + 110)); }
+  ctx.fillStyle = '#1b1620'; ctx.fillRect(x - 2, y - 2, 94, 114);
+  ctx.fillStyle = '#f4f1e6'; ctx.fillRect(x, y, 90, 110);
+  ctx.fillStyle = '#d8d4c4'; ctx.fillRect(x + 70, y, 20, 20);   // dog-ear
+  text(ctx, 'PERFORMANCE', x + 45, y + 6, '#1b1620', 1, 'center');
+  text(ctx, 'REVIEW Q3', x + 45, y + 13, '#d83b3b', 1, 'center');
+  for (let i = 0; i < 5; i++) {
+    ctx.fillStyle = i === 0 ? '#ffd23f' : '#c9ccd1';
+    ctx.fillRect(x + 12 + i * 14, y + 24, 9, 9);
+  }
+  ctx.fillStyle = '#9aa0a8';
+  for (let i = 0; i < 4; i++) ctx.fillRect(x + 10, y + 82 + i * 6, 70 - i * 9, 2);
+  // the face: angry eyebrows, eyes, a zig-zag mouth
+  ctx.fillStyle = '#1b1620';
+  const brow = frame === 'attack' ? 4 : 0;
+  ctx.fillRect(x + 18, y + 42 + brow, 18, 4); ctx.fillRect(x + 54, y + 42 + brow, 18, 4);
+  if (frame === 'hurt' || frame === 'defeated') {
+    ctx.fillRect(x + 22, y + 52, 10, 3); ctx.fillRect(x + 58, y + 52, 10, 3);   // squeezed shut
+  } else {
+    ctx.fillRect(x + 22, y + 48, 10, 10); ctx.fillRect(x + 58, y + 48, 10, 10);
+    ctx.fillStyle = '#ff3b3b';
+    ctx.fillRect(x + 25, y + 51, 4, 4); ctx.fillRect(x + 61, y + 51, 4, 4);
+  }
+  ctx.fillStyle = '#1b1620';
+  const wide = frame === 'attack' ? 3 : 0;
+  for (let i = 0; i < 6; i++) ctx.fillRect(x + 26 + i * 7, y + 66 + (i % 2) * (4 + wide), 7, 3);
+  // the red pen arm (raised when it attacks)
+  const pa = frame === 'attack' ? -14 : frame === 'defeated' ? 10 : pen;
+  ctx.fillStyle = '#1b1620'; ctx.fillRect(x - 22, y + 40 + pa, 24, 4);
+  ctx.fillStyle = '#d83b3b'; ctx.fillRect(x - 34, y + 34 + pa, 14, 5);
+  ctx.fillStyle = '#ffffff'; ctx.fillRect(x - 38, y + 35 + pa, 4, 3);
+  ctx.restore();
+}
 
 const W = VIEWPORT_W, H = VIEWPORT_H;
 const MAX_PATIENCE = 30;
@@ -237,36 +280,12 @@ export class QuarterlyReview extends Interlude {
     if (this.dead > 60) return;
     const cx = 330, cy = 92 + Math.round(Math.sin(this.t / 20) * 4);
     const jitter = this.enemyHit > 0 ? Math.round(Math.sin(this.enemyHit * 2) * 4) : 0;
-    const x = cx - 45 + jitter, y = cy - 55;
+    const x0 = cx - 45 + jitter - 40, y0 = cy - 57;
     ctx.save();
     if (this.dead > 0) ctx.globalAlpha = Math.max(0, 1 - this.dead / 60);
     if (this.enemyHit > 0 && this.enemyHit % 6 < 3) ctx.globalAlpha *= 0.4;
-    // the form
-    ctx.fillStyle = '#1b1620'; ctx.fillRect(x - 2, y - 2, 94, 114);
-    ctx.fillStyle = '#f4f1e6'; ctx.fillRect(x, y, 90, 110);
-    ctx.fillStyle = '#d8d4c4'; ctx.fillRect(x + 70, y, 20, 20);   // dog-ear
-    ctx.fillStyle = '#1b1620';
-    text(ctx, 'PERFORMANCE', x + 45, y + 6, '#1b1620', 1, 'center');
-    text(ctx, 'REVIEW Q3', x + 45, y + 13, '#d83b3b', 1, 'center');
-    for (let i = 0; i < 5; i++) {
-      ctx.fillStyle = i === 0 ? '#ffd23f' : '#c9ccd1';
-      ctx.fillRect(x + 12 + i * 14, y + 24, 9, 9);
-    }
-    ctx.fillStyle = '#9aa0a8';
-    for (let i = 0; i < 4; i++) ctx.fillRect(x + 10, y + 82 + i * 6, 70 - i * 9, 2);
-    // the face: angry eyebrows, eyes, a zig-zag mouth
-    ctx.fillStyle = '#1b1620';
-    ctx.fillRect(x + 18, y + 42, 18, 4); ctx.fillRect(x + 54, y + 42, 18, 4);
-    ctx.fillRect(x + 22, y + 48, 10, 10); ctx.fillRect(x + 58, y + 48, 10, 10);
-    ctx.fillStyle = '#ff3b3b';
-    ctx.fillRect(x + 25, y + 51, 4, 4); ctx.fillRect(x + 61, y + 51, 4, 4);
-    ctx.fillStyle = '#1b1620';
-    for (let i = 0; i < 6; i++) ctx.fillRect(x + 26 + i * 7, y + 66 + (i % 2) * 4, 7, 3);
-    // the red pen arm
-    const pa = Math.sin(this.t / 12) * 6;
-    ctx.fillStyle = '#1b1620'; ctx.fillRect(x - 22, y + 40 + pa, 24, 4);
-    ctx.fillStyle = '#d83b3b'; ctx.fillRect(x - 34, y + 34 + pa, 14, 5);
-    ctx.fillStyle = '#ffffff'; ctx.fillRect(x - 38, y + 35 + pa, 4, 3);
+    const frame: ReviewFrame = this.dead > 0 ? 'defeated' : this.enemyHit > 0 ? 'hurt' : this.phase === 'text' && this.shown === 0 && this.queue[0]?.startsWith('THE REVIEW') ? 'attack' : 'idle';
+    if (!blitArt(ctx, 'review_form', frame, x0, y0)) drawReviewForm(ctx, x0, y0, frame, Math.sin(this.t / 12) * 6);
     ctx.restore();
   }
 
