@@ -272,6 +272,10 @@ export class AudioManager {
   }
 
   /** Metal mode on/off — applies from the next eighth note. */
+  /** A full tantrum meter: the band plays a little faster. */
+  setUrgent(on: boolean): void { this.urgent = on; }
+  private urgent = false;
+
   setTantrum(on: boolean): void {
     this.tantrum = on;
   }
@@ -386,7 +390,7 @@ export class AudioManager {
   /** One eighth note. Slower on higher floors — everyone's exhausted. */
   private get stepDur(): number {
     const bpm = SONGS[this.song].bpm + (this.song === 'boss' ? 0 : this.arr.bpm);
-    return 60 / (bpm - this.mood * 18 + (this.casual ? 10 : 0)) / 2;
+    return 60 / (bpm - this.mood * 18 + (this.casual ? 10 : 0) + (this.urgent ? 12 : 0)) / 2;
   }
 
   /** The penthouse is a semitone flat. Nobody has noticed. */

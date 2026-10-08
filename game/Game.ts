@@ -62,7 +62,8 @@ import { Interlude, type InterludeId, type InterludeHost } from './interludes/In
 import { makeInterlude } from './interludes/registry';
 import { PremiumMode } from './interludes/acquisition';
 import { PhotocopyMode } from './interludes/faxed';
-import { FIXED_DT, MAX_FRAME_TIME, VIEWPORT_W, VIEWPORT_H, STARTING_LIVES, TILE_SIZE } from './constants';
+import { Secrets } from './Secrets';
+import { FIXED_DT, MAX_FRAME_TIME, VIEWPORT_W, VIEWPORT_H, STARTING_LIVES, TILE_SIZE, CAMERA_LOOKAHEAD } from './constants';
 
 /** The whole game, for the share card after the last floor. */
 export interface FinalRun {
@@ -179,6 +180,12 @@ export class Game {
   /** Floor 21 after the first fax: the level is a bad photocopy. */
   private photocopy: PhotocopyMode | null = null;
   private photocopied = false;
+  /** The camera's lean in the running direction (eased). */
+  private look = 0;
+  private wasOnGround = true;
+  private fallSpeed = 0;
+  private secrets = new Secrets();
+  private sig = { idle: 0, calls: 0, backwards: 0, burnt: 0, deaths: 0, boxed: 0 };
   private accumulator = 0;
   private lastTime    = 0;
   private rafId       = 0;
@@ -621,7 +628,7 @@ export class Game {
     for (const f of this.flames) {
       f.update(ctx);
       if (f.rageEarned) this.player.addRage(f.rageEarned);
-      for (const [tx, ty] of f.burntTiles) this.fire.spread(this.map, tx, ty);
+      for (const [tx, ty] of f.burntTiles) { this.fire.spread(this.map, tx, ty); this.sig.burnt++; }
       if (!f.frees || !f.active) continue;
       for (const e of [...this.walkers, ...this.hoppers]) {
         if (e.hittable && overlaps(f, e)) e.burn(ctx);
@@ -682,7 +689,12 @@ export class Game {
 
     this.particles.update();
     this.shake.update();
-    this.camera.follow(this.player.cx);
+    // lean the camera the way Tero runs, so you see what's coming
+    const p = this.player;
+    const want = p.isDead ? 0 : (p.facingRight ? 1 : -1) * Math.min(1, Math.abs(p.vx) / 2) * CAMERA_LOOKAHEAD;
+    this.look += (want - this.look) * 0.04;
+    this.camera.follow(p.cx + this.look);
+    this.updateFeel();
     this.checkStoryTriggers();
 
     // Cull inactive
@@ -693,6 +705,35 @@ export class Game {
     this.flames    = this.flames.filter(f => f.active);
 
     this.syncHud();
+  }
+
+  /** Small feel things: landing dust, the band speeding up on a full
+   *  meter, Tero chattering, and the stupid secrets. */
+  private updateFeel(): void {
+    const p = this.player;
+    // landing dust (only for a real drop)
+    if (p.onGround && !this.wasOnGround && this.fallSpeed > 4.5 && !p.isDead) {
+      this.particles.burst(p.cx, p.bottom - 2, 6, '#c9c4b4', '#8a8478');
+    }
+    if (!p.onGround) this.fallSpeed = Math.max(this.fallSpeed, p.vy); else this.fallSpeed = 0;
+    this.wasOnGround = p.onGround;
+    this.audio.setUrgent(p.rage >= TANTRUM_MAX && !p.isTantrum && !p.isDead);
+    // he's two: he says "da" a lot
+    if (!p.isDead && this.barkCooldown === 0 && !this.bark && Math.random() < 1 / 900) {
+      this.say(pick(['Da!', 'Da.', 'Dada?', 'Da da da.', 'Hmph.', 'Mine.']));
+    }
+    // the secrets
+    const s = this.sig;
+    const still = p.onGround && Math.abs(p.vx) < 0.05 && !p.isDead && this.input.bits === 0;
+    s.idle = still ? s.idle + 1 : 0;
+    s.backwards = this.input.left && !this.input.right && p.cx < 8 * TILE_SIZE && Math.abs(p.vx) > 0.5 ? s.backwards + 1 : s.backwards;
+    if (p.isHidden) s.boxed++;
+    const line = this.secrets.check(s);
+    if (line) {
+      this.onCallout?.(t('SECRET: ') + t(line));
+      this.audio.play('unlock');
+      this.note('interlude', 'secret');
+    }
   }
 
   // ─── The weird stuff (Phase 5) ─────────────────────────────────────────────
@@ -733,7 +774,7 @@ export class Game {
     if (this.bark && --this.bark.t <= 0) this.bark = null;
     if (this.barkCooldown > 0) this.barkCooldown--;
     if (this.callCooldown > 0) this.callCooldown--;
-    if (this.input.callPressed && !p.isDead && this.callCooldown === 0) this.callDada();
+    if (this.input.callPressed && !p.isDead && this.callCooldown === 0) { this.callDada(); this.sig.calls++; }
 
     // Tero's chatter
     if (!p.isDead && p.onGround && Math.abs(p.vx) < 0.1 && !p.inSync && !p.isHidden) {
@@ -1017,7 +1058,7 @@ export class Game {
     }
     if (p.rescued) { p.rescued = false; this.note('rescue', undefined, p.deathX, p.deathY); }
     if (p.isDead !== this.wasDead) {
-      if (p.isDead) { this.run.event('death'); this.note('death', p.lastCause, p.deathX, p.deathY); }
+      if (p.isDead) { this.run.event('death'); this.note('death', p.lastCause, p.deathX, p.deathY); this.sig.deaths++; }
       this.wasDead = p.isDead;
     }
     for (const c of this.chutes) {
@@ -1577,6 +1618,8 @@ export class Game {
     this.faxedFrames = 0;
     this.photocopy = null;
     this.photocopied = false;
+    this.sig.calls = 0; this.sig.deaths = 0; this.sig.backwards = 0; this.sig.idle = 0;
+    this.look = 0;
     this.premium = null;
     this.fire.clear();
     this.bark = null;

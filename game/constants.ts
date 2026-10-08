@@ -84,7 +84,9 @@ export const VIEWPORT_H         = 270;
 export const STARTING_LIVES     = 3;
 export const FIXED_DT           = 1 / 60;
 export const MAX_FRAME_TIME     = 0.1;    // cap deltaTime to avoid spiral
-export const DEAD_TIMER_FRAMES  = 70;     // shortened from 120 — repeat deaths felt slow
+export const DEAD_TIMER_FRAMES  = 52;     // under a second: dying should cost almost nothing
+/** How far ahead (px) the camera leans in the direction Tero runs. */
+export const CAMERA_LOOKAHEAD   = 44;
 
 // ─── Camera ─────────────────────────────────────────────────────────────────
 export const CAMERA_LERP        = 0.12;
