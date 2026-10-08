@@ -7,6 +7,7 @@ import { QuarterlyReview } from './review';
 import { ElevatorMuzak } from './muzak';
 import { TermsAndConditions } from './terms';
 import { NapTime } from './nap';
+import { DesktopCrash } from './desktop';
 
 const MAKERS: Partial<Record<InterludeId, () => Interlude>> = {
   acquisition: () => new AcquisitionIntro(),
@@ -16,6 +17,7 @@ const MAKERS: Partial<Record<InterludeId, () => Interlude>> = {
   muzak: () => new ElevatorMuzak(),
   terms: () => new TermsAndConditions(),
   nap: () => new NapTime(),
+  desktop: () => new DesktopCrash(),
 };
 
 export function makeInterlude(id: InterludeId): Interlude {

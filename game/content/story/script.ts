@@ -523,6 +523,16 @@ export const STORY = defineStory({
           ],
         },
         {
+          // BLUE SCREEN → THE DESKTOP (game/interludes/desktop.ts)
+          atTile: 50,
+          lines: [
+            { who: 'board', text: 'THE TODDLER IS TOO CLOSE.\nCRASH THE GAME.' },
+            { who: 'board', text: 'WE CAN DO THAT?' },
+            { who: 'board', text: 'WE OWN IT.' },
+          ],
+          effect: 'interlude:desktop',
+        },
+        {
           atTile: 58,
           lines: [
             { who: 'tero', text: 'DADA!!' },
