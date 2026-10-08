@@ -287,6 +287,15 @@ export const STORY = defineStory({
           ],
         },
         {
+          // TERMS & CONDITIONS (game/interludes/terms.ts)
+          atTile: 42,
+          lines: [
+            { text: 'A LEGAL NOTICE BLOCKS THE CORRIDOR:\n"PLEASE ACCEPT THE UPDATED TERMS."' },
+            { who: 'tero', text: 'Terms?' },
+          ],
+          effect: 'interlude:terms',
+        },
+        {
           atTile: 50,
           lines: [
             { text: 'A SOUL TRANSFER AGREEMENT.\nSIGNED: #4471.' },

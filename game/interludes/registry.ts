@@ -5,6 +5,7 @@ import { AcquisitionIntro, UnskippableAd } from './acquisition';
 import { Cubicle3D } from './cubicle3d';
 import { QuarterlyReview } from './review';
 import { ElevatorMuzak } from './muzak';
+import { TermsAndConditions } from './terms';
 
 const MAKERS: Partial<Record<InterludeId, () => Interlude>> = {
   acquisition: () => new AcquisitionIntro(),
@@ -12,6 +13,7 @@ const MAKERS: Partial<Record<InterludeId, () => Interlude>> = {
   cubicle3d: () => new Cubicle3D(),
   review: () => new QuarterlyReview(),
   muzak: () => new ElevatorMuzak(),
+  terms: () => new TermsAndConditions(),
 };
 
 export function makeInterlude(id: InterludeId): Interlude {
