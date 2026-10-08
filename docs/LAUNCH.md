@@ -105,8 +105,9 @@ dog, office, anti-capitalist, singleplayer, controller support, browser
 | 16–22 | Tantrum: fire spreads across the floor | Metal layer, screen shake |
 | 22–30 | Chad: *"Junior Trainee Program! Only 10-hour days!"*, then Tero's reply (censored) | Record scratch, then boss song |
 | 30–34 | The JOB_APPLICATION.EXE window: A–D shake red, E turns green | Error buzz ×4, then a "ding" |
-| 34–44 | The Vents: riding Elvis past rainbows and slogans | Vents song, "woof" |
-| 44–50 | Grenade from the resistance, BOOM | |
+| 34–44 | Smash cut: Cubicle 3D, then the PREMIUM splash, then CRY in the RPG battle | Each its own sound |
+| 44–48 | The Vents: riding Elvis past rainbows and slogans | Vents song, "woof" |
+| 48–50 | Grenade from the resistance, BOOM | |
 | 50–56 | The top floor, a door, a silhouette | Music drops out |
 | 56–60 | Logo + *"WHERE IS DADA?"* + URL | Tero: "Da-da?" |
 
@@ -119,6 +120,17 @@ dog, office, anti-capitalist, singleplayer, controller support, browser
 5. **Hiding in a box from a CCTV camera:** the "?" bubble.
 6. **Speedrun timer splits** for a floor.
 7. **The exit interview (HR-404)** questions.
+
+**The genre breaks are the strongest clips.** Each one is a "wait, what?"
+moment in under 15 seconds:
+
+8. **The Acquisition:** the game freezes, "has been acquired by Halvorsen Capital", the PREMIUM splash, the battle pass (Dada, $49.99/month).
+9. **The unskippable ad:** the SKIP button running away from Tero three times.
+10. **Cubicle 3D:** the cut from 2D platformer to 1992 first-person shooter.
+11. **The Quarterly Review:** CRY. "It's super effective! HR doesn't know how to handle feelings."
+12. **The blue screen** and Clippo: "It looks like you're trying to rescue your father."
+13. **Nap Time:** the Game Boy-green dream, then BRRRRING. (The one that makes people cry.)
+14. **The CAPTCHA:** select all squares with work-life balance. (There isn't any.)
 
 Post the clips one at a time, a few days apart. Use the same caption template:
 *"my platformer about a toddler in a dragon suit vs. late capitalism — [one-line joke]"*.

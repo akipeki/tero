@@ -301,6 +301,41 @@ cameras, the parachute) are listed in a level's `gadgets` spawns.
   **game over is an HR exit interview** with the cause of death.
 - **A secret ending** if you find all nine of Dad's things.
 
+### Interludes: the game keeps turning into other games
+
+Every so often the office takes over and the platformer becomes something
+else for a minute, with the same controls, and then snaps back. Each one
+is a joke about how work eats everything, including your video game.
+
+| Where | Interlude | What it is |
+|---|---|---|
+| Floor 1 | **Mandatory Onboarding** | A 1987 VHS orientation video; hold FIRE to tantrum-fast-forward |
+| Floor 6 | **The CAPTCHA** | "I'm not a baby." Select all squares with synergy / work-life balance / your Dada |
+| Floor 12 | **You're on Mute** | A video call of bosses talking over each other; unmute is four menus deep |
+| Floor 12 | **The Quarterly Review** | A turn-based RPG battle: FIGHT, CRY, NAP, BITE |
+| Floor 13 | **Elevator Muzak** | Small talk as a dialogue tree, then a rhythm game on the lift buttons |
+| Floor 13 | **Terms & Conditions** | A vertical climb up a contract; burn the red tape; I AGREE runs away |
+| Floor 21 | **Faxed** | The floor becomes a dithered black-and-white photocopy (upside down, paper jams) |
+| Floor 27 | **Cubicle 3D** | A 1992-style raycaster: find the keycard, send guards home with fire |
+| Floor 30 | **The Acquisition** | The game is bought: ads, DadaCoins, a battle pass, an unskippable ad |
+| Floor 33 | **Blue Screen** | The game crashes to a Win95 desktop; drag windows, burn Clippo, open DADA.EXE |
+| The escape | **Nap Time** | A Game Boy-green dream: playing catch with Dad from before the job |
+| The escape | **Office Chair GP** | A pseudo-3D race to the lobby on Dad's office chair |
+
+They live in `game/interludes/` (one file each, registered in
+`registry.ts`). A story trigger starts one with
+`effect: 'interlude:<id>'`; the level freezes (and the run timer and the
+escape clock pause) until it's done. An interlude is a class with
+`update(host)` and `draw(ctx)`; set `overlay = true` to draw over the
+frozen level instead of the whole screen. Two of them (the ads in The
+Acquisition, the photocopy in Faxed) keep going in the live level
+afterwards. `pixtext.ts` has the pixel font and Win95 windows, and
+`teroSprite.ts` draws Tero with whatever art is installed.
+
+**Stupid secrets** (`game/Secrets.ts`): odd behaviour gets a one-time
+joke: stand still 20 seconds, shout DADA ten times, walk backwards, burn
+30 paperwork tiles, die five times on a floor, hide in the box a minute.
+
 ### Playtesting (Phase 4)
 
 - **`/playtest`**: a report of where players die (and to what), quit, get
