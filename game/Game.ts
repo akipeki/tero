@@ -61,6 +61,7 @@ import type { HudData, PlayerRenderData, RunStats, StoryView } from './types';
 import { Interlude, type InterludeId, type InterludeHost } from './interludes/Interlude';
 import { makeInterlude } from './interludes/registry';
 import { PremiumMode } from './interludes/acquisition';
+import { PhotocopyMode } from './interludes/faxed';
 import { FIXED_DT, MAX_FRAME_TIME, VIEWPORT_W, VIEWPORT_H, STARTING_LIVES, TILE_SIZE } from './constants';
 
 /** The whole game, for the share card after the last floor. */
@@ -175,6 +176,9 @@ export class Game {
   private interludeThen: (() => void) | null = null;
   /** Floor 30 after the acquisition: ads, DadaCoins, debt. */
   private premium: PremiumMode | null = null;
+  /** Floor 21 after the first fax: the level is a bad photocopy. */
+  private photocopy: PhotocopyMode | null = null;
+  private photocopied = false;
   private accumulator = 0;
   private lastTime    = 0;
   private rafId       = 0;
@@ -560,6 +564,13 @@ export class Game {
 
     if (this.faxing) { this.updateFaxing(ctx); return; }
     if (this.faxedFrames > 0) this.faxedFrames--;
+    if (this.photocopy) {
+      if (this.photocopy.update(this.player, this.input, this.audio)) { this.syncHud(); return; }   // paper jam
+      if (!this.photocopy.active) {
+        this.photocopy = null;
+        this.onCallout?.(t('TONER EMPTY. COLOUR RESTORED.'));
+      }
+    }
 
     // Feed input into player
     this.player.actions         = this.input.bits;
@@ -1106,6 +1117,13 @@ export class Game {
     this.faxedFrames = 100;
     this.faxing = null;
     this.audio.play('fax');
+    if (!this.photocopied) {
+      // FAXED (game/interludes/faxed.ts): the whole floor is a bad copy now
+      this.photocopied = true;
+      this.photocopy = new PhotocopyMode();
+      this.note('interlude', 'faxed');
+      this.onCallout?.(t('TERO HAS BEEN FAXED. BADLY.'));
+    }
     this.particles.burst(p.cx, p.cy, 10, '#f4f1e6', '#5a5f68');
   }
 
@@ -1348,6 +1366,7 @@ export class Game {
           drawBubble(ctx, say, this.player.cx - Math.round(this.camera.at(alpha)) + this.shake.offsetX, this.player.bottom - 46);
         }
         this.premium?.draw(ctx, Math.round(this.camera.at(alpha)) - this.shake.offsetX);
+        if (this.photocopy) { this.photocopy.post(ctx); this.photocopy.drawOverlay(ctx); }
         if (this.state === GameState.INTERLUDE) this.interlude?.draw(ctx);
         break;
     }
@@ -1408,7 +1427,8 @@ export class Game {
       big: p.isBig,
       tantrum: p.isTantrum,
       hiding: p.isHidden,
-      faxed: this.faxedFrames > 0,
+      faxed: this.faxedFrames > 0 || !!this.photocopy,
+      upsideDown: !!this.photocopy?.upsideDown && this.state === GameState.PLAYING,
     });
   }
 
@@ -1555,6 +1575,9 @@ export class Game {
     }
     this.faxing = null;
     this.faxedFrames = 0;
+    this.photocopy = null;
+    this.photocopied = false;
+    this.premium = null;
     this.fire.clear();
     this.bark = null;
     this.idleTicks = 0;

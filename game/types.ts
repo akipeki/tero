@@ -196,6 +196,8 @@ export interface PlayerRenderData {
   hiding: boolean;
   /** Just came out of a fax machine: a grainy black-and-white copy. */
   faxed: boolean;
+  /** The photocopy came out upside down: flip the whole view. */
+  upsideDown: boolean;
 }
 
 // ─── Story overlay (game → React) ────────────────────────────────────────────
