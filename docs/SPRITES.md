@@ -82,23 +82,28 @@ animation in the same style. Always say "side view, facing right, full body,
 transparent background, centred, feet at the bottom".
 
 ### Tero — idle, single frame
-> Cute pixel-art game sprite of a baby dragon toddler, side view facing right,
-> full body, standing upright on two stubby legs like a human toddler. Chubby
-> green body, cream belly, oversized round head, big mismatched googly eyes
-> (near eye bigger than far eye), tiny cream horn nubs, small orange back
-> spikes, tiny useless orange wings, short tail with an orange spade tip.
-> Wearing a white diaper with a gold safety pin and a light-blue pacifier.
-> Around his neck an adult man's blue necktie with yellow diagonal stripes,
-> far too long, trailing on the floor behind him. Rosy cheeks, innocent and
-> funny. 1990s 16-bit SNES style, clean dark outlines, limited palette,
-> centred, feet touching the bottom edge, transparent background, square canvas.
+> Pixel art game sprite, 64×64 canvas, transparent background, side view
+> facing right, full body, feet on the bottom edge. Tero is a cute
+> two-year-old HUMAN BABY dressed in a green dinosaur/dragon costume, not an
+> actual dragon: peach face showing in a round oversized dragon hood, a big
+> eye and a smaller far eye, a short costume snout, two cream horn nubs, an
+> orange crest, tiny orange wing nubs, a cream round belly panel with a dark
+> zipper and pull, a white cloth diaper with a gold safety pin, big floppy
+> three-toed footie feet, a short padded tail with an orange arrow tip and a
+> light-blue pacifier. Colours: green costume #84cc64, orange parts #f88004,
+> face #fcd4ac, belly #f6e7b2, outline #1e2a2b. Very chunky native 64px SNES
+> sprite pixel art, one-pixel outline, three-tone solid shading, no
+> antialiasing, true transparent background.
 
 ### Tero — idle, 8-frame sprite sheet
-> Same baby dragon character, same style and colours. Horizontal sprite sheet,
-> 8 square frames in one row, no gaps, transparent background. Idle breathing
-> loop: belly rises and falls by a couple of pixels, frame 5 he blinks, frames
-> 7–8 a tiny puff of smoke from his nostril. Character stays in exactly the
-> same position and size in every frame, feet on the bottom edge.
+> Use case: identity-preserve. EIGHT frames of an idle breathing loop of
+> EXACTLY the approved Tero [T1]. Horizontal strip 512×64, eight touching
+> 64×64 cells, no gaps, transparent background. The belly panel rises and
+> falls by a couple of pixels, he blinks in frames 5–6 and chews the
+> pacifier in two frames. Same position and size in every frame, feet on
+> the bottom edge.
+
+More prompts (one per animation) are on the art to-do page.
 
 ### Enemy — corporate pig (template for every enemy)
 > Pixel-art game enemy sprite, side view facing right, full body, standing on

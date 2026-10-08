@@ -8,7 +8,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: GAME_FULL_TITLE,
     short_name: GAME_TITLE,
-    description: 'A baby dragon storms his dad\'s office tower to bring him home.',
+    description: 'A baby in a dragon suit storms his dad\'s office tower to bring him home.',
     start_url: '/game/',
     display: 'fullscreen',
     orientation: 'landscape',

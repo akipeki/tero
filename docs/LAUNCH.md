@@ -51,12 +51,12 @@ What's already in place:
 ### English
 
 **Short (≤ 140 chars)**
-> A two-year-old baby dragon storms an office tower to bring his overworked dad home. Tantrum fire. Office satire. A dog called Elvis.
+> A two-year-old in a dragon costume storms an office tower to bring his overworked dad home. Tantrum fire. Office satire. A dog called Elvis.
 
 **Long**
 > Dada went to work six months ago. He never came home.
 >
-> Tero is two. Tero is a dragon. Tero is going up there.
+> Tero is two. Tero is a dragon (the costume says so). Tero is going up there.
 >
 > *Where Is Dada?* is a short, weird, openly anti-capitalist pixel platformer.
 > Climb an office tower floor by floor. Free the staff from their desks. Throw
@@ -72,12 +72,12 @@ What's already in place:
 ### Suomi
 
 **Lyhyt**
-> Kaksivuotias lohikäärmevauva valtaa toimistotornin hakeakseen ylityöllistetyn isänsä kotiin. Kiukkutulta, toimistosatiiria ja Elvis-niminen koira.
+> Kaksivuotias lohikäärmepukuinen vauva valtaa toimistotornin hakeakseen ylityöllistetyn isänsä kotiin. Kiukkutulta, toimistosatiiria ja Elvis-niminen koira.
 
 **Pitkä**
 > Isi lähti töihin kuusi kuukautta sitten. Hän ei koskaan tullut kotiin.
 >
-> Tero on kaksi. Tero on lohikäärme. Tero menee sinne.
+> Tero on kaksi. Tero on lohikäärme (puku sanoo niin). Tero menee sinne.
 >
 > *Where Is Dada?* on lyhyt, outo ja avoimesti antikapitalistinen pikselitasohyppely.
 > Kiipeä toimistotorni kerros kerrokselta. Vapauta työntekijät pöytiensä äärestä.
@@ -90,7 +90,7 @@ What's already in place:
 > - Alkuperäinen chiptune-tuutulaulu, joka kerroksessa eri sovituksella.
 > - Helpotustila, Casual Friday, peliohjainten tuki, englanti ja suomi.
 
-**Tags:** pixel art, platformer, 2D, retro, satire, comedy, cute, short, dragon,
+**Tags:** pixel art, platformer, 2D, retro, satire, comedy, cute, short, dragon, costume,
 dog, office, anti-capitalist, singleplayer, controller support, browser
 
 ---
@@ -121,7 +121,7 @@ dog, office, anti-capitalist, singleplayer, controller support, browser
 7. **The exit interview (HR-404)** questions.
 
 Post the clips one at a time, a few days apart. Use the same caption template:
-*"my baby dragon platformer about late capitalism — [one-line joke]"*.
+*"my platformer about a toddler in a dragon suit vs. late capitalism — [one-line joke]"*.
 
 ---
 

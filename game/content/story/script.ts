@@ -107,7 +107,7 @@ export const STORY = defineStory({
         {
           atTile: 40,
           lines: [
-            { who: 'it', text: 'A baby dragon? In the mailroom?\nOh. You\'re #4471\'s kid.' },
+            { who: 'it', text: 'A baby in a dragon suit? In the mailroom?\nOh. You\'re #4471\'s kid.' },
             { who: 'it', text: 'You sent Brenda HOME? She\'s been\nhere since 1987. Your dad\'s on 6.' },
           ],
         },
@@ -514,7 +514,7 @@ export const STORY = defineStory({
         { atTile: 58, gag: 'dad_desk' },
       ],
       outro: [
-        { text: 'TERO HOLDS UP DAD\'S TIE.\nSIX MONTHS OF FLOOR DUST ON IT.' },
+        { text: 'TERO ZIPS UP DAD\'S OLD DRAGON SUIT.\nSIX MONTHS OF FLOOR DUST ON IT.' },
         { who: 'dad', text: 'I... I came in for "a few extra hours."' },
         { who: 'tero', text: 'Dada. Home.' },
         { who: 'dad', text: 'The elevator\'s been cut. Thirty-three\nfloors of stairs. Before Monday.' },
@@ -576,7 +576,7 @@ export const STORY = defineStory({
           // The resistance camp
           atTile: 40,
           lines: [
-            { who: 'marja', text: 'HALT! Who goes— oh.\nIt\'s a baby dragon. On Elvis.' },
+            { who: 'marja', text: 'HALT! Who goes— oh.\nIt\'s a baby in a dragon suit. On Elvis.' },
             { who: 'marja', text: 'We are the Resistance.\nWe resist... leaving.' },
             { who: 'marja', text: 'Thirty years in these pipes.\nThey forgot to fire us. We forgot to go.' },
             { who: 'tero', text: 'Dada?' },
@@ -590,7 +590,7 @@ export const STORY = defineStory({
           // Elvis remembers Dad
           atTile: 61,
           lines: [
-            { who: 'elvis', text: 'Wait. A tired dragon came through here\nonce. Grey. Smelled like coffee.' },
+            { who: 'elvis', text: 'Wait. A tired man in a dragon suit came\nthrough once. Grey. Smelled like coffee.' },
             { who: 'elvis', text: 'He gave me half his sandwich.\nSaid he\'d be home by Friday.' },
             { who: 'tero', text: '...Which Friday?' },
             { who: 'elvis', text: 'He didn\'t say.' },

@@ -18,7 +18,7 @@ const FACTS: [string, string][] = [
 ];
 
 const FEATURES = [
-  'Play Tero, a two-year-old dragon. Your only weapon is a tantrum.',
+  'Play Tero, a two-year-old in a dragon costume. Your only weapon is a tantrum.',
   'Climb an office tower floor by floor. Every floor has its own rule and its own boss: the Board, Halvorsen, and Chad from Recruitment.',
   'Free the overworked staff. They cheer, quit, and sometimes give you a hand grenade.',
   'The Vents: a secret, happy stage where you ride Elvis, the office dog the company stopped feeding.',
@@ -36,12 +36,12 @@ export default function Press() {
 
         <section className="mb-8 flex flex-wrap items-center gap-6">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/images/press_tero.png" alt="Tero, the baby dragon" width={160} height={160} style={{ imageRendering: 'pixelated' }} />
+          <img src="/images/press_tero.png" alt="Tero in his dragon costume" width={160} height={160} style={{ imageRendering: 'pixelated' }} />
           <p className="flex-1 min-w-[240px]">
-            Dada has been at work since March. Tero is two. Tero is a dragon. Tero is going up there.
+            Dada has been at work since March. Tero is two. Tero is a dragon (the costume says so). Tero is going up there.
             <br /><br />
-            <em>Where Is Dada?</em> is a short, weird, openly anti-capitalist platformer about a toddler who
-            storms an office tower to bring his overworked dad home, one tantrum at a time.
+            <em>Where Is Dada?</em> is a short, weird, openly anti-capitalist platformer about a toddler in a
+            dragon costume who storms an office tower to bring his overworked dad home, one tantrum at a time.
           </p>
         </section>
 

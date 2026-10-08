@@ -51,7 +51,7 @@ export async function shareCardPng(): Promise<Buffer> {
   const tx = 172;
   GAME_TITLE_LINES.forEach((line, i) => shadowText(r, line, tx, 22 + i * 34, '#ffe066', 6));
   shadowText(r, GAME_SUBTITLE, tx, 96, '#ff7a3d', 2);
-  shadowText(r, 'A 2-YEAR-OLD DRAGON', tx, 124, '#c9ced6', 2);
+  shadowText(r, 'A TODDLER IN A DRAGON SUIT', tx, 124, '#c9ced6', 2);
   shadowText(r, 'VS. LATE CAPITALISM.', tx, 138, '#c9ced6', 2);
 
   return encodePng(r, SCALE);

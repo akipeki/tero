@@ -35,7 +35,7 @@ everything.
 
 | Problem | Fix |
 |---|---|
-| Dad's tie (Tero's signature prop) read as a dark shadow | Brighter loud blue `#3d6be0` with yellow stripes, dragging behind him |
+| Dad's tie (Tero's signature prop) read as a dark shadow | Brighter loud blue `#3d6be0` with yellow stripes, dragging behind him (the costume redesign drops the tie) |
 | Walk cycle: feet hidden behind the diaper, looked like sliding | Bigger steps (±7 px, lift 5), bouncier head |
 | No pose for breathing fire | New `breathe` strip (2 frames), used for puffs and tantrums |
 | No pose for the golden parachute | New `glide` strip (2 frames), canopy drawn above |
@@ -66,76 +66,77 @@ everything.
 
 ## 1. Tero (priority 1)
 
-**Frame: 64 × 64 px.** Character about 44 px tall and 52 px wide including
-the tail. Feet rest on **y = 61–62** (2 px margin at the bottom); body
-centre around **x = 32**. Collision is only 22 × 28 at the feet, so the
-tail and tie can stick out freely.
+**Frame: 64 × 64 px.** Character about 44 px tall. Feet rest on
+**y = 61–62** (2 px margin at the bottom); body centre around **x = 32**.
+Collision is only 22 × 28 at the feet, so the tail can stick out freely.
 
-**Character notes:** a two-year-old baby dragon. A head that's too big,
-huge round googly eyes (the far eye smaller), a short snout, a pacifier
-(it pops out whenever the mouth opens), two cream horn nubs, an orange
-crest spike, tiny orange wing nubs, a round tummy with a cream belly
-patch, a **white diaper with a gold safety pin**, stubby legs with big
-floppy three-toed feet, a stubby tail with an orange arrow tip. **Dad's
-tie** (blue with yellow 90s stripes) hangs from his neck and is much too
-long: it drags on the floor behind him and flies back when he's in the
-air. This tie is his flagpole; keep it visible in every frame.
+**Character notes:** Tero is **not a real dragon**. He is a two-year-old
+**human baby in a green dragon costume**. His peach face shows in a round,
+oversized dragon hood, with a big eye and a smaller far eye in side view.
+The costume has a short snout, two cream horn nubs, an orange crest, tiny
+orange wing nubs, and a **cream round belly panel with a dark zipper and
+pull**. He wears a **white cloth diaper with a gold safety pin** and big
+floppy three-toed footie feet, and has a short padded tail with an orange
+arrow tip. A light-blue pacifier pops out whenever his mouth opens. There
+is no necktie any more.
+
+Dad is the same idea, grown up: a tired man in a faded dragon costume.
 
 ### Palette (Tero)
 
 | Use | Hex |
 |---|---|
-| outline | `#1e2a2b` |
-| body / light / dark / back limbs | `#6cc24a` `#a5e57b` `#3e8a3c` `#2f6e33` |
-| belly / shade | `#f6e7b2` `#dcc583` |
-| spikes / shade | `#ff9a52` `#d8692c` |
-| wings / shade | `#ffb36b` `#e07b3a` |
-| horns, claws / shade | `#fff0b8` `#d9c27a` |
+| outline, zipper | `#1e2a2b` |
+| green costume | `#84cc64` (plus your own light and dark shades) |
+| orange costume parts (crest, wing nubs, tail tip) | `#f88004` |
+| face | `#fcd4ac` |
+| round belly panel | `#f6e7b2` |
+| horn nubs | `#fff0b8` `#d9c27a` |
 | eyes / pupils | `#ffffff` `#1e2a2b` |
 | blush | `#ff8ea0` |
 | mouth / tongue | `#5a1f2b` `#ff6f86` |
-| Dad's tie / stripes | `#3d6be0` `#ffd23f` |
 | diaper / shade / pin | `#f7f7f2` `#d9d9cf` `#e8b72f` |
 | pacifier / ring | `#8fd3ff` `#ff8ea0` |
-| smoke / shade | `#c9ccd1` `#9aa0a8` |
 
 ### Animations (file name → frames)
 
 | File | Frames | Strip size | fps | Notes |
 |---|---|---|---|---|
-| `idle.png` | 8 | 512 × 64 | 6 | Breathing bob, a tail flick, one blink, two frames of a smoke puff from the nostril (he's trying) |
-| `walk.png` | 8 | 512 × 64 | by distance (1 frame per 9 px) | **Toddler waddle**: side-to-side sway, big lifted steps, arms swinging opposite the legs, tie dragging and swishing. Contact frames 0 and 4. |
-| `jump.png` | 2 | 128 × 64 | 12 | Arms up, mouth open, wide eyes, wings up, **tie streaming back** |
-| `fall.png` | 2 | 128 × 64 | 12 | "Oh no" face (mouth O), arms flailing, tie up |
-| `duck.png` | 1 | 64 × 64 | – | Squashed down, eyes squeezed shut, arms over his head (in-game this becomes a cardboard box when he's still) |
-| `hurt.png` | 2 | 128 × 64 | 14 | Recoil left/right, eyes squeezed, mouth O |
-| `lose.png` | 1 | 64 × 64 | – | X eyes, tongue out, flopped |
+| `idle.png` | 8 | 512 × 64 | 6 | Breathing bob, a small tail sway, one blink, chewing the pacifier |
+| `walk.png` | 8 | 512 × 64 | by distance (1 frame per 9 px) | **Toddler waddle**: side-to-side sway, big lifted steps, arms swinging opposite the legs, padded tail bouncing. Contact frames 0 and 4. |
+| `jump.png` | 2 | 128 × 64 | 12 | Arms up, open happy mouth, wide eyes, wing nubs up, the pacifier popping out in front of the mouth |
+| `fall.png` | 2 | 128 × 64 | 12 | "Oh no" face (mouth O), arms flailing, tail flipped up |
+| `duck.png` | 1 | 64 × 64 | – | Squashed down, eyes squeezed shut, arms over the hood (in-game this becomes a cardboard box when he's still) |
+| `hurt.png` | 2 | 128 × 64 | 14 | Recoil, eyes squeezed, mouth O |
+| `lose.png` | 1 | 64 × 64 | – | Dizzy X eyes, tongue out, flopped on his bottom |
 | `win.png` | 4 | 256 × 64 | 8 | Happy-closed eyes, mouth open, arms up, little hop |
-| `breathe.png` *(new)* | 2 | 128 × 64 | 14 | **Fire breath.** Head thrust forward, jaw wide open (the game draws the flames in front of the mouth, from x ≈ 56, y ≈ 36), eyes squeezed and furious, wings up, tail stiff. The pacifier is out. |
-| `glide.png` *(new)* | 2 | 128 × 64 | 6 | **Golden parachute.** Both arms straight up gripping strings (the canopy is drawn above at y ≈ −14), feet dangling, happy face, tie fluttering |
+| `breathe.png` | 2 | 128 × 64 | 14 | **Tantrum roar.** Head thrust forward, mouth wide open (the game draws the flames in front of the mouth, from x ≈ 56, y ≈ 36), eyes squeezed and furious, fists clenched, tail stiff. No pacifier. |
+| `glide.png` | 2 | 128 × 64 | 6 | **Golden parachute.** Both arms straight up gripping strings (the canopy is drawn above at y ≈ −14), footie feet dangling, happy face |
 
 **Nice-to-have extras** (need a small code hook from me):
 `sync.png` (2 frames: bored, glazed eyes, while trapped in a quick sync),
 `faxed.png` (1 frame, a deliberately smeared photocopy), `big_*` versions
 for coffee (right now the game scales him 1.5×, which is fine).
 
-### Prompt for an artist or an image AI (one frame first)
+### Prompts
 
-> Pixel art game sprite, 64×64 canvas, transparent background, side view
-> facing right, full body, feet on the bottom edge. A cute two-year-old
-> baby dragon: oversized round head, huge googly eyes (far eye smaller),
-> short snout with a light-blue pacifier, two cream horn nubs, small
-> orange wing nubs, round green tummy with a cream belly patch, a white
-> cloth diaper with a gold safety pin, stubby legs with big floppy feet,
-> short tail with an orange arrow tip. Around his neck is his dad's
-> grown-up necktie, blue with loud yellow 1990s stripes, far too long, so
-> it drags on the floor behind him. 1-pixel dark outline (#1e2a2b), soft
-> 3-tone shading, palette: green #6cc24a/#a5e57b/#3e8a3c, orange
-> #ff9a52, cream #f6e7b2, tie #3d6be0 + #ffd23f. Clean readable
-> silhouette, SNES-era style, no anti-aliasing against the background.
+The art to-do page has a ready prompt for every animation. They follow
+this "identity-preserve" pattern: get one idle frame approved (T1), then
+give it and the walk strip to the image AI as references.
 
-Then: *"Same character, same canvas and anchor, an 8-frame toddler waddle
-walk cycle as a horizontal strip, 512×64."*
+> Use case: identity-preserve. Create TWO frames of an upward JUMP sprite
+> animation of EXACTLY the approved Tero [T1] in the two supplied reference
+> sprite sheets. Image1 idle and image2 walk are appearance/style
+> references, not poses to reproduce. Tero is a cute two-year-old HUMAN
+> BABY dressed in green dinosaur/dragon costume, exposed peach face in round
+> oversized dragon hood, not an actual dragon. […] cream ROUND BELLY PANEL
+> with dark ZIPPER and pull exactly as T1 […]. Mandatory base colors green
+> costume #84cc64, orange costume parts #f88004, human face #fcd4ac, cream
+> belly #f6e7b2, outline #1e2a2b. Poses only: […]. Intended export exact
+> 128x64 transparent PNG: TWO touching 64x64 cells horizontally […]. Very
+> chunky native 64px SNES sprite pixel art, strong ONE native pixel #1e2a2b
+> outline, three-tone solid shading clusters. NO antialiasing, gradients,
+> blur […]. TRUE TRANSPARENT RGBA background.
 
 ---
 

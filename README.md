@@ -5,7 +5,7 @@ loop with a fixed time-step, tile-based AABB physics and a DOM-overlay
 player sprite.
 
 Six months ago the company asked Dad to "give a little bit more". He never
-came home. Tero, a two-year-old baby dragon dragging Dad's tie, storms the
+came home. Tero, a two-year-old in a green dragon costume, storms the
 1993 office tower — full of short, zombie-ish humans and office-culture
 parody — to bring him back. (The name lives in `game/title.ts`.)
 
@@ -224,7 +224,8 @@ references are logged at startup (`story/validate.ts`).
 
 ### Tantrum: the core verb
 
-Tero is a baby dragon, so he breathes fire. Anger fills the **tantrum
+Tero is two and wears a dragon costume, so as far as he's concerned he
+breathes fire. In this game, he does. Anger fills the **tantrum
 meter** (HUD: GRR → X!): getting hurt, dying (so struggling players get
 help), stomping, floppies and burning paperwork. Story triggers can fill it
 outright (`effect: 'tantrum'`; on Floor 1 it's Dad's desk with a sticky
