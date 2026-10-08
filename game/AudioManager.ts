@@ -207,6 +207,30 @@ export class AudioManager {
     this.setSong(this.boss ? 'boss' : id);
   }
 
+  /** Elevator muzak (the rhythm interlude): the theme, lounge-style, from
+   *  bar 1. `false` puts the floor's own arrangement back. */
+  setMuzak(on: boolean): void {
+    if (on) {
+      if (!this.preMuzak) this.preMuzak = { arr: this.arr, song: this.song, mood: this.mood };
+      this.arr = ARRANGEMENTS.executive ?? DEFAULT_ARRANGEMENT;
+      this.song = 'main';
+      this.mood = 0;
+    } else if (this.preMuzak) {
+      ({ arr: this.arr, song: this.song, mood: this.mood } = this.preMuzak);
+      this.preMuzak = null;
+    }
+    if (this.musicGain) this.startMusic();
+  }
+  private preMuzak: { arr: Arrangement; song: SongId; mood: number } | null = null;
+
+  /** Where the sequencer is right now, in eighth-note steps (fractional),
+   *  with the step length in seconds. Null when there's no sequenced music
+   *  to follow (muted, not started, or a recording is playing). */
+  musicClock(): { step: number; stepDur: number } | null {
+    if (!this.ac || this.muted || this.timerId === null || this.ac.state !== 'running') return null;
+    return { step: this.step - (this.nextStepAt - this.ac.currentTime) / this.stepDur, stepDur: this.stepDur };
+  }
+
   /** How the floor plays it (by décor id; unknown ids get the default). */
   setArrangement(decor: string | undefined): void {
     this.arr = (decor && ARRANGEMENTS[decor]) || DEFAULT_ARRANGEMENT;

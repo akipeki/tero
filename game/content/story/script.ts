@@ -264,6 +264,15 @@ export const STORY = defineStory({
       ],
       triggers: [
         {
+          // ELEVATOR MUZAK (game/interludes/muzak.ts)
+          atTile: 1,
+          lines: [
+            { who: 'tero', text: '...How did Tero get here?' },
+            { text: 'TEN MINUTES EARLIER.\nTHE ELEVATOR BETWEEN 12 AND 13.' },
+          ],
+          effect: 'interlude:muzak',
+        },
+        {
           atTile: 7,
           lines: [
             { text: 'RED TAPE. SLOW, STICKY,\nAND VERY, VERY FLAMMABLE.' },
