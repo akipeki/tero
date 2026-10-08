@@ -1194,6 +1194,13 @@ export class Game {
       this.goal.locked = false;
       this.audio.play('unlock');
       this.particles.confetti(this.goal.cx, this.goal.y + 40);
+      // After Halvorsen's meeting: HR wants a word (game/interludes/review.ts).
+      if (b.name === 'MR. HALVORSEN') {
+        this.playStory(undefined, () => this.startInterlude('review'), [
+          { id: 'review_hr', speaker: 'HR', text: 'Before you go, sweetie.\nIt\'s time for your QUARTERLY REVIEW.' },
+          { id: 'review_tero', speaker: 'TERO', text: 'Review.\n...Fight?' },
+        ]);
+      }
     }
   }
 
