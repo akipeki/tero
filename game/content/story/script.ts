@@ -379,6 +379,16 @@ export const STORY = defineStory({
           ],
         },
         {
+          // CUBICLE 3D (game/interludes/cubicle3d.ts)
+          atTile: 20,
+          lines: [
+            { who: 'guard', text: 'Camera four lost the toddler.\nSwitch to... FIRST PERSON.' },
+            { who: 'guard', text: 'We have FIRST PERSON?' },
+            { who: 'guard', text: 'Since 1992. Budget never\nupgraded it.' },
+          ],
+          effect: 'interlude:cubicle3d',
+        },
+        {
           atTile: 32,
           lines: [
             { who: 'tero', text: 'Sky. Net.' },
