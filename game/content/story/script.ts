@@ -575,6 +575,15 @@ export const STORY = defineStory({
             { who: 'dad', text: 'Floor 17. I had a desk here once.\nIn 2019. They never told me it moved.' },
           ],
         },
+        {
+          // NAP TIME (game/interludes/nap.ts): halfway down, he's two.
+          atTile: 74,
+          lines: [
+            { who: 'dad', text: 'Halfway. Can we sit for one second?' },
+            { who: 'tero', text: 'One. Second.' },
+          ],
+          effect: 'interlude:nap',
+        },
       ],
       outro: [
         { text: 'THE LOBBY DOORS. DAYLIGHT.\nDAD HASN\'T SEEN IT SINCE MARCH.' },

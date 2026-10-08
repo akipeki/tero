@@ -207,12 +207,13 @@ export class AudioManager {
     this.setSong(this.boss ? 'boss' : id);
   }
 
-  /** Elevator muzak (the rhythm interlude): the theme, lounge-style, from
-   *  bar 1. `false` puts the floor's own arrangement back. */
-  setMuzak(on: boolean): void {
+  /** An interlude's own take on the theme, from bar 1: lounge muzak in the
+   *  elevator ('executive'), the lullaby in the nap ('basement'). `false`
+   *  puts the floor's own arrangement back. */
+  setMuzak(on: boolean, style = 'executive'): void {
     if (on) {
       if (!this.preMuzak) this.preMuzak = { arr: this.arr, song: this.song, mood: this.mood };
-      this.arr = ARRANGEMENTS.executive ?? DEFAULT_ARRANGEMENT;
+      this.arr = ARRANGEMENTS[style] ?? DEFAULT_ARRANGEMENT;
       this.song = 'main';
       this.mood = 0;
     } else if (this.preMuzak) {
