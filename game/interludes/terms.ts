@@ -76,7 +76,7 @@ export class TermsAndConditions extends Interlude {
     const n = CLAUSES.length;
     this.docH = n * ROW + 220;
     CLAUSES.forEach(([s, kind], i) => {
-      const y = this.docH - 80 - i * ROW;
+      const y = this.docH - 60 - i * ROW;
       // zig-zag: short lines alternate sides, so you hop across as you climb
       const left = i % 2 === 0;
       const w = kind === 'burn' || kind === 'pit' || kind === 'agree' ? PX1 - PX0 : 150 + Math.floor(noise(i * 3) * 50);

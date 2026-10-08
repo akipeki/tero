@@ -28,7 +28,7 @@ interface Note { step: number; lane: number; result: '' | 'perfect' | 'good' | '
 /** The chart: one note per melody onset (fast neighbours thinned out).
  *  Lanes follow the melody: its lowest quarter of notes on the left, the
  *  highest on the right, like a piano. */
-function chart(): Note[] {
+export function chart(): Note[] {
   const raw: { step: number; m: number }[] = [];
   let last = -9;
   SONGS.main.melody.forEach((bar, b) => bar.forEach((tok, i) => {

@@ -26,7 +26,7 @@ const DENIED = 'ACCESS DENIED. KEYCARD REQUIRED.';
 
 //   # office wall · C cubicle partition · P poster · W window · E exit door
 //   S start · K keycard · G guard · p plant · w water cooler
-const MAP = [
+export const MAP = [
   '################',
   '#S.....C.......#',
   '#.CCC..C..CPC..#',
