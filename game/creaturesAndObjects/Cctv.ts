@@ -24,16 +24,16 @@ export type CctvMount = 'ceiling' | 'wall' | 'left' | 'right';
 
 /** The housing, in its own coordinates: pointing right (+x), 32 × 16, its
  *  top-left at (x, y). The lens is at the right end. Exported for /art. */
-export function drawCctvHousing(ctx: CanvasRenderingContext2D, x: number, y: number): void {
+export function drawCctvHousing(ctx: CanvasRenderingContext2D, x: number, y: number, alert = false): void {
   const ink = '#1b1620';
   ctx.fillStyle = ink;
   ctx.fillRect(x, y + 3, 30, 12);                    // body outline
   ctx.fillRect(x - 1, y, 33, 5);                     // hood outline
-  ctx.fillStyle = '#c9ced6';
+  ctx.fillStyle = alert ? '#ff4d4d' : '#c9ced6';
   ctx.fillRect(x + 1, y + 4, 28, 10);                // body
-  ctx.fillStyle = '#e8ebee';
+  ctx.fillStyle = alert ? '#ff9a9a' : '#e8ebee';
   ctx.fillRect(x + 1, y + 4, 28, 2);                 // highlight
-  ctx.fillStyle = '#8a8f96';
+  ctx.fillStyle = alert ? '#b02020' : '#8a8f96';
   ctx.fillRect(x + 1, y + 12, 28, 2);                // shade
   for (let i = 5; i < 22; i += 4) ctx.fillRect(x + i, y + 7, 1, 4);   // ribs
   ctx.fillStyle = '#5a5f68';
@@ -66,6 +66,11 @@ export class Cctv extends creaturesAndObjects {
   private readonly px: number;
   private readonly py: number;
   private twitch = 0;
+  /** Ticks left blinking red (Tero just got hit: everybody saw). */
+  private redFlash = 0;
+
+  /** Tero got hurt: blink red. */
+  flashRed(ticks = 40): void { this.redFlash = ticks; }
   /** Where Tero is (fake cameras turn to follow him), or null. */
   private target: { x: number; y: number } | null = null;
   /** How fast this one turns: they don't all move in perfect sync. */
@@ -97,6 +102,7 @@ export class Cctv extends creaturesAndObjects {
   get eyeY(): number { return this.py + 4; }
 
   update(): void {
+    if (this.redFlash > 0) this.redFlash--;
     if (this.fake) {
       const rest = (this.from + this.to) / 2;
       let want: number;
@@ -166,11 +172,19 @@ export class Cctv extends creaturesAndObjects {
     ctx.translate(px, py);
     ctx.scale(facing, 1);
     ctx.rotate(tilt);
-    if (!blitArt(ctx, 'cctv', 0, -12, -8)) drawCctvHousing(ctx, -12, -8);
+    const blink = this.redFlash > 0 && Math.floor(this.redFlash / 5) % 2 === 0;
+    if (blitArt(ctx, 'cctv', 0, -12, -8)) {
+      if (blink) { ctx.fillStyle = 'rgba(255,40,40,0.55)'; ctx.fillRect(-12, -7, 32, 15); }
+    } else drawCctvHousing(ctx, -12, -8, blink);
     // the lens light: green watching, red when it has seen you (fakes are always "recording")
-    const red = this.fake || (this.alarm > 0 && Math.floor(this.alarm / 8) % 2 === 0) || this.alarm > 0;
+    const red = this.fake || this.alarm > 0 || this.redFlash > 0;
     ctx.fillStyle = red ? '#ff3b3b' : '#3fd84a';
     ctx.fillRect(16, -3, 2, 2);
+    if (blink) {
+      // a red glow round the lens
+      ctx.fillStyle = 'rgba(255,60,60,0.35)';
+      ctx.fillRect(13, -6, 8, 8);
+    }
     ctx.restore();
     if (this.alarm > 0) drawBubble(ctx, '!', px, py - 10);
     else if (this.puzzled > 0) drawBubble(ctx, '?', px, py - 10);

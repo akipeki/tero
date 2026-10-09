@@ -726,6 +726,8 @@ export class Game {
     if (this.player.justHurt) {
       this.player.justHurt = false;
       this.hitStop = HITSTOP_HURT;
+      // every camera on the floor saw that: they all blink red
+      for (const c of this.cameras) c.flashRed();
     }
 
     this.particles.update();

@@ -63,3 +63,14 @@ describe('fake cameras', () => {
     expect(c.watch(tero(4), map(ROOM))).toBeNull();
   });
 });
+
+describe('when Tero gets hit', () => {
+  it('a camera blinks red for a moment, then stops', () => {
+    const c = new Cctv(4, 1, [0, 0]);
+    const red = () => (c as unknown as { redFlash: number }).redFlash;
+    c.flashRed();
+    expect(red()).toBeGreaterThan(0);
+    for (let i = 0; i < 60; i++) c.update();
+    expect(red()).toBe(0);
+  });
+});
