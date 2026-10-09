@@ -1,5 +1,6 @@
 // file: game/Game.ts
 
+import { FLOOR_SONGS } from './music';
 import { t, tf } from './i18n';
 import { setTheme } from './render/Theme';
 import { Tilemap } from './level/Tilemap';
@@ -1550,10 +1551,10 @@ export class Game {
     this.stuckTicks = 0;
     this.note('start');
     this.audio.setFloorMood(this.floorMood());
-    // Every floor plays the theme its own way; the vents have Elvis's song.
+    // Floors with their own song play it; the rest play the theme their own way.
     const decor = this.levelPack?.decor;
     this.audio.setArrangement(decor);
-    this.audio.setBaseSong(decor === 'vents' ? 'vents' : 'main');
+    this.audio.setBaseSong((decor && FLOOR_SONGS[decor]) || 'main');
     this.audio.setTantrum(false);
     this.audio.setBoss(false);
     this.wasTantrum = false;

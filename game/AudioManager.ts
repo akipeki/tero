@@ -10,7 +10,7 @@
 // bolts a distorted power-chord guitar and double kick onto whatever is
 // playing: the muzak turns into metal while Tero rages.
 
-import { SONGS, ARRANGEMENTS, DEFAULT_ARRANGEMENT, chordTones, hz, midi, type SongId, type Arrangement } from './music';
+import { SONGS, ARRANGEMENTS, DEFAULT_ARRANGEMENT, chordTones, hz, midi, type SongId, type Arrangement, type Voice } from './music';
 import { CUSTOM_SOUNDS } from './customSounds';
 
 export type SfxName =
@@ -392,23 +392,28 @@ export class AudioManager {
 
   /** One eighth note. Slower on higher floors — everyone's exhausted. */
   private get stepDur(): number {
-    const bpm = SONGS[this.song].bpm + (this.song === 'boss' ? 0 : this.arr.bpm);
+    const song = SONGS[this.song];
+    const bpm = song.bpm + (this.song === 'boss' || song.voice ? 0 : this.arr.bpm);
     return 60 / (bpm - this.mood * 18 + (this.casual ? 10 : 0) + (this.urgent ? 12 : 0)) / 2;
   }
 
   /** The penthouse is a semitone flat. Nobody has noticed. */
   private get transpose(): number {
-    return this.arr.transpose + (this.mood >= 0.95 ? -1 : 0);
+    return (SONGS[this.song].voice ? 0 : this.arr.transpose) + (this.mood >= 0.95 ? -1 : 0);
   }
 
   private playStep(step: number, t: number): void {
     const bus = this.bus!;
     const song = SONGS[this.song];
     const MELODY = song.melody, CHORDS = song.chords;
-    const DRUMS = this.song === 'boss' ? song.drums : (this.arr.drums ?? song.drums);
+    // A floor song with its own sound ignores the floor's arrangement.
+    const own = !!song.voice;
+    const DRUMS = this.song === 'boss' || own ? song.drums : (this.arr.drums ?? song.drums);
     const bar = Math.floor(step / 8);
     const beat = step % 8;
     const sd = this.stepDur;
+    // Swing: the off-beat eighths come a little late.
+    if (song.swing && beat % 2 === 1) t += song.swing * sd;
 
     // Lead: count how many '-' follow to get the note length.
     const tok = MELODY[bar][beat];
@@ -424,6 +429,8 @@ export class AudioManager {
           // ukulele: a quick triangle pluck an octave up, plus a strum
           this.pitched(f * 2, t, Math.min(len * sd, 0.22), 'triangle', 0.42, bus, 0.002);
           this.pitched(f * 1.5, t + 0.012, Math.min(len * sd, 0.18), 'triangle', 0.18, bus, 0.002);
+        } else if (own) {
+          this.instrument(song.voice!, f, t, len * sd * 0.9, song.leadGain ?? 0.32, bus);
         } else {
           this.pitched(f, t, len * sd * 0.9, this.song === 'boss' ? 'square' : this.arr.lead, this.arr.leadGain ?? 0.32, bus, 0.01);
         }
@@ -439,12 +446,31 @@ export class AudioManager {
     const chord = chordTones(chords.length > 1 && beat >= 4 ? chords[1] : chords[0])
       .map((n) => n + this.transpose);
 
-    // Bass: root, octave, root, octave…
-    const bassNote = chord[0] + (beat % 2 === 1 ? 12 : 0);
-    this.pitched(hz(bassNote), t, sd * 0.8, 'triangle', 0.55, bus, 0.005);
+    if (song.bass) {
+      // The song's own bass line (R root · O octave · F fifth · T third · A approach)
+      const b = song.bass[beat];
+      if (b !== '-' && b !== '.') {
+        let len = 1;
+        while (beat + len < 8 && song.bass[beat + len] === '-') len++;
+        const next = CHORDS[(bar + 1) % CHORDS.length][0];
+        const note = b === 'O' ? chord[0] + 12 : b === 'F' ? chord[0] + 7 : b === 'T' ? chord[1]
+          : b === 'A' ? chordTones(next)[0] + this.transpose - 1 : chord[0];
+        this.instrument(song.bassVoice ?? 'triangle', hz(note), t, len * sd * 0.85, 0.5, bus);
+      }
+    } else {
+      // Bass: root, octave, root, octave…
+      const bassNote = chord[0] + (beat % 2 === 1 ? 12 : 0);
+      this.pitched(hz(bassNote), t, sd * 0.8, 'triangle', 0.55, bus, 0.005);
+    }
+
+    // A soft held chord, an octave up, whenever a chord starts.
+    if (song.pad && (beat === 0 || (chords.length > 1 && beat === 4))) {
+      const hold = (chords.length > 1 ? 4 : 8) * sd;
+      for (const n of chord) this.instrument('organ', hz(n + 12), t, hold * 0.95, 0.045, bus);
+    }
 
     // Arpeggio two octaves up, quiet: 1-3-5-3 … ('fast' doubles it, 'off' skips it)
-    const arpMode = this.song === 'boss' ? 'fast' : this.arr.arp;
+    const arpMode = this.song === 'boss' ? 'fast' : own ? (song.arp ?? 'off') : this.arr.arp;
     if (arpMode !== 'off') {
       const arp = [0, 1, 2, 1][beat % 4];
       this.pitched(hz(chord[arp] + 24), t, sd * 0.5, 'square', 0.07, bus, 0.003);
@@ -471,6 +497,77 @@ export class AudioManager {
   }
 
   // ─── Instruments ───────────────────────────────────────────────────────────
+
+  /** Plays one note on a named instrument (the plain waveforms, or one of
+   *  the few built from them). */
+  private instrument(v: Voice, f: number, t: number, dur: number, gain: number, dest: AudioNode): void {
+    switch (v) {
+      case 'pluck':                 // a plucked string: bright attack, quick decay
+        this.decayed(f, t, Math.min(dur, 0.4), 'triangle', gain * 1.2, dest);
+        this.decayed(f * 2, t, Math.min(dur, 0.12), 'square', gain * 0.15, dest);
+        return;
+      case 'harpsi':                // harpsichord: two bright decaying voices
+        this.decayed(f, t, Math.max(0.35, Math.min(dur, 0.6)), 'sawtooth', gain * 0.55, dest);
+        this.decayed(f * 2, t, 0.25, 'square', gain * 0.2, dest);
+        return;
+      case 'bell':                  // electric piano / bell: sine plus a short shimmer
+        this.decayed(f, t, Math.max(dur, 0.5), 'sine', gain, dest);
+        this.decayed(f * 2, t, 0.2, 'sine', gain * 0.35, dest);
+        this.decayed(f * 3, t, 0.08, 'triangle', gain * 0.12, dest);
+        return;
+      case 'organ':                 // drawbars: 8', 4', 2 2/3'
+        this.pitched(f, t, dur, 'sine', gain, dest, 0.02);
+        this.pitched(f * 2, t, dur, 'sine', gain * 0.5, dest, 0.02);
+        this.pitched(f * 3, t, dur, 'sine', gain * 0.25, dest, 0.02);
+        return;
+      case 'brass':                 // synth brass: a sawtooth whose filter opens
+        this.brass(f, t, dur, gain, dest);
+        return;
+      default:
+        this.pitched(f, t, dur, v, gain, dest, 0.01);
+    }
+  }
+
+  /** A note that starts loud and dies away (plucks, bells). */
+  private decayed(freq: number, t: number, dur: number, type: OscillatorType, gain: number, dest: AudioNode): void {
+    const ac = this.ac!;
+    const o = ac.createOscillator();
+    o.type = type;
+    o.frequency.value = freq;
+    const lfo = this.lfoDepth;
+    lfo?.connect(o.detune);
+    const g = ac.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(gain, t + 0.004);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g);
+    g.connect(dest);
+    this.track(o, g, t, dur, () => lfo?.disconnect(o.detune));
+  }
+
+  private brass(freq: number, t: number, dur: number, gain: number, dest: AudioNode): void {
+    const ac = this.ac!;
+    const o = ac.createOscillator();
+    o.type = 'sawtooth';
+    o.frequency.value = freq;
+    const lfo = this.lfoDepth;
+    lfo?.connect(o.detune);
+    const filter = ac.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.Q.value = 2;
+    filter.frequency.setValueAtTime(500, t);
+    filter.frequency.linearRampToValueAtTime(2800, t + 0.06);
+    filter.frequency.linearRampToValueAtTime(1500, t + 0.2);
+    const g = ac.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(gain, t + 0.03);
+    g.gain.setValueAtTime(gain, t + dur * 0.75);
+    g.gain.linearRampToValueAtTime(0.0001, t + dur);
+    o.connect(filter);
+    filter.connect(g);
+    g.connect(dest);
+    this.track(o, g, t, dur, () => { lfo?.disconnect(o.detune); filter.disconnect(); });
+  }
 
   private pitched(
     freq: number, t: number, dur: number, type: OscillatorType,
