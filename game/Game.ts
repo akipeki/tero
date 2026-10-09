@@ -1,6 +1,6 @@
 // file: game/Game.ts
 
-import { FLOOR_SONGS } from './music';
+import { FLOOR_SONGS, BOSS_SONGS } from './music';
 import { t, tf } from './i18n';
 import { setTheme } from './render/Theme';
 import { Tilemap } from './level/Tilemap';
@@ -1325,7 +1325,7 @@ export class Game {
     b.start(this.map);
     this.setArenaDoor(true);
     this.camera.lock(b.arenaLeft, b.arenaLeft);
-    this.audio.setBoss(true);
+    this.audio.setBoss(true, BOSS_SONGS[this.currentRuntimeLevel?.spawns.boss?.type ?? ''] ?? 'boss');
     // Chad is the first boss: say how to beat him
     this.onCallout?.(t(b.name.startsWith('CHAD') ? 'JUMP ON CHAD\'S HEAD! (FIRE WARMS HIM UP TOO)' : 'MEETING IN PROGRESS'));
   }

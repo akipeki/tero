@@ -49,3 +49,35 @@ describe('more songs and arrangements', () => {
     for (const a of Object.values(ARRANGEMENTS)) if (a.drums) expect(a.drums).toHaveLength(8);
   });
 });
+
+import { FLOOR_SONGS, BOSS_SONGS } from './music';
+
+describe('floor and boss songs', () => {
+  it('every floor song and boss song exists', () => {
+    for (const id of [...Object.values(FLOOR_SONGS), ...Object.values(BOSS_SONGS)]) expect(SONGS[id!], id).toBeDefined();
+    for (const decor of Object.keys(FLOOR_SONGS)) expect(DECORS[decor as keyof typeof DECORS], decor).toBeDefined();
+  });
+
+  it('bass lines are one bar of known steps, and own-sound songs are complete', () => {
+    for (const [id, s] of Object.entries(SONGS)) {
+      if (s.bass) {
+        expect(s.bass, id).toHaveLength(8);
+        expect(s.bass, id).toMatch(/^[ROFTA.-]{8}$/);
+        expect(s.bass[0], id).not.toBe('-');
+      }
+      if (s.voice) expect(s.bass, `${id} has its own sound, so its own bass`).toBeDefined();
+    }
+  });
+
+  it('the main theme is untouched: the Mailroom has no song of its own', () => {
+    expect(FLOOR_SONGS.basement).toBeUndefined();
+    expect(SONGS.main.voice).toBeUndefined();
+  });
+
+  it('every new song carries the Da-da hook', () => {
+    for (const [id, s] of Object.entries(SONGS)) {
+      if (id === 'boss') continue;   // the original boss theme has no singing
+      expect(s.melody.flat().some((t) => t.startsWith('da:')), id).toBe(true);
+    }
+  });
+});

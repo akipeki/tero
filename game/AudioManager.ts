@@ -207,8 +207,10 @@ export class AudioManager {
   /** The floor's song ('vents' in the vents, 'main' elsewhere). */
   setBaseSong(id: SongId): void {
     this.baseSong = id;
-    this.setSong(this.boss ? 'boss' : id);
+    this.setSong(this.boss ? this.bossSong : id);
   }
+  /** The music for the current boss fight. */
+  private bossSong: SongId = 'boss';
 
   /** An interlude's own take on the theme, from bar 1: lounge muzak in the
    *  elevator ('executive'), the lullaby in the nap ('basement'). `false`
@@ -269,9 +271,11 @@ export class AudioManager {
   setCasual(on: boolean): void { this.casual = on; }
 
   /** Boss fight: the boss song takes over (and the snare doubles). */
-  setBoss(on: boolean): void {
+  /** A boss fight starts (`song`: that boss's own theme) or ends. */
+  setBoss(on: boolean, song: SongId = 'boss'): void {
     this.boss = on;
-    this.setSong(on ? 'boss' : this.baseSong);
+    if (on) this.bossSong = song;
+    this.setSong(on ? this.bossSong : this.baseSong);
   }
 
   /** Metal mode on/off — applies from the next eighth note. */
@@ -455,7 +459,7 @@ export class AudioManager {
         const next = CHORDS[(bar + 1) % CHORDS.length][0];
         const note = b === 'O' ? chord[0] + 12 : b === 'F' ? chord[0] + 7 : b === 'T' ? chord[1]
           : b === 'A' ? chordTones(next)[0] + this.transpose - 1 : chord[0];
-        this.instrument(song.bassVoice ?? 'triangle', hz(note), t, len * sd * 0.85, 0.5, bus);
+        this.instrument(song.bassVoice ?? 'triangle', hz(note), t, len * sd * 0.85, song.bassGain ?? 0.5, bus);
       }
     } else {
       // Bass: root, octave, root, octave…
