@@ -7,6 +7,7 @@ import { ScreenShake } from '../ScreenShake';
 import { level2Tiles, level2Spawns, LEVEL2_WIDTH, LEVEL2_HEIGHT } from '../level/level2';
 import { STORY } from '../content/story/script';
 import type { UpdateCtx } from './creaturesAndObjects';
+import { Flame } from './Flame';
 import type { AudioManager } from '../AudioManager';
 
 const ctx = (): UpdateCtx => ({
@@ -67,4 +68,19 @@ describe('Chad from Talent Acquisition', () => {
     expect(quiz).toBeGreaterThanOrEqual(0);
     expect(boss).toBeGreaterThan(quiz);
   });
+
+  it('ordinary fire puffs hurt him too: four puffs make one hit', () => {
+    const c = ctx();
+    const r = new Recruiter(ARENA);
+    r.introDone = true;
+    r.start();
+    const p = away();
+    for (let i = 0; i < 40; i++) r.tick(c, p, []);   // wait out the opening invulnerability
+    for (let i = 0; i < 4; i++) {
+      const puff = new Flame(r.cx - 4, r.cy, 0, 0, 9, false);
+      r.tick(c, p, [puff]);
+    }
+    expect(r.hp).toBe(2);
+  });
 });
+

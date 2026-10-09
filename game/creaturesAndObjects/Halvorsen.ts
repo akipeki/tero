@@ -19,7 +19,7 @@
 import { tf } from '../i18n';
 import { creaturesAndObjects, type UpdateCtx } from './creaturesAndObjects';
 import { overlaps, stompOverlap } from '../physics/AABB';
-import { TILE_SIZE } from '../constants';
+import { TILE_SIZE, PUFF_HEAT } from '../constants';
 import { TileType } from '../types';
 import type { Player } from './Player';
 import type { Flame } from './Flame';
@@ -184,9 +184,12 @@ export class Halvorsen extends creaturesAndObjects implements Boss {
     // Hold him in tantrum fire
     if (this.invuln === 0) {
       for (const f of flames) {
-        if (!f.active || !f.frees || !overlaps(f, this)) continue;
+        if (!f.active || !overlaps(f, this)) continue;
         f.active = false;
-        if (++this.heat >= HEAT_PER_HIT) { this.heat = 0; this.takeHit(ctx); break; }
+        // tantrum flames stream in; a little puff counts for more
+        this.heat += f.frees ? 1 : PUFF_HEAT;
+        ctx.particles.burst(f.cx, f.cy, 3, '#ffb347', '#fff6b0');
+        if (this.heat >= HEAT_PER_HIT) { this.heat = 0; this.takeHit(ctx); break; }
       }
     }
     // Walk into him and you get a stern talking-to

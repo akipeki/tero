@@ -629,7 +629,19 @@ export class Game {
       f.update(ctx);
       if (f.rageEarned) this.player.addRage(f.rageEarned);
       for (const [tx, ty] of f.burntTiles) { this.fire.spread(this.map, tx, ty); this.sig.burnt++; }
-      if (!f.frees || !f.active) continue;
+      if (!f.active) continue;
+      if (!f.frees) {
+        // a little puff only startles people (a tantrum sends them home)
+        for (const e of [...this.walkers, ...this.hoppers]) {
+          if (!e.hittable || !overlaps(f, e)) continue;
+          f.active = false;
+          e.flee(f.cx, 45);
+          this.particles.burst(f.cx, f.cy, 4, '#c9ccd1', '#ffb347');
+          this.puffHint();
+          break;
+        }
+        continue;
+      }
       for (const e of [...this.walkers, ...this.hoppers]) {
         if (e.hittable && overlaps(f, e)) e.burn(ctx);
       }
@@ -705,6 +717,15 @@ export class Game {
     this.flames    = this.flames.filter(f => f.active);
 
     this.syncHud();
+  }
+
+  /** The first time a puff bounces off someone: how fire actually works. */
+  private puffHinted = false;
+  private puffHint(): void {
+    if (this.puffHinted) return;
+    this.puffHinted = true;
+    this.say('Too small...', true);
+    this.onCallout?.(t('A PUFF ONLY STARTLES PEOPLE. JUMP ON THEM, OR FILL GRR FOR A TANTRUM!'));
   }
 
   /** Small feel things: landing dust, the band speeding up on a full
@@ -1269,7 +1290,8 @@ export class Game {
     this.setArenaDoor(true);
     this.camera.lock(b.arenaLeft, b.arenaLeft);
     this.audio.setBoss(true);
-    this.onCallout?.('MEETING IN PROGRESS');
+    // Chad is the first boss: say how to beat him
+    this.onCallout?.(t(b.name.startsWith('CHAD') ? 'JUMP ON CHAD\'S HEAD! (FIRE WARMS HIM UP TOO)' : 'MEETING IN PROGRESS'));
   }
 
   /** Tero died mid-meeting: open up and reset for the next attempt. */

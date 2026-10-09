@@ -33,6 +33,8 @@ export const FLAME_LIFE         = 24;   // ≈ 4 tiles of reach
 export const PUFF_LIFE          = 9;    // the little hiccup puff: ≈ 1.5 tiles
 export const PUFF_SPEED         = 4.5;
 export const PUFF_COOLDOWN      = 20;
+/** A little puff warms a boss up this much (a tantrum flame is 1). */
+export const PUFF_HEAT          = 3;
 // Quick syncs (Floor 6): a coworker catches your eye and you're stuck talking.
 export const SYNC_FRAMES        = 150;  // mash jump to cut it short
 export const RAGE_SYNC          = 10;   // nothing is more unfair

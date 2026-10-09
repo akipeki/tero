@@ -17,7 +17,7 @@ import { t, tf } from '../i18n';
 import { blitArt } from '../render/customImages';
 import { creaturesAndObjects, type UpdateCtx } from './creaturesAndObjects';
 import { overlaps, stompOverlap } from '../physics/AABB';
-import { TILE_SIZE } from '../constants';
+import { TILE_SIZE, PUFF_HEAT } from '../constants';
 import type { Player } from './Player';
 import type { Flame } from './Flame';
 import type { Boss, BossPhase } from './Boss';
@@ -184,10 +184,11 @@ export class Board extends creaturesAndObjects implements Boss {
       }
       // Dragon fire vs. hydra
       for (const f of flames) {
-        if (!f.active || !f.frees || !overlaps(f, box)) continue;
+        if (!f.active || !overlaps(f, box)) continue;
         f.active = false;
         h.hurt = 6;
-        if (++h.heat >= HEAT_PER_HEAD) { this.defeat(h, ctx); break; }
+        h.heat += f.frees ? 1 : PUFF_HEAT;
+        if (h.heat >= HEAT_PER_HEAD) { this.defeat(h, ctx); break; }
       }
       if ((h.state as HeadState) === 'gone') continue;   // defeat() may have just run
       // A lunging head hurts
