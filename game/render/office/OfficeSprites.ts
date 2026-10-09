@@ -198,7 +198,7 @@ export function drawOfficeWalker(ctx: CanvasRenderingContext2D, p: WalkerSpriteP
   // Walk frames follow distance walked, so the feet never skate; the plant
   // stays put and chomps on a timer instead.
   const f = p.dying ? 0
-    : variant === 'plant' ? Math.floor((p.animTick ?? 0) / 20) % 2
+    : variant === 'plant' ? (p.shut ? 0 : Math.floor((p.animTick ?? 0) / 20) % 2)
     : Math.floor(Math.abs(p.x) / 6) % 4;
   const custom = customEnemy(variant);
   if (custom) return blitCustom(ctx, custom, f, p);

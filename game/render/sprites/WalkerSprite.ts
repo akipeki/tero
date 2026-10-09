@@ -23,6 +23,8 @@ export interface WalkerSpriteProps {
   animTick?: number;
   /** Just hit by fire: flashes hot (0..1). */
   scorch?: number;
+  /** A plant that got a puff of fire: shut tight and sulking. */
+  shut?: boolean;
 }
 
 export function drawWalkerSprite(

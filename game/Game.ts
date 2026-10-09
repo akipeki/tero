@@ -106,6 +106,7 @@ const HOT_BY_VARIANT: Record<string, string[]> = {
   manager: ['THAT\'S NOT IN THE BUDGET!', 'MY BRIEFCASE!'],
   gorilla: ['OOK?!', 'HOT HOT HOT!'],
   vampire: ['NOT THE SUN!', 'I\'M A NIGHT PERSON!'],
+  plant:   ['MY LEAVES!', 'PHOTOSYNTHESIS, NOT THIS!', 'CHOMP?', 'I NEED WATER!'],
 };
 
 export class Game {
@@ -651,7 +652,12 @@ export class Game {
           // the same "that was hot" as a boss: flash, smoke, sizzle, a yelp, a flinch
           e.scorch = 10;
           e.flee(f.cx, 45);
-          if (e.variant === 'robot') {
+          if (e instanceof Walker && e.variant === 'plant') {
+            // a plant can't run: it snaps shut and sulks (safe to pass for a bit)
+            e.shut = 90;
+            this.particles.burst(f.cx, f.cy, 6, '#6cc24a', '#ffb347');
+            this.audio.play('burn');
+          } else if (e.variant === 'robot') {
             // robots don't smoke, they short-circuit
             this.particles.burst(f.cx, f.cy, 7, '#8fd3ff', '#ffffff');
             this.audio.play('laser');

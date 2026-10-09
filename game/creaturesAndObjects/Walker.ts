@@ -47,6 +47,8 @@ export class Walker extends creaturesAndObjects {
   say(text: string, frames = 70): void { this.quip = { text, t: frames }; }
   /** Ticks left flashing hot after a puff of fire. */
   scorch = 0;
+  /** A plant that got a puff of fire stays shut (and harmless) this long. */
+  shut = 0;
 
   /** Run from a point (a raging toddler). */
   flee(fromX: number, frames: number): void {
@@ -104,6 +106,7 @@ export class Walker extends creaturesAndObjects {
 
   update(ctx: UpdateCtx): void {
     if (this.scorch > 0) this.scorch--;
+    if (this.shut > 0) this.shut--;
     if (this.freed) {
       this.freed.update(this, ctx);
       if (this.freed.done) this.active = false;
@@ -189,8 +192,9 @@ export class Walker extends creaturesAndObjects {
       return true;
     }
 
-    // Side collision — hurt player (a syncer just wants to talk: Game handles that)
-    if (!this.spec.harmless && !player.isInvincible && overlaps(
+    // Side collision — hurt player (a syncer just wants to talk: Game handles
+    // that; a plant that's been singed is shut tight and sulking)
+    if (!this.spec.harmless && this.shut === 0 && !player.isInvincible && overlaps(
       { x: player.x + 2, y: player.y + 4, w: player.w - 4, h: player.h - 4 },
       { x: this.x, y: this.y, w: this.w, h: this.h },
     )) {
@@ -251,6 +255,7 @@ export class Walker extends creaturesAndObjects {
     dying: this.dying,
     scaleY: this.scaleY,
     scorch: this.scorch / 10,
+    shut: this.shut > 0,
     variant: this.variant,
     animTick: this.animTimer,
   });
