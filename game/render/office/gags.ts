@@ -541,21 +541,89 @@ export const GAGS = {
 
   // ─── Floor 3, Compliance: cameras on everything ───────────────────────────
   sign_watching: { ...hang(() => {
-    const r = new Raster(96, 46);
-    r.line(30, 0, 30, 6, C.greyDark); r.line(66, 0, 66, 6, C.greyDark);
-    box(r, 1, 6, 94, 39, C.navy);
+    const w = 132, h = 52;
+    const r = new Raster(w + 2, h + 8);
+    r.line(36, 0, 36, 6, C.greyDark); r.line(w - 34, 0, w - 34, 6, C.greyDark);
+    box(r, 1, 6, w, h, C.navy);
     // the big eye
-    r.ellipse(18, 25, 12, 7, C.white);
-    r.ellipse(18, 25, 5, 5, '#4a7bf0');
-    r.ellipse(18, 25, 2, 2, C.ink);
-    r.px(16, 23, C.white);
-    drawText(r, 'WE ARE', 36, 12, C.yellow);
-    drawText(r, 'WATCHING', 36, 20, C.yellow);
-    drawText(r, 'YOU.', 36, 28, C.yellow);
-    drawText(r, '(FOR YOUR SAFETY)', 22, 37, C.greyLight);
+    r.ellipse(19, 30, 13, 8, C.white);
+    r.ellipse(19, 30, 6, 6, '#4a7bf0');
+    r.ellipse(19, 30, 3, 3, C.ink);
+    r.px(17, 28, C.white);
+    drawText(r, 'WE ARE WATCHING YOU.', 38, 12, C.yellow);
+    drawText(r, 'EVERY STEP.', 38, 22, C.white);
+    drawText(r, 'EVERY NAP.', 38, 29, C.white);
+    drawText(r, 'EVERY SNACK.', 38, 36, C.white);
+    drawText(r, 'WE DO THIS FOR', 38, 44, C.greyLight);
+    drawText(r, 'YOUR OWN SAFETY.', 38, 51, C.greyLight);
     return r;
   }), floors: ['compliance', 'security'] },
-  sign_smile:    { ...hang(() => banner(['SMILE! YOU ARE ON', 'CAMERA 4 OF 312'], C.yellow, C.ink)), floors: ['compliance'] },
+  sign_always:   { ...hang(() => banner(['WE ARE ALWAYS WATCHING.', 'FOR YOUR OWN SAFETY.'], C.navy, C.yellow)), floors: ['compliance'] },
+  /** A 1993 pin-up swimsuit calendar with Dad's employee number on it, and
+   *  a camera pointed at it. Tero only sees the beach. Not muted: it's a clue. */
+  calendar_beach: { ...hang(() => {
+    const w = 66, h = 92;
+    const r = new Raster(w + 14, h + 8);
+    const skin = '#eab48a', skinD = '#c98d63', hair = '#ffe066', hairD = '#e0b030', suit = '#e8302f';
+    // the nail, the string, and a camera on a little arm pointing at it
+    r.px(Math.floor(w / 2), 6, C.ink);
+    r.line(Math.floor(w / 2), 6, 6, 12, C.greyDark); r.line(Math.floor(w / 2), 6, w - 4, 12, C.greyDark);
+    r.rect(w + 2, 0, 2, 8, C.greyDark);
+    cam(r, w + 1, 8, 'dl');
+    box(r, 4, 12, w - 6, h - 6, C.paper);
+    // the picture: sky, sun, sea, sand, a palm
+    const px0 = 5, pw = w - 8;
+    r.rect(px0, 13, pw, 30, '#7fc8f0');
+    r.ellipse(54, 21, 5, 5, C.yellow);
+    r.rect(px0, 43, pw, 7, '#2f7fd8');
+    r.rect(px0, 46, pw, 1, '#8fd3ff');
+    r.rect(px0, 50, pw, 12, '#f0d890');
+    r.rect(12, 24, 3, 27, C.woodDark);
+    r.ellipse(13, 24, 9, 3, C.green); r.ellipse(9, 27, 5, 2, C.greenDark); r.ellipse(18, 27, 5, 2, C.greenDark);
+    // the pin-up: hand on hip, the other arm up behind her head
+    const cx = 36;
+    r.part(C.ink, (t) => {
+      // long hair behind
+      t.ellipse(cx, 22, 6, 7, hair);
+      t.rect(cx - 6, 22, 12, 9, hair);
+      // arm up behind the head
+      t.line(cx + 4, 28, cx + 8, 20, skin); t.line(cx + 5, 28, cx + 9, 20, skin);
+      // head and neck
+      t.ellipse(cx, 21, 4, 4.5, skin);
+      t.rect(cx - 1, 25, 3, 3, skin);
+      // body: shoulders, waist, hips (an hourglass)
+      t.ellipse(cx, 31, 6, 3, skin);
+      t.rect(cx - 3, 32, 6, 6, skin);
+      t.ellipse(cx, 41, 7, 4, skin);
+      // legs, one knee bent
+      t.rect(cx - 5, 43, 4, 15, skin);
+      t.line(cx + 2, 43, cx + 4, 50, skin); t.line(cx + 4, 50, cx + 2, 58, skin);
+      t.line(cx + 3, 43, cx + 5, 50, skin); t.line(cx + 5, 50, cx + 3, 58, skin);
+      // hand on hip
+      t.line(cx - 6, 30, cx - 8, 36, skin); t.line(cx - 8, 36, cx - 5, 40, skin);
+    });
+    // the bikini
+    r.ellipse(cx - 2, 32, 2.5, 2, suit); r.ellipse(cx + 2, 32, 2.5, 2, suit);
+    r.rect(cx - 1, 31, 2, 1, suit);
+    r.ellipse(cx, 42, 5, 2.2, suit);
+    // shading, hair on top, sunglasses, a smile
+    r.rect(cx - 3, 35, 1, 3, skinD); r.rect(cx + 2, 35, 1, 3, skinD);
+    r.rect(cx - 4, 16, 8, 3, hair); r.rect(cx - 5, 18, 2, 7, hair); r.rect(cx + 3, 18, 2, 6, hair);
+    // long blonde hair over one shoulder
+    r.rect(cx - 7, 23, 3, 9, hair); r.rect(cx - 7, 28, 1, 4, hairD); r.px(cx - 6, 32, hairD);
+    r.rect(cx - 2, 16, 3, 1, '#fff6b0');                 // shine
+    r.rect(cx - 3, 20, 7, 2, C.ink);
+    r.rect(cx - 1, 24, 3, 1, '#c8323a');
+    drawTextCentered(r, "SUMMER '93", 4, w - 6, 64, C.red);
+    // the month: July, crossed off like everything else
+    for (let row = 0; row < 3; row++) for (let col = 0; col < 7; col++) {
+      r.rect(8 + col * 7, 73 + row * 5, 4, 2, row === 2 && col > 3 ? C.paperDim : C.greyDark);
+    }
+    // Dad's employee number on a sticky note
+    box(r, 42, 78, 18, 9, C.sticky);
+    drawText(r, '4471', 44, 80, C.ink);
+    return r;
+  }), floors: ['compliance'], storyOnly: true, bright: true },
   sign_trust:    { ...hang(() => banner(['312 CAMERAS. 0 WINDOWS.', '100% TRUST.'], C.navy, C.white)), floors: ['compliance'] },
   sign_blink:    { ...hang(() => signBoard('NOTICE', ['BLINKING IS', 'LOGGED.'], C.red)), floors: ['compliance'] },
   /** Six cameras on one pole, looking every which way. */

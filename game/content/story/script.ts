@@ -148,7 +148,7 @@ export const STORY = defineStory({
       goalWriting: 'crayon_whose',
       intro: [
         { text: 'FLOOR 3 — COMPLIANCE.\n312 CAMERAS. 0 WINDOWS.' },
-        { who: 'guard', text: 'Smile! You\'re on camera.\nAll of them.' },
+        { who: 'guard', text: 'We are watching you.\nFor your own safety.' },
       ],
       triggers: [
         {
@@ -173,6 +173,14 @@ export const STORY = defineStory({
           ],
         },
         {
+          atTile: 41,
+          lines: [
+            { text: 'A SWIMSUIT CALENDAR FROM 1993.\nA STICKY NOTE ON IT: "#4471". DAD\'S NUMBER.' },
+            { who: 'tero', text: 'Dada... beach?' },
+            { text: 'DAD HASN\'T SEEN A BEACH SINCE MARCH.' },
+          ],
+        },
+        {
           atTile: 50,
           lines: [
             { text: 'THE TOILETS.\n"CCTV IN OPERATION INSIDE. FOR YOUR SAFETY."' },
@@ -190,10 +198,11 @@ export const STORY = defineStory({
         { atTile: 3,  gag: 'sign_watching' },
         { atTile: 6,  gag: 'cam_cluster' },
         { atTile: 15, gag: 'cam_trash' },
-        { atTile: 18, gag: 'sign_smile' },
+        { atTile: 18, gag: 'sign_always' },
+        { atTile: 36, gag: 'calendar_beach' },
         { atTile: 27, gag: 'cam_fern' },
         { atTile: 33, gag: 'cam_cake' },
-        { atTile: 36, gag: 'sign_blink' },
+        { atTile: 30, gag: 'sign_blink' },
         { atTile: 46, gag: 'cam_cluster' },
         { atTile: 49, gag: 'toilet_doors' },
         { atTile: 63, gag: 'cam_coffee' },

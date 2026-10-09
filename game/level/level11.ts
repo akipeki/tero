@@ -75,7 +75,6 @@ export const level11Spawns: LevelSpawns = {
     { type: 'camera', tx: 59, ty: 1, sweep: [-0.9, 0.5] },
     // and everyone else's
     { type: 'camera', tx: 2, ty: 1, fake: true, aim: -2.6 },
-    { type: 'camera', tx: 5, ty: 1, fake: true, aim: 2.2 },
     { type: 'camera', tx: 8, ty: 1, fake: true, aim: -1.2 },
     { type: 'camera', tx: 11, ty: 1, fake: true, aim: 3.0 },
     { type: 'camera', tx: 14, ty: 1, fake: true, aim: 0.9 },
