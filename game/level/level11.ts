@@ -3,7 +3,8 @@
 // Floor 3 — Compliance. 84 × 15. THE SURVEILLANCE FLOOR: hundreds of
 // old-school cameras on the ceiling, pointing every which way (at the
 // wall, at the ceiling, at each other), plus cameras on a bin, a cake, a
-// fern, the coffee machine and both sides of the toilet doors. Only three
+// fern, the coffee machine, both sides of the toilet doors, the pillars
+// and the walls. Only three
 // of them are real (the ones with a light cone): get seen and the alarm
 // drops guards. Hide behind the pillars, or duck and stand still: nobody
 // suspects a cardboard box. This is where the camera mechanic is learnt;
@@ -97,6 +98,27 @@ export const level11Spawns: LevelSpawns = {
     { type: 'camera', tx: 74, ty: 1, fake: true, aim: -0.4 },
     { type: 'camera', tx: 77, ty: 1, fake: true, aim: 1.6 },
     { type: 'camera', tx: 80, ty: 1, fake: true, aim: -3.0 },
+    // on the pillars (both sides, high and low)
+    { type: 'camera', tx: 25, ty: 5, fake: true, aim: 1.3, mount: 'left' },
+    { type: 'camera', tx: 25, ty: 7, fake: true, aim: 2.4, mount: 'left' },
+    { type: 'camera', tx: 23, ty: 5, fake: true, aim: -0.8, mount: 'right' },
+    { type: 'camera', tx: 23, ty: 6, fake: true, aim: -2.2, mount: 'right' },
+    { type: 'camera', tx: 56, ty: 5, fake: true, aim: 0.6, mount: 'left' },
+    { type: 'camera', tx: 56, ty: 6, fake: true, aim: 2.9, mount: 'left' },
+    { type: 'camera', tx: 54, ty: 5, fake: true, aim: -1.5, mount: 'right' },
+    { type: 'camera', tx: 54, ty: 7, fake: true, aim: -0.3, mount: 'right' },
+    // on the back wall
+    { type: 'camera', tx: 4,  ty: 3, fake: true, aim: 0.7,  mount: 'wall' },
+    { type: 'camera', tx: 10, ty: 3, fake: true, aim: -2.4, mount: 'wall' },
+    { type: 'camera', tx: 15, ty: 3, fake: true, aim: -0.6, mount: 'wall' },
+    { type: 'camera', tx: 28, ty: 3, fake: true, aim: 2.1,  mount: 'wall' },
+    { type: 'camera', tx: 35, ty: 3, fake: true, aim: 0.3,  mount: 'wall' },
+    { type: 'camera', tx: 47, ty: 2, fake: true, aim: -1.1, mount: 'wall' },
+    { type: 'camera', tx: 51, ty: 3, fake: true, aim: 1.6,  mount: 'wall' },
+    { type: 'camera', tx: 63, ty: 3, fake: true, aim: -2.8, mount: 'wall' },
+    { type: 'camera', tx: 70, ty: 2, fake: true, aim: 0.9,  mount: 'wall' },
+    { type: 'camera', tx: 74, ty: 3, fake: true, aim: -0.5, mount: 'wall' },
+    { type: 'camera', tx: 78, ty: 3, fake: true, aim: 2.6,  mount: 'wall' },
   ],
   goal: { tx: 80, ty: 2 },
 };

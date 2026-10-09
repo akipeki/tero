@@ -1656,7 +1656,7 @@ export class Game {
       if (g.type === 'spring') this.springs.push(new Spring(g.tx, g.ty));
       else if (g.type === 'camera') {
         const sweep = g.sweep ?? (g.aim !== undefined ? [g.aim, g.aim] as [number, number] : undefined);
-        this.cameras.push(new Cctv(g.tx, g.ty, sweep, undefined, g.fake));
+        this.cameras.push(new Cctv(g.tx, g.ty, sweep, undefined, g.fake, g.mount));
       }
       else if (g.type === 'chute') this.chutes.push(new ChutePickup(g.tx, g.ty));
       else if (g.type === 'elvis') this.elvisNpc = new ElvisNpc(g.tx, g.ty);

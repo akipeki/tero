@@ -87,10 +87,11 @@ export const ART_SLOTS: Record<ArtSlotId, ArtSlot> = {
     notes: 'Strings meet at the bottom centre, which sits just above Tero\'s head.',
   },
   cctv: {
-    id: 'cctv', title: 'Security camera (Floor 27)', w: 16, h: 12,
+    id: 'cctv', title: 'Security camera (Floors 3 and 27)', w: 32, h: 16,
     frames: ['camera'],
-    notes: 'Hangs from the ceiling. The cone of light and the lens dot are drawn by code.',
+    notes: 'A chunky 1990s CCTV housing with a sun hood, pointing RIGHT, lens at the right end. The game flips and tilts it to point anywhere, and draws the pole, wall bracket or pillar clamp, the light cone and the lens light. The mount point is about 12 px from the left end.',
   },
+
   clippo: {
     id: 'clippo', title: 'Clippo, the paperclip assistant (Blue Screen, Floor 33)', w: 32, h: 44,
     frames: ['idle', 'talk', 'hurt', 'broken'],

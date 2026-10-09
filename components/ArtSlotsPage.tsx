@@ -14,7 +14,7 @@ import {
   type RecruiterPose, type ElvisPose,
 } from '@/game/render/characters/creatures';
 import { Fax, Spring, ChutePickup, drawCanopy } from '@/game/creaturesAndObjects/Gadgets';
-import { Cctv } from '@/game/creaturesAndObjects/Cctv';
+import { drawCctvHousing } from '@/game/creaturesAndObjects/Cctv';
 import { drawClippo, type ClippoFrame } from '@/game/interludes/desktop';
 import { drawReviewForm, type ReviewFrame } from '@/game/interludes/review';
 
@@ -81,7 +81,7 @@ function drawFrame(g: CanvasRenderingContext2D, id: ArtSlotId, name: string, i: 
     case 'canopy': drawCanopy(g, 25, 78); return;
     case 'clippo': drawClippo(g, 0, 0, name as ClippoFrame); return;
     case 'review_form': drawReviewForm(g, 0, 0, name as ReviewFrame); return;
-    case 'cctv': { const c = new Cctv(0, 0); (c as unknown as { drawBody(g: CanvasRenderingContext2D, x: number, y: number): void }).drawBody(g, 0, -1); return; }
+    case 'cctv': drawCctvHousing(g, 0, 0); return;
   }
 }
 

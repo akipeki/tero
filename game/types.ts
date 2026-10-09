@@ -99,7 +99,9 @@ export type GadgetSpawn =
    *  from straight down; negative = left). */
   | { type: 'camera'; tx: number; ty: number; sweep?: [number, number]
       /** Just for show: no light cone, never raises the alarm. Points at `aim`. */
-      fake?: boolean; aim?: number }
+      fake?: boolean; aim?: number;
+      /** Hung from the ceiling (default), the back wall, or a pillar's side. */
+      mount?: 'ceiling' | 'wall' | 'left' | 'right' }
   /** The golden parachute pickup: hold jump while falling to glide. */
   | { type: 'chute'; tx: number; ty: number }
   /** One of Dad's things (ids in Gadgets.DAD_THINGS) — one per floor. */
