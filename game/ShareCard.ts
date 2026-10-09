@@ -10,6 +10,7 @@ import { drawText, drawTextCentered, textWidth } from './render/pixel/font';
 import { GAME_TITLE } from './title';
 import type { FinalRun } from './Game';
 import { formatMs } from './Run';
+import { DAD_SRC } from './render/sprites/dadSprite';
 
 const W = 480, H = 270, SCALE = 2;
 /** Six months of Dad never leaving the building. */
@@ -58,7 +59,7 @@ export function shareText(run: FinalRun): string {
 export async function renderShareCard(run: FinalRun): Promise<HTMLCanvasElement> {
   const [tero, dad] = await Promise.all([
     loadImage('/images/dragon/win.png'),
-    loadImage('/images/dragon/dad.png'),
+    loadImage(DAD_SRC),
   ]);
 
   // Text and frames on a Raster at native size, then scaled up crisp.

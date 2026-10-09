@@ -13,6 +13,7 @@ import { VIEWPORT_W, VIEWPORT_H } from '../constants';
 import { Interlude, type InterludeHost } from './Interlude';
 import { text, shadowText, noise } from './pixtext';
 import { drawTero, preloadTero } from './teroSprite';
+import { DAD_SRC, smoothDad } from '../render/sprites/dadSprite';
 
 const W = VIEWPORT_W, H = VIEWPORT_H;
 const GB = [[15, 56, 15], [48, 98, 48], [139, 172, 15], [155, 188, 15]];
@@ -35,7 +36,7 @@ interface Ball { x: number; y: number; vx: number; vy: number; state: 'dad' | 'f
 let dadImg: HTMLImageElement | null = null;
 function dad(): HTMLImageElement | null {
   if (typeof Image === 'undefined') return null;
-  if (!dadImg) { dadImg = new Image(); dadImg.src = '/images/dragon/dad.png'; }
+  if (!dadImg) { dadImg = new Image(); dadImg.src = DAD_SRC; }
   return dadImg.complete && dadImg.naturalWidth ? dadImg : null;
 }
 
@@ -187,7 +188,7 @@ export class NapTime extends Interlude {
       ctx.save();
       ctx.translate(DAD_X + 10, GROUND + 2);
       ctx.scale(-1, 1);                       // facing Tero
-      ctx.imageSmoothingEnabled = false;
+      smoothDad(ctx, img, 96);
       ctx.drawImage(img, -48, -96, 96, 96);
       ctx.restore();
     }

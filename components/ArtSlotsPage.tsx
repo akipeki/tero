@@ -6,6 +6,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { ART_SLOTS, ART_SLOT_IDS, type ArtSlotId } from '@/game/artSlots';
 import { framePaths } from '@/game/render/sprites/PlayerSpriteAssets';
+import { DAD_SRC } from '@/game/render/sprites/dadSprite';
 import { Raster } from '@/game/render/pixel/Raster';
 import { drawHalvorsen, drawHideBox, drawClerk, drawManager, drawSyncer, type HalvorsenPose } from '@/game/render/characters/humans';
 import {
@@ -188,6 +189,21 @@ export default function ArtSlotsPage() {
               }}
             />
           ))}
+          <Card
+            title="Dada"
+            file="public/sprites/player/dad.png"
+            size="64×64" frames={['dad']}
+            notes="One square frame (bigger is fine, it's scaled down smoothly). Facing right, feet on the bottom edge. Then set dad: true in game/customSprites.ts."
+            href={DAD_SRC}
+            make={() => {
+              const c = document.createElement('canvas');
+              const img = new Image();
+              img.src = DAD_SRC;
+              c.width = 64; c.height = 64;
+              img.onload = () => c.getContext('2d')!.drawImage(img, 0, 0, 64, 64);
+              return c;
+            }}
+          />
           <h2 style={{ ...FONT, fontSize: 14, marginTop: 28 }}>ENEMIES</h2>
           {ENEMIES.map((e) => (
             <Card

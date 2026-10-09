@@ -7,6 +7,7 @@
 
 import { LEVELS } from '../level/levels';
 import { framePaths, PLAYER_FRAME_PX } from '../render/sprites/PlayerSpriteAssets';
+import { DAD_SRC } from '../render/sprites/dadSprite';
 import type {
   ContentPack, LevelDef, SpriteAsset, EntityDef, Chapter, StoryCard,
 } from './types';
@@ -36,7 +37,7 @@ const sprites: Record<string, SpriteAsset> = Object.fromEntries(
 sprites.b_sprite_dad = {
   id:      'b_sprite_dad',
   name:    'Dad',
-  dataUrl: '/images/dragon/dad.png',
+  dataUrl: DAD_SRC,
   width:   PLAYER_FRAME_PX,
   height:  PLAYER_FRAME_PX,
   frames:  1,

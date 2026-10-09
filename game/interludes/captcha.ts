@@ -15,6 +15,7 @@ import { text, shadowText, button, bevel } from './pixtext';
 import { drawClerk, drawManager, drawSyncer } from '../render/characters/humans';
 import { drawPig, drawRobot, drawGuard, drawVampire, drawGorilla, drawRat } from '../render/characters/creatures';
 import { Action } from '../types';
+import { DAD_SRC, smoothDad } from '../render/sprites/dadSprite';
 
 const W = VIEWPORT_W, H = VIEWPORT_H;
 const CELL = 46, GX = W / 2 - (CELL * 3) / 2, GY = 62;
@@ -24,7 +25,7 @@ type Icon = (ctx: CanvasRenderingContext2D, x: number, y: number) => void;
 let dadImg: HTMLImageElement | null = null;
 function dad(): HTMLImageElement | null {
   if (typeof Image === 'undefined') return null;
-  if (!dadImg) { dadImg = new Image(); dadImg.src = '/images/dragon/dad.png'; }
+  if (!dadImg) { dadImg = new Image(); dadImg.src = DAD_SRC; }
   return dadImg.complete && dadImg.naturalWidth ? dadImg : null;
 }
 dad();
@@ -73,7 +74,7 @@ const ROUNDS: { prompt: string; icons: Icon[]; correct: (sel: boolean[]) => bool
       raster(() => drawPig(0)), raster(() => drawClerk(1)), raster(() => drawRobot(0)),
       raster(() => drawGuard(0)), raster(() => drawManager(false)), raster(() => drawVampire(false)),
       raster(() => drawGorilla(false)),
-      (ctx, x, y) => { const d = dad(); if (d) { ctx.imageSmoothingEnabled = false; ctx.drawImage(d, x + 3, y + 3, 40, 40); } },
+      (ctx, x, y) => { const d = dad(); if (d) { smoothDad(ctx, d, 40); ctx.drawImage(d, x + 3, y + 3, 40, 40); } },
       raster(() => drawRat(0)),
     ],
     correct: (s) => s.every((v, i) => v === (i === 7)),

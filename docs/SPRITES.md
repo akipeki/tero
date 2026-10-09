@@ -25,6 +25,15 @@ thing (the player's **idle**) and add the rest later.
 3. Reload the game. If a file is missing the console says so and the
    built-in art is used.
 
+## Dad
+
+Save Dad as **`public/sprites/player/dad.png`**: one square frame (64 × 64
+is native; bigger is fine), facing right, feet on the bottom edge. Then set
+`dad: true` in `game/customSprites.ts`. He's used everywhere at once: the
+escape run, the story portraits, the share card, Nap Time, the Office Chair
+GP and the CAPTCHA. (Don't overwrite `public/images/dragon/dad.png`:
+`npm run sprites` regenerates that file.)
+
 ## Image rules
 
 - **PNG with a transparent background.** (AI tools often give a white

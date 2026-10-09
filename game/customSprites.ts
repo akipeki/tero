@@ -12,6 +12,7 @@
 //            clerk, manager, syncer, guard, rat, pig, robot, plant, gorilla, vampire
 //   props    public/sprites/props/<prop id>.png
 //            any id from game/render/office/gags.ts, e.g. fridge_notes
+//   dad      public/sprites/player/dad.png  (one square frame; set `dad: true`)
 //   art      public/sprites/art/<slot>.png
 //            bosses, Elvis, Dad's things, fire, gadgets — sizes and frame
 //            order in game/artSlots.ts (and on the /art page)
@@ -41,6 +42,8 @@ export interface CustomSprites {
   enemies: Partial<Record<WalkerVariant | HopperVariant, CustomAnim>>;
   props: GagId[];
   art?: ArtSlotId[];
+  /** Use public/sprites/player/dad.png for Dad (escape, nap, race, portraits). */
+  dad?: boolean;
 }
 
 export const CUSTOM_SPRITES: CustomSprites = {
@@ -52,4 +55,6 @@ export const CUSTOM_SPRITES: CustomSprites = {
   props: [],
   // e.g. art: ['elvis', 'board_heads'],
   art: [],
+  // dad: true,
+  dad: false,
 };

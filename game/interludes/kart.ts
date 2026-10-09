@@ -12,6 +12,7 @@ import { Interlude, type InterludeHost } from './Interlude';
 import { text, shadowText, noise } from './pixtext';
 import { drawTero, preloadTero } from './teroSprite';
 import { drawClerk } from '../render/characters/humans';
+import { DAD_SRC, smoothDad } from '../render/sprites/dadSprite';
 
 const W = VIEWPORT_W, H = VIEWPORT_H;
 const HORIZON = 96;
@@ -28,7 +29,7 @@ interface Ob { z: number; lane: number; kind: ObKind; hit: boolean }
 let dadImg: HTMLImageElement | null = null;
 function dad(): HTMLImageElement | null {
   if (typeof Image === 'undefined') return null;
-  if (!dadImg) { dadImg = new Image(); dadImg.src = '/images/dragon/dad.png'; }
+  if (!dadImg) { dadImg = new Image(); dadImg.src = DAD_SRC; }
   return dadImg.complete && dadImg.naturalWidth ? dadImg : null;
 }
 dad();
@@ -197,7 +198,7 @@ export class OfficeChairGP extends Interlude {
     for (const wx of [-24, -10, 10, 22]) ctx.fillRect(wx, 5, 4, 4);
     ctx.fillStyle = '#2a2d33'; ctx.fillRect(-22, -22, 44, 12); ctx.fillRect(-20, -58, 40, 38);
     const d = dad();
-    if (d) { ctx.imageSmoothingEnabled = false; ctx.drawImage(d, -30, -78, 60, 60); }
+    if (d) { smoothDad(ctx, d, 60); ctx.drawImage(d, -30, -78, 60, 60); }
     ctx.restore();
     drawTero(ctx, this.finished ? 'win' : 'idle', Math.floor(this.t / 8), W / 2 + 4, H - 26 + bob, 34);
 

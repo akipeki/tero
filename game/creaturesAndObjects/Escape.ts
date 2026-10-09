@@ -14,9 +14,9 @@ import { TILE_SIZE } from '../constants';
 import type { Player } from './Player';
 import { Raster } from '../render/pixel/Raster';
 import { drawText, textWidth } from '../render/pixel/font';
+import { DAD_SRC, smoothDad } from '../render/sprites/dadSprite';
 
 const DAD_DELAY = 26;      // ticks behind Tero
-const DAD_SRC = '/images/dragon/dad.png';
 
 export class DadFollower {
   private trail: { x: number; y: number; right: boolean }[] = [];
@@ -47,6 +47,7 @@ export class DadFollower {
     ctx.save();
     ctx.translate(x, y - bob);
     if (!p.right) ctx.scale(-1, 1);
+    smoothDad(ctx, this.img, 52);
     ctx.drawImage(this.img, -26, -52, 52, 52);
     ctx.restore();
   }
