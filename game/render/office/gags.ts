@@ -654,12 +654,11 @@ export const GAGS = {
     tag(r, 22, 2, ['BIN 4:', 'MONITORED']);
     return r;
   }), floors: ['compliance'] },
-  /** A potted fern with its own camera. Nobody knows why. */
+  /** Just a potted fern. */
   cam_fern:      { ...floor(() => {
-    const r = new Raster(48, 46);
+    const r = new Raster(24, 46);
     const fl = 45;
     r.part(C.ink, (t) => { t.rect(6, fl - 10, 12, 10, C.brown); t.ellipse(12, fl - 18, 9, 8, C.green); t.ellipse(8, fl - 22, 4, 5, C.greenDark); });
-    tripodCam(r, 34, fl - 28, fl, 'l');
     return r;
   }), floors: ['compliance'] },
   /** The coffee machine, tracked per sip. */
