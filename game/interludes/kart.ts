@@ -127,7 +127,7 @@ export class OfficeChairGP extends Interlude {
     if (this.pos >= LENGTH) {
       this.finished = 1;
       host.audio.play('goal');
-      this.say('I HAVEN\'T HAD THIS MUCH FUN SINCE 2019.');
+      this.say('I HAVEN\'T HAD THIS MUCH FUN SINCE 1989.');
     }
   }
 

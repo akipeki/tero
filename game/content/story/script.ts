@@ -162,13 +162,13 @@ export const STORY = defineStory({
           atTile: 15,
           lines: [
             { who: 'tero', text: 'Camera... on trash?' },
-            { text: 'BIN 4 HAS BEEN UNDER REVIEW SINCE 2011.\nNOTHING HAS BEEN FOUND. THEY KEEP LOOKING.' },
+            { text: 'BIN 4 HAS BEEN UNDER REVIEW SINCE 1984.\nNOTHING HAS BEEN FOUND. THEY KEEP LOOKING.' },
           ],
         },
         {
           atTile: 34,
           lines: [
-            { text: 'A CAKE. FOUR CAMERAS.\nNOBODY HAS EATEN IT SINCE 2016.' },
+            { text: 'A CAKE. FOUR CAMERAS.\nNOBODY HAS EATEN IT SINCE 1986.' },
             { who: 'tero', text: 'Cake jail.' },
           ],
         },
@@ -677,7 +677,7 @@ export const STORY = defineStory({
         {
           atTile: 66,
           lines: [
-            { who: 'dad', text: 'Floor 17. I had a desk here once.\nIn 2019. They never told me it moved.' },
+            { who: 'dad', text: 'Floor 17. I had a desk here once.\nIn 1989. They never told me it moved.' },
           ],
         },
         {

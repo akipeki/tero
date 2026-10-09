@@ -220,7 +220,7 @@ export const DAD_THINGS: Record<string, { name: string; note: string }> = {
   photo:    { name: 'THE WEDDING PHOTO',        note: 'FACE DOWN IN A DRAWER' },
   letter:   { name: 'A RESIGNATION LETTER',     note: 'WRITTEN. NEVER SENT.' },
   slipper:  { name: 'ONE SLIPPER',              note: 'THE OTHER IS ON FLOOR 21' },
-  buspass:  { name: 'HIS BUS PASS',             note: 'EXPIRED 2019' },
+  buspass:  { name: 'HIS BUS PASS',             note: 'EXPIRED 1991' },
   book:     { name: '"HOW TO SAY NO"',          note: 'BOOKMARK ON PAGE 2' },
   remote:   { name: 'THE TV REMOTE',            note: 'SATURDAY CARTOONS' },
   key:      { name: 'THE HOUSE KEY',            note: 'STILL FITS' },
