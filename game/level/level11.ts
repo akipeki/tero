@@ -2,7 +2,7 @@
 //
 // Floor 3 — Compliance. 84 × 15. THE SURVEILLANCE FLOOR: hundreds of
 // old-school cameras on the ceiling, pointing every which way (at the
-// wall, at the ceiling, at each other), plus cameras on a bin, a cake, a
+// wall, at the ceiling, at each other), plus cameras on a bin, a
 // fern, the coffee machine, both sides of the toilet doors, the pillars
 // and the walls. Only three
 // of them are real (the ones with a light cone): get seen and the alarm
@@ -12,7 +12,7 @@
 //
 //   0–12   the lobby: WE ARE WATCHING YOU
 //  13–30   the first real camera; the bin under surveillance
-//  31–46   the cake under review; a gap
+//  31–46   Dad's beach calendar; a gap
 //  47–62   the toilets (cameras inside, for your safety); a real camera
 //  63–83   the coffee machine, the camera watching a camera, the elevator
 //

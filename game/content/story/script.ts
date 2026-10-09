@@ -166,13 +166,6 @@ export const STORY = defineStory({
           ],
         },
         {
-          atTile: 34,
-          lines: [
-            { text: 'A CAKE. FOUR CAMERAS.\nNOBODY HAS EATEN IT SINCE 1986.' },
-            { who: 'tero', text: 'Cake jail.' },
-          ],
-        },
-        {
           atTile: 41,
           lines: [
             { text: 'A SWIMSUIT CALENDAR FROM 1993.\nA STICKY NOTE ON IT: "#4471". DAD\'S NUMBER.' },
@@ -201,7 +194,6 @@ export const STORY = defineStory({
         { atTile: 18, gag: 'sign_always' },
         { atTile: 36, gag: 'calendar_beach' },
         { atTile: 27, gag: 'cam_fern' },
-        { atTile: 33, gag: 'cam_cake' },
         { atTile: 30, gag: 'sign_blink' },
         { atTile: 46, gag: 'cam_cluster' },
         { atTile: 49, gag: 'toilet_doors' },

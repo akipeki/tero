@@ -654,20 +654,6 @@ export const GAGS = {
     tag(r, 22, 2, ['BIN 4:', 'MONITORED']);
     return r;
   }), floors: ['compliance'] },
-  /** A cake on a table. Four cameras. Nobody has eaten it since 1986. */
-  cam_cake:      { ...floor(() => {
-    const r = new Raster(74, 52);
-    const fl = 51;
-    r.rect(18, fl - 14, 38, 3, C.wood); r.rect(20, fl - 11, 2, 11, C.woodDark); r.rect(52, fl - 11, 2, 11, C.woodDark);
-    r.part(C.ink, (t) => { t.rect(26, fl - 24, 22, 10, C.pink); t.rect(26, fl - 24, 22, 3, C.white); });
-    r.rect(36, fl - 29, 2, 5, C.yellow); r.px(36, fl - 30, C.flame);
-    tripodCam(r, 2, fl - 30, fl, 'r');
-    tripodCam(r, 63, fl - 30, fl, 'l');
-    cam(r, 22, 2, 'dr'); cam(r, 44, 2, 'dl');
-    r.rect(26, 0, 1, 2, C.greyDark); r.rect(48, 0, 1, 2, C.greyDark);
-    tag(r, 22, 12, ['CAKE UNDER', 'REVIEW']);
-    return r;
-  }), floors: ['compliance'] },
   /** A fern on a performance-improvement plan. */
   cam_fern:      { ...floor(() => {
     const r = new Raster(48, 46);
