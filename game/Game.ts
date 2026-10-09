@@ -95,9 +95,18 @@ interface EndScreenPayload {
   hasNextLevel: boolean;
 }
 
-/** What a puff of fire gets out of people (pigs have their own). */
+/** What a puff of fire gets out of people (and robots). */
 const HOT = ['HOT!', 'OW!', 'MY TIE!', 'HEY!'];
-const PIG_HOT = ['OINK! HOT!', 'MY BONUS!', 'THIS SUIT WAS EXPENSIVE!', 'BACON?!'];
+const HOT_BY_VARIANT: Record<string, string[]> = {
+  pig:     ['OINK! HOT!', 'MY BONUS!', 'THIS SUIT WAS EXPENSIVE!', 'BACON?!'],
+  guard:   ['NO FIRE IN THE BUILDING!', 'THAT\'S A CODE VIOLATION!', 'FIRE PERMIT! NOW!', 'I\'M WRITING THIS UP!'],
+  robot:   ['WARNING: HEAT.', 'ERROR 451.', 'OVERHEATING...', 'BEEP?!'],
+  rat:     ['SQUEAK!', 'MY CHEESE!'],
+  clerk:   ['HOT!', 'MY TIE!', 'I JUST GOT THIS SHIRT IRONED.'],
+  manager: ['THAT\'S NOT IN THE BUDGET!', 'MY BRIEFCASE!'],
+  gorilla: ['OOK?!', 'HOT HOT HOT!'],
+  vampire: ['NOT THE SUN!', 'I\'M A NIGHT PERSON!'],
+};
 
 export class Game {
   private renderer: Renderer;
@@ -642,9 +651,15 @@ export class Game {
           // the same "that was hot" as a boss: flash, smoke, sizzle, a yelp, a flinch
           e.scorch = 10;
           e.flee(f.cx, 45);
-          this.particles.burst(f.cx, f.cy, 5, '#ffb347', '#6b6470');
-          this.audio.play('burn');
-          if (Math.random() < 0.5) e.say(pick(e.variant === 'pig' ? PIG_HOT : HOT));
+          if (e.variant === 'robot') {
+            // robots don't smoke, they short-circuit
+            this.particles.burst(f.cx, f.cy, 7, '#8fd3ff', '#ffffff');
+            this.audio.play('laser');
+          } else {
+            this.particles.burst(f.cx, f.cy, 5, '#ffb347', '#6b6470');
+            this.audio.play('burn');
+          }
+          if (Math.random() < 0.5) e.say(pick(HOT_BY_VARIANT[e.variant ?? ''] ?? HOT));
           this.puffHint();
           break;
         }
