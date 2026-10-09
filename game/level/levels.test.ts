@@ -2,10 +2,11 @@ import { describe, it, expect } from 'vitest';
 import { LEVELS, validateLevel } from './levels';
 
 describe('levels registry', () => {
-  it('contains ten levels with unique ids, the vents after Floor 6, the escape last', () => {
-    expect(LEVELS).toHaveLength(10);
+  it('contains eleven levels with unique ids, Compliance after the Mailroom, the vents after Floor 6, the escape last', () => {
+    expect(LEVELS).toHaveLength(11);
     const ids = new Set(LEVELS.map(L => L.id));
-    expect(ids.size).toBe(10);
+    expect(ids.size).toBe(11);
+    expect(LEVELS[1].name).toBe('Compliance');
     expect(LEVELS[LEVELS.findIndex(L => L.id === '2') + 1].name).toBe('The Vents');
     expect(LEVELS[LEVELS.length - 1].name).toBe('The Way Home');
     expect(LEVELS[LEVELS.length - 2].spawns.boss?.type).toBe('board');

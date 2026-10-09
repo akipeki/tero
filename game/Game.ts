@@ -980,7 +980,7 @@ export class Game {
     }
   }
 
-  /** All nine of Dad's things found: a few extra lines before the end. */
+  /** All of Dad's things found: a few extra lines before the end. */
   private secretEnding(): StoryCard[] {
     const last = this.builtInPlaylist.indexOf(this.currentLevelId) === this.builtInPlaylist.length - 1;
     if (!last || this.run.data.things.length < Object.keys(DAD_THINGS).length) return [];
@@ -1654,7 +1654,10 @@ export class Game {
     gadgets.forEach((g, i) => { if (g.type === 'fax') faxIndex.set(i, faxIndex.size); });
     for (const g of gadgets) {
       if (g.type === 'spring') this.springs.push(new Spring(g.tx, g.ty));
-      else if (g.type === 'camera') this.cameras.push(new Cctv(g.tx, g.ty, g.sweep));
+      else if (g.type === 'camera') {
+        const sweep = g.sweep ?? (g.aim !== undefined ? [g.aim, g.aim] as [number, number] : undefined);
+        this.cameras.push(new Cctv(g.tx, g.ty, sweep, undefined, g.fake));
+      }
       else if (g.type === 'chute') this.chutes.push(new ChutePickup(g.tx, g.ty));
       else if (g.type === 'elvis') this.elvisNpc = new ElvisNpc(g.tx, g.ty);
       else if (g.type === 'npc') this.npcs.push(new Npc(g.tx, g.ty, g.variant, g.lines, g.facingRight));

@@ -53,7 +53,7 @@ export const ART_SLOTS: Record<ArtSlotId, ArtSlot> = {
   },
   dad_things: {
     id: 'dad_things', title: 'Dad\'s things (one per floor)', w: 16, h: 16,
-    frames: ['watch', 'drawing', 'photo', 'letter', 'slipper', 'buspass', 'book', 'remote', 'key', 'sandwich'],
+    frames: ['watch', 'drawing', 'photo', 'letter', 'slipper', 'buspass', 'book', 'remote', 'key', 'sandwich', 'badge'],
     notes: 'Little icons. The pink glow behind them is drawn by code.',
   },
   fireball: {

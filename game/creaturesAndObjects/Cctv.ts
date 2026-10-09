@@ -30,8 +30,13 @@ export class Cctv extends creaturesAndObjects {
 
   /** `sweep` is [from, to] in radians, measured from straight down
    *  (negative = towards the left). */
-  constructor(tx: number, ty: number, sweep: [number, number] = [-0.9, 0.9], speed = 0.012) {
+  /** Decoration (Floor 3 has hundreds): no cone, never sees anyone. */
+  readonly fake: boolean;
+  private twitch = 0;
+
+  constructor(tx: number, ty: number, sweep: [number, number] = [-0.9, 0.9], speed = 0.012, fake = false) {
     super(tx * TILE_SIZE + 8, ty * TILE_SIZE, 16, 12);
+    this.fake = fake;
     this.from = sweep[0];
     this.to = sweep[1];
     this.angle = sweep[0];
@@ -42,6 +47,11 @@ export class Cctv extends creaturesAndObjects {
   get eyeY(): number { return this.y + 10; }
 
   update(): void {
+    if (this.fake) {
+      // stares at its one thing; now and then it twitches
+      this.angle = (this.from + this.to) / 2 + (Math.floor((++this.twitch + this.x) / 100) % 3 === 0 ? 0.25 : 0);
+      return;
+    }
     if (this.alarm > 0) { this.alarm--; return; }   // stares while the alarm rings
     if (this.puzzled > 0) { this.puzzled--; return; }
     this.angle += this.dir * this.speed;
@@ -66,7 +76,7 @@ export class Cctv extends creaturesAndObjects {
 
   /** Checks Tero; returns 'alarm', 'box' or null. */
   watch(player: Player, map: UpdateCtx['map']): 'alarm' | 'box' | null {
-    if (player.isDead || this.alarm > 0) return null;
+    if (this.fake || player.isDead || this.alarm > 0) return null;
     const seen = this.sees(player.cx, player.top + 6, map) || this.sees(player.cx, player.bottom - 4, map);
     if (!seen) return null;
     if (player.isHidden) {
@@ -79,7 +89,23 @@ export class Cctv extends creaturesAndObjects {
 
   draw(ctx: CanvasRenderingContext2D, camX: number): void {
     const ex = this.eyeX - camX, ey = this.eyeY;
-    // the cone
+    // the cone (fake cameras have none: they're just watching their thing)
+    if (!this.fake) this.drawCone(ctx, ex, ey);
+    // arm and body
+    const x = Math.round(this.x - camX), y = Math.round(this.y);
+    if (!blitArt(ctx, 'cctv', 0, x, y + 1)) this.drawBody(ctx, x, y);
+    // lens points where it looks
+    const red = this.alarm > 0 && Math.floor(this.alarm / 8) % 2 === 0;
+    const lx = Math.round(ex + Math.sin(this.angle) * 6), ly = Math.round(ey + Math.cos(this.angle) * 3);
+    ctx.fillStyle = '#1b1620';
+    ctx.fillRect(lx - 3, ly - 2, 6, 5);
+    ctx.fillStyle = red || this.alarm > 0 ? '#ff3b3b' : this.fake ? '#ff3b3b' : '#3fd84a';
+    ctx.fillRect(lx - 1, ly - 1, 2, 2);
+    if (this.alarm > 0) drawBubble(ctx, '!', ex, y + 2);
+    else if (this.puzzled > 0) drawBubble(ctx, '?', ex, y + 2);
+  }
+
+  private drawCone(ctx: CanvasRenderingContext2D, ex: number, ey: number): void {
     const red = this.alarm > 0 && Math.floor(this.alarm / 8) % 2 === 0;
     ctx.fillStyle = red ? 'rgba(255,60,60,0.26)' : this.puzzled > 0 ? 'rgba(255,230,120,0.1)' : 'rgba(255,230,120,0.2)';
     ctx.beginPath();
@@ -90,17 +116,6 @@ export class Cctv extends creaturesAndObjects {
     }
     ctx.closePath();
     ctx.fill();
-    // arm and body
-    const x = Math.round(this.x - camX), y = Math.round(this.y);
-    if (!blitArt(ctx, 'cctv', 0, x, y + 1)) this.drawBody(ctx, x, y);
-    // lens points where it looks
-    const lx = Math.round(ex + Math.sin(this.angle) * 6), ly = Math.round(ey + Math.cos(this.angle) * 3);
-    ctx.fillStyle = '#1b1620';
-    ctx.fillRect(lx - 3, ly - 2, 6, 5);
-    ctx.fillStyle = red || this.alarm > 0 ? '#ff3b3b' : '#3fd84a';
-    ctx.fillRect(lx - 1, ly - 1, 2, 2);
-    if (this.alarm > 0) drawBubble(ctx, '!', ex, y + 2);
-    else if (this.puzzled > 0) drawBubble(ctx, '?', ex, y + 2);
   }
 
   private drawBody(ctx: CanvasRenderingContext2D, x: number, y: number): void {

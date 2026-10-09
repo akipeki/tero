@@ -409,6 +409,65 @@ function worker(r: Raster, x: number, floor: number, kneeling: boolean): void {
   }
 }
 
+// ─── Surveillance (Floor 3, Compliance) ──────────────────────────────────────
+
+type CamDir = 'l' | 'r' | 'd' | 'u' | 'dl' | 'dr';
+
+/** A little old-school CCTV camera: grey box, black lens on the `dir` side,
+ *  a red tally light. (x, y) is the box's top-left; it's 9 × 5. */
+function cam(r: Raster, x: number, y: number, dir: CamDir): void {
+  r.rect(x - 1, y - 1, 11, 7, C.ink);
+  r.rect(x, y, 9, 5, C.greyLight);
+  r.rect(x, y + 4, 9, 1, C.grey);
+  const lens: Record<CamDir, [number, number]> = { l: [-2, 1], r: [9, 1], d: [3, 5], u: [3, -2], dl: [-2, 4], dr: [9, 4] };
+  const [lx, ly] = lens[dir];
+  r.rect(x + lx, y + ly, 3, 3, C.ink);
+  r.px(x + lx + 1, y + ly + 1, '#4a6a9a');
+  r.px(x + (dir === 'l' || dir === 'dl' ? 7 : 1), y + 1, C.red);
+}
+
+/** A camera on a little tripod, its box at (x, y), standing on the floor `fl`. */
+function tripodCam(r: Raster, x: number, y: number, fl: number, dir: CamDir): void {
+  r.line(x + 4, y + 6, x + 4, fl, C.greyDark);
+  r.line(x + 4, y + 8, x, fl, C.greyDark);
+  r.line(x + 4, y + 8, x + 8, fl, C.greyDark);
+  cam(r, x, y, dir);
+}
+
+/** A little white tag on a string with a line or two. */
+function tag(r: Raster, x: number, y: number, lines: string[]): void {
+  const w = Math.max(...lines.map((l) => textWidth(l))) + 4;
+  box(r, x, y, w, lines.length * 7 + 1, C.white);
+  lines.forEach((l, i) => drawText(r, l, x + 2, y + 1 + i * 7, C.ink));
+}
+
+/** Two toilet doors, cameras on both sides of each, and the notice. */
+function toilets(): Raster {
+  const r = new Raster(118, 86);
+  const fl = 85;
+  // the notice above
+  box(r, 14, 1, 90, 15, C.yellow);
+  drawTextCentered(r, 'CCTV IN OPERATION', 14, 90, 2, C.ink);
+  drawTextCentered(r, 'INSIDE. FOR YOUR SAFETY.', 14, 90, 9, C.ink);
+  for (const [dx, label] of [[14, 'WC'], [66, 'WC']] as const) {
+    // the door
+    box(r, dx, 30, 36, fl - 30, '#7a8794');
+    r.rect(dx + 2, 32, 32, fl - 34, '#8a97a4');
+    r.rect(dx + 28, 56, 3, 3, C.gold);                  // handle
+    // a stick figure, the WC sign
+    box(r, dx + 11, 38, 14, 18, C.white);
+    r.ellipse(dx + 18, 42, 2, 2, C.navy);
+    r.rect(dx + 17, 45, 3, 6, C.navy);
+    r.line(dx + 15, 46, dx + 22, 46, C.navy);
+    r.line(dx + 17, 51, dx + 15, 55, C.navy); r.line(dx + 19, 51, dx + 21, 55, C.navy);
+    drawText(r, label, dx + 13, 60, C.ink);
+    // cameras on both sides of the door, looking in
+    cam(r, dx - 12, 22, 'dr');
+    cam(r, dx + 39, 22, 'dl');
+  }
+  return r;
+}
+
 // ─── Banners & signs (hang) ──────────────────────────────────────────────────
 
 const hang  = (draw: () => Raster): Gag => ({ kind: 'hang',  tier: 1, draw });
@@ -479,6 +538,88 @@ export const GAGS = {
   // Floor 1 opener: the backstory and the one rule, told by the walls.
   memo_more:        { ...hang(() => signBoard('MEMO', ['PLEASE GIVE A', 'LITTLE BIT MORE.', '- MANAGEMENT'], C.navy)), storyOnly: true },
   sign_tape:        { ...hang(() => banner(['TAPE = STAND ON IT'], C.yellow, C.ink)), storyOnly: true },
+
+  // ─── Floor 3, Compliance: cameras on everything ───────────────────────────
+  sign_watching: { ...hang(() => {
+    const r = new Raster(96, 46);
+    r.line(30, 0, 30, 6, C.greyDark); r.line(66, 0, 66, 6, C.greyDark);
+    box(r, 1, 6, 94, 39, C.navy);
+    // the big eye
+    r.ellipse(18, 25, 12, 7, C.white);
+    r.ellipse(18, 25, 5, 5, '#4a7bf0');
+    r.ellipse(18, 25, 2, 2, C.ink);
+    r.px(16, 23, C.white);
+    drawText(r, 'WE ARE', 36, 12, C.yellow);
+    drawText(r, 'WATCHING', 36, 20, C.yellow);
+    drawText(r, 'YOU.', 36, 28, C.yellow);
+    drawText(r, '(FOR YOUR SAFETY)', 22, 37, C.greyLight);
+    return r;
+  }), floors: ['compliance', 'security'] },
+  sign_smile:    { ...hang(() => banner(['SMILE! YOU ARE ON', 'CAMERA 4 OF 312'], C.yellow, C.ink)), floors: ['compliance'] },
+  sign_trust:    { ...hang(() => banner(['312 CAMERAS. 0 WINDOWS.', '100% TRUST.'], C.navy, C.white)), floors: ['compliance'] },
+  sign_blink:    { ...hang(() => signBoard('NOTICE', ['BLINKING IS', 'LOGGED.'], C.red)), floors: ['compliance'] },
+  /** Six cameras on one pole, looking every which way. */
+  cam_cluster:   { ...hang(() => {
+    const r = new Raster(34, 40);
+    r.rect(16, 0, 2, 26, C.greyDark);
+    cam(r, 2, 6, 'l'); cam(r, 23, 6, 'r');
+    cam(r, 2, 16, 'u'); cam(r, 23, 16, 'd');
+    cam(r, 12, 28, 'dl'); cam(r, 12, 34, 'dr');
+    return r;
+  }), floors: ['compliance', 'security'] },
+  /** A camera watching another camera. */
+  cam_cam:       { ...hang(() => {
+    const r = new Raster(70, 34);
+    r.rect(8, 0, 2, 6, C.greyDark); r.rect(58, 0, 2, 6, C.greyDark);
+    cam(r, 4, 6, 'r'); cam(r, 55, 6, 'l');
+    tag(r, 10, 18, ['WHO WATCHES', 'CAM 7?']);
+    return r;
+  }), floors: ['compliance'] },
+  /** A bin, under surveillance. */
+  cam_trash:     { ...floor(() => {
+    const r = new Raster(50, 40);
+    const fl = 39;
+    r.part(C.ink, (t) => { t.rect(4, fl - 18, 16, 18, C.greyDark); t.rect(3, fl - 20, 18, 3, C.grey); });
+    r.rect(7, fl - 14, 1, 11, C.grey); r.rect(11, fl - 14, 1, 11, C.grey); r.rect(15, fl - 14, 1, 11, C.grey);
+    r.rect(8, fl - 23, 6, 3, C.paperDim);                       // a crumpled memo on top
+    tripodCam(r, 34, fl - 26, fl, 'l');
+    tag(r, 22, 2, ['BIN 4:', 'MONITORED']);
+    return r;
+  }), floors: ['compliance'] },
+  /** A cake on a table. Four cameras. Nobody has eaten it since 2016. */
+  cam_cake:      { ...floor(() => {
+    const r = new Raster(74, 52);
+    const fl = 51;
+    r.rect(18, fl - 14, 38, 3, C.wood); r.rect(20, fl - 11, 2, 11, C.woodDark); r.rect(52, fl - 11, 2, 11, C.woodDark);
+    r.part(C.ink, (t) => { t.rect(26, fl - 24, 22, 10, C.pink); t.rect(26, fl - 24, 22, 3, C.white); });
+    r.rect(36, fl - 29, 2, 5, C.yellow); r.px(36, fl - 30, C.flame);
+    tripodCam(r, 2, fl - 30, fl, 'r');
+    tripodCam(r, 63, fl - 30, fl, 'l');
+    cam(r, 22, 2, 'dr'); cam(r, 44, 2, 'dl');
+    r.rect(26, 0, 1, 2, C.greyDark); r.rect(48, 0, 1, 2, C.greyDark);
+    tag(r, 22, 12, ['CAKE UNDER', 'REVIEW']);
+    return r;
+  }), floors: ['compliance'] },
+  /** A fern on a performance-improvement plan. */
+  cam_fern:      { ...floor(() => {
+    const r = new Raster(48, 46);
+    const fl = 45;
+    r.part(C.ink, (t) => { t.rect(6, fl - 10, 12, 10, C.brown); t.ellipse(12, fl - 18, 9, 8, C.green); t.ellipse(8, fl - 22, 4, 5, C.greenDark); });
+    tripodCam(r, 34, fl - 28, fl, 'l');
+    tag(r, 18, 2, ['FERN #2:', 'ON A PIP']);
+    return r;
+  }), floors: ['compliance'] },
+  /** The coffee machine, tracked per sip. */
+  cam_coffee:    { ...floor(() => {
+    const r = new Raster(44, 54);
+    const fl = 53;
+    r.part(C.ink, (t) => { t.rect(4, fl - 34, 20, 34, C.greyDark); t.rect(7, fl - 30, 14, 8, C.ink); });
+    r.rect(9, fl - 14, 10, 6, C.white); r.rect(10, fl - 13, 8, 2, C.brown);
+    cam(r, 30, 4, 'dl'); r.rect(36, 0, 1, 4, C.greyDark);
+    tag(r, 24, 20, ['SIPS', 'TRACKED']);
+    return r;
+  }), floors: ['compliance'] },
+  toilet_doors:  { ...floor(toilets), floors: ['compliance'] },
 
   // ─── Floor props ───────────────────────────────────────────────────────────
 

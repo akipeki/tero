@@ -131,6 +131,7 @@ export const ARRANGEMENTS: Record<string, Arrangement> = {
   legal:     { lead: 'sawtooth', transpose: -3, bpm: -6,  arp: 'up',   leadGain: 0.2 },                     // billed hourly
   lab:       { lead: 'square',   transpose: 2,  bpm: 4,   arp: 'fast' },
   security:  { lead: 'square',   transpose: 0,  bpm: 6,   arp: 'up',   drums: 'kkhskkhs' },
+  compliance:{ lead: 'square',   transpose: -1, bpm: -4,  arp: 'up',   drums: 'k.hsk.h.', leadGain: 0.26 },    // tiptoe music
   executive: { lead: 'triangle', transpose: 5,  bpm: -12, arp: 'off',  drums: 'k..hk..h' },                 // lobby lounge
   penthouse: { lead: 'sine',     transpose: 0,  bpm: -6,  arp: 'up',   leadGain: 0.42 },
   vents:     { lead: 'triangle', transpose: 0,  bpm: 0,   arp: 'up',   leadGain: 0.4 },

@@ -9,6 +9,7 @@
 
 export type DecorId =
   | 'basement'   // floor 1  — mailroom: concrete, pipes, metal shelving
+  | 'compliance' // floor 3  — surveillance: pale grey-blue, a CCTV wall, barred windows
   | 'cubicles'   // floor 6  — beige & teal cubicle farm
   | 'boardroom'  // floor 12 — wood panelling, glass meeting rooms
   | 'legal'      // floor 13 — dark green, binders, blinds nearly shut
@@ -119,6 +120,15 @@ export const DECORS: Record<DecorId, Decor> = {
     mid: 'lab',
     carpet: ['#8a949e', '#9ea8b2', '#6e7882'], slab: ['#a2a8ae', '#b6bcc2', '#82888e'],
     desk: 'white', ceiling: '#f2f4f5', haze: 'rgba(236,240,244,0.30)',
+  },
+  compliance: {
+    id: 'compliance',
+    wall: '#7a8794', wallStripe: '#727f8c', rail: '#d83b3b', railLight: '#e86a6a',
+    wainscot: '#4a5562', wainscotPanel: '#434e5a', wainscotLight: '#5a6672',
+    blinds: 1, windowScale: 0.7, windows: 'barred', sky: DUSK, poster: false,
+    mid: 'monitors',
+    carpet: ['#4a5260', '#5a6270', '#3a414c'], slab: ['#7a7e84', '#8e9298', '#5e6268'],
+    desk: 'laminate', ceiling: '#c8ccd0', haze: 'rgba(90,100,112,0.26)',
   },
   security: {
     id: 'security',

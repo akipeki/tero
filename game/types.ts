@@ -97,7 +97,9 @@ export type GadgetSpawn =
   | { type: 'spring'; tx: number; ty: number }
   /** A ceiling security camera sweeping between `sweep` angles (radians
    *  from straight down; negative = left). */
-  | { type: 'camera'; tx: number; ty: number; sweep?: [number, number] }
+  | { type: 'camera'; tx: number; ty: number; sweep?: [number, number]
+      /** Just for show: no light cone, never raises the alarm. Points at `aim`. */
+      fake?: boolean; aim?: number }
   /** The golden parachute pickup: hold jump while falling to glide. */
   | { type: 'chute'; tx: number; ty: number }
   /** One of Dad's things (ids in Gadgets.DAD_THINGS) — one per floor. */

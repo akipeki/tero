@@ -46,7 +46,7 @@ export const STORY = defineStory({
     {
       id: 'monday',
       name: 'Getting in',
-      levels: ['1', '2', '10', '3'],
+      levels: ['1', '11', '2', '10', '3'],
       // Cold open: no card before play. The memo comes a few steps in (a
       // trigger in level 1), the rest of the backstory is on the walls.
     },
@@ -139,6 +139,70 @@ export const STORY = defineStory({
       ],
       outro: [
         { who: 'tero', text: 'Up! UP!' },
+      ],
+    },
+
+    '11': {
+      decor: 'compliance',
+      density: 'sparse',
+      goalWriting: 'crayon_whose',
+      intro: [
+        { text: 'FLOOR 3 — COMPLIANCE.\n312 CAMERAS. 0 WINDOWS.' },
+        { who: 'guard', text: 'Smile! You\'re on camera.\nAll of them.' },
+      ],
+      triggers: [
+        {
+          atTile: 4,
+          lines: [
+            { text: 'ONLY THE CAMERAS WITH A LIGHT CONE ARE REAL.\nTHE OTHER 309 ARE FOR MORALE.' },
+            { text: 'TIP: GET SEEN AND GUARDS DROP IN.\nHIDE BEHIND A PILLAR, OR DUCK AND STAND\nSTILL. NOBODY SUSPECTS A BOX.' },
+          ],
+        },
+        {
+          atTile: 15,
+          lines: [
+            { who: 'tero', text: 'Camera... on trash?' },
+            { text: 'BIN 4 HAS BEEN UNDER REVIEW SINCE 2011.\nNOTHING HAS BEEN FOUND. THEY KEEP LOOKING.' },
+          ],
+        },
+        {
+          atTile: 34,
+          lines: [
+            { text: 'A CAKE. FOUR CAMERAS.\nNOBODY HAS EATEN IT SINCE 2016.' },
+            { who: 'tero', text: 'Cake jail.' },
+          ],
+        },
+        {
+          atTile: 50,
+          lines: [
+            { text: 'THE TOILETS.\n"CCTV IN OPERATION INSIDE. FOR YOUR SAFETY."' },
+            { who: 'tero', text: '...Tero hold it.' },
+          ],
+        },
+        {
+          atTile: 70,
+          lines: [
+            { who: 'tero', text: 'Camera watch camera.\nWho watch... that camera?' },
+          ],
+        },
+      ],
+      scenery: [
+        { atTile: 3,  gag: 'sign_watching' },
+        { atTile: 6,  gag: 'cam_cluster' },
+        { atTile: 15, gag: 'cam_trash' },
+        { atTile: 18, gag: 'sign_smile' },
+        { atTile: 27, gag: 'cam_fern' },
+        { atTile: 33, gag: 'cam_cake' },
+        { atTile: 36, gag: 'sign_blink' },
+        { atTile: 46, gag: 'cam_cluster' },
+        { atTile: 49, gag: 'toilet_doors' },
+        { atTile: 63, gag: 'cam_coffee' },
+        { atTile: 67, gag: 'sign_trust' },
+        { atTile: 70, gag: 'cam_cam' },
+      ],
+      outro: [
+        { who: 'guard', text: 'He got past 312 cameras.\nWe saw everything. We did nothing.' },
+        { who: 'guard', text: 'That\'s compliance.' },
       ],
     },
 

@@ -225,6 +225,7 @@ export const DAD_THINGS: Record<string, { name: string; note: string }> = {
   remote:   { name: 'THE TV REMOTE',            note: 'SATURDAY CARTOONS' },
   key:      { name: 'THE HOUSE KEY',            note: 'STILL FITS' },
   sandwich: { name: 'HALF A SANDWICH WRAPPER',  note: 'IN DAD\'S WRITING: "FOR THE DOG"' },
+  badge:    { name: 'DAD\'S OLD ID BADGE',       note: 'THE PHOTO IS FROM BEFORE. HE\'S SMILING.' },
 };
 
 export class DadThing extends creaturesAndObjects {

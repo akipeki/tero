@@ -299,7 +299,7 @@ cameras, the parachute) are listed in a level's `gadgets` spawns.
 - **Everyone you've freed waits by each elevator, cheering.**
 - **The pause menu is PAUSED.EXE** (quitting: "Your manager will see this");
   **game over is an HR exit interview** with the cause of death.
-- **A secret ending** if you find all nine of Dad's things.
+- **A secret ending** if you find all of Dad's things (one per floor).
 
 ### Interludes: the game keeps turning into other games
 
