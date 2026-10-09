@@ -1119,7 +1119,10 @@ export class Game {
         this.onCallout?.('GOLDEN PARACHUTE!  HOLD JUMP TO GLIDE');
       }
     }
+    // fake cameras turn to follow Tero (a box is just a box; nobody watches a box)
+    const watched = p.isDead || p.isHidden ? null : { x: p.cx, y: p.top + 10 };
     for (const c of this.cameras) {
+      if (c.fake) c.track(watched);
       c.update();
       if (p.isTantrum) continue;
       if (c.watch(p, this.map) === 'alarm') this.soundAlarm(c);

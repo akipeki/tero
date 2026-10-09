@@ -16,6 +16,7 @@ import { drawBubble } from './freed';
 const RANGE = 6.5 * TILE_SIZE;
 const HALF_WIDTH = 0.28;             // radians either side of the beam
 const ALARM_FRAMES = 150;            // red, and no new alarm, for this long
+const FOLLOW_RANGE = 7 * TILE_SIZE;  // fake cameras watch Tero inside this
 
 /** Where a camera is fixed: hanging from the ceiling, on a bracket on the
  *  back wall, or on the side of a pillar (`left` = the pillar is on its left). */
@@ -65,6 +66,10 @@ export class Cctv extends creaturesAndObjects {
   private readonly px: number;
   private readonly py: number;
   private twitch = 0;
+  /** Where Tero is (fake cameras turn to follow him), or null. */
+  private target: { x: number; y: number } | null = null;
+  /** How fast this one turns: they don't all move in perfect sync. */
+  private readonly turnRate: number;
 
   /** `sweep` is [from, to] in radians, measured from straight down
    *  (negative = towards the left). */
@@ -82,15 +87,34 @@ export class Cctv extends creaturesAndObjects {
     this.to = sweep[1];
     this.angle = sweep[0];
     this.speed = speed;
+    this.turnRate = 0.05 + ((tx * 37 + ty * 11) % 9) * 0.012;
   }
+
+  /** Fake cameras turn to watch whatever this points at (null: back to their thing). */
+  track(target: { x: number; y: number } | null): void { this.target = target; }
 
   get eyeX(): number { return this.px; }
   get eyeY(): number { return this.py + 4; }
 
   update(): void {
     if (this.fake) {
-      // stares at its one thing; now and then it twitches
-      this.angle = (this.from + this.to) / 2 + (Math.floor((++this.twitch + this.x) / 100) % 3 === 0 ? 0.25 : 0);
+      const rest = (this.from + this.to) / 2;
+      let want: number;
+      const t = this.target;
+      if (t && Math.abs(t.x - this.eyeX) < FOLLOW_RANGE && Math.abs(t.y - this.eyeY) < FOLLOW_RANGE) {
+        // Tero is near: every one of them turns to watch him go by
+        want = Math.atan2(t.x - this.eyeX, t.y - this.eyeY);
+      } else {
+        // back to staring at its one thing; now and then it twitches
+        want = rest + (Math.floor((++this.twitch + this.x) / 100) % 3 === 0 ? 0.25 : 0);
+      }
+      // turn the short way round
+      let d = want - this.angle;
+      while (d > Math.PI) d -= Math.PI * 2;
+      while (d < -Math.PI) d += Math.PI * 2;
+      this.angle += d * this.turnRate;
+      if (this.angle > Math.PI) this.angle -= Math.PI * 2;
+      if (this.angle < -Math.PI) this.angle += Math.PI * 2;
       return;
     }
     if (this.alarm > 0) { this.alarm--; return; }   // stares while the alarm rings

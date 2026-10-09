@@ -44,3 +44,22 @@ describe('security cameras', () => {
     expect(seen.has(-1) && seen.has(1)).toBe(true);
   });
 });
+
+describe('fake cameras', () => {
+  it('turn to follow Tero when he is near, and go back to their thing when he leaves', () => {
+    const c = new Cctv(4, 1, [2.5, 2.5], undefined, true);
+    const angle = () => (c as unknown as { angle: number }).angle;
+    c.track({ x: 4 * 32 + 16 + 100, y: 6 * 32 });          // down and to the right
+    for (let i = 0; i < 120; i++) c.update();
+    expect(angle()).toBeGreaterThan(0.2);
+    expect(angle()).toBeLessThan(1.4);
+    c.track(null);
+    for (let i = 0; i < 200; i++) c.update();
+    expect(Math.abs(angle() - 2.5)).toBeLessThan(0.3);
+  });
+
+  it('never raise the alarm', () => {
+    const c = new Cctv(4, 1, [0, 0], undefined, true);
+    expect(c.watch(tero(4), map(ROOM))).toBeNull();
+  });
+});
