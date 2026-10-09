@@ -170,7 +170,7 @@ export const STORY = defineStory({
           lines: [
             { text: 'A SWIMSUIT CALENDAR FROM 1993.\nA STICKY NOTE ON IT: "#4471". DAD\'S NUMBER.' },
             { who: 'tero', text: 'Dada... beach?' },
-            { text: 'DAD HASN\'T SEEN A BEACH SINCE MARCH.' },
+            { text: 'MAYBE DAD IS DREAMING OF THE OCEAN...' },
           ],
         },
         {
