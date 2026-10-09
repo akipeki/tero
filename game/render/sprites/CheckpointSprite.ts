@@ -1,7 +1,8 @@
 // file: game/render/sprites/CheckpointSprite.ts
 
 import { TILE_SIZE } from '../../constants';
-import { getTheme } from '../Theme';
+import { getTheme, isOffice } from '../Theme';
+import { drawOfficeCooler } from '../office/OfficeSprites';
 
 export function drawCheckpointSprite(
   ctx: CanvasRenderingContext2D,
@@ -11,6 +12,7 @@ export function drawCheckpointSprite(
   triggered: boolean,
   flagWave: number,
 ): void {
+  if (isOffice()) return drawOfficeCooler(ctx, x, y, camX, triggered, flagWave);
   const theme = getTheme();
   const sx = Math.floor(x - camX);
   const sy = Math.floor(y);

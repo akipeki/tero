@@ -6,6 +6,8 @@
 // localStorage. Editors mutate the user pack; the runtime merges built-in
 // and user (user wins on id collisions).
 
+import type { InterludeId } from '../interludes/Interlude';
+
 import type { LevelSpawns } from '../types';
 import type { ThemeName } from '../render/Theme';
 
@@ -106,6 +108,32 @@ export interface LevelDef {
   chapterId?: ChapterId;
   intro?:    StoryCardId[];
   outro?:    StoryCardId[];
+  /** Mid-level story beats, fired once per attempt. */
+  triggers?: StoryTrigger[];
+  /** Background gags placed on purpose (office theme). The rest of the level
+   *  is auto-filled. `gag` is a key of GAGS in render/office/gags.ts. */
+  scenery?: SceneryPlacement[];
+  /** Which gags the auto-fill may use: 'tame' (default) or 'unhinged',
+   *  which adds the tier-2 weirdness and uses it first. */
+  gagMood?: GagMood;
+  /** Tero's crayon slogan, centred above the elevator — his flagpole. */
+  goalWriting?: string;
+  /** How often the auto-fill drops a gag. Default 'normal'. */
+  gagDensity?: GagDensity;
+  /** Office décor for this floor (render/office/decor.ts). Default 'cubicles'. */
+  decor?: string;
+  /** Tile-column ranges [from, to] the gag auto-fill leaves empty — long,
+   *  monotonous corridors that let the eye rest. Authored gags still show. */
+  quietZones?: [number, number][];
+}
+
+export type GagDensity = 'sparse' | 'normal';
+
+export type GagMood = 'tame' | 'unhinged';
+
+export interface SceneryPlacement {
+  tx:  number;
+  gag: string;
 }
 
 // ─── Story ───────────────────────────────────────────────────────────────────
@@ -117,6 +145,20 @@ export interface StoryCard {
   /** Single string; "\n" splits lines. */
   text:      string;
 }
+
+/** Plays `cards` the first time the player's centre crosses tile column `tx`. */
+export interface StoryTrigger {
+  tx:    number;
+  cards: StoryCardId[];
+  /** Something that happens when the cards finish: 'tantrum' fills Tero's meter. */
+  effect?: TriggerEffect;
+}
+
+/** 'tantrum' fills Tero's meter; 'boss' lets the floor's boss start the
+ *  fight; 'quiz' opens the job application window; 'ride' puts Tero on
+ *  Elvis; 'grenade' gives him the resistance's grenade; 'interlude:<id>'
+ *  hands the game over to an interlude (game/interludes/). */
+export type TriggerEffect = 'tantrum' | 'boss' | 'quiz' | 'ride' | 'grenade' | `interlude:${InterludeId}`;
 
 export interface Chapter {
   id:       ChapterId;

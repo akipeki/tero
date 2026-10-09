@@ -1,6 +1,8 @@
 // file: game/render/sprites/WalkerSprite.ts
 
-import { getTheme } from '../Theme';
+import { getTheme, isOffice } from '../Theme';
+import type { WalkerVariant } from '../../creaturesAndObjects/enemyKinds';
+import { drawOfficeWalker } from '../office/OfficeSprites';
 
 export interface WalkerSpriteProps {
   x: number;
@@ -12,12 +14,24 @@ export interface WalkerSpriteProps {
   animFrame: number;
   dying: boolean;
   scaleY: number;
+  /** Sent home: drawn with the colour back in their face. */
+  freed?: boolean;
+  /** A syncer mid-"quick sync": waving the mug, mouth going. */
+  talking?: boolean;
+  variant?: WalkerVariant;
+  /** Ticks since spawn — drives animations that don't follow movement. */
+  animTick?: number;
+  /** Just hit by fire: flashes hot (0..1). */
+  scorch?: number;
+  /** A plant that got a puff of fire: shut tight and sulking. */
+  shut?: boolean;
 }
 
 export function drawWalkerSprite(
   ctx: CanvasRenderingContext2D,
   props: WalkerSpriteProps,
 ): void {
+  if (isOffice()) return drawOfficeWalker(ctx, props);
   const theme = getTheme();
 
   const sx = Math.floor(props.x - props.camX + props.w / 2);

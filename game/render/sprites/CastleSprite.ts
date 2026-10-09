@@ -1,7 +1,8 @@
 // file: game/render/sprites/CastleSprite.ts
 
 import { TILE_SIZE } from '../../constants';
-import { getTheme } from '../Theme';
+import { getTheme, isOffice } from '../Theme';
+import { drawOfficeElevator } from '../office/OfficeSprites';
 import { castleConfig } from './castleConfig';
 
 export function getCastleSize() {
@@ -18,6 +19,10 @@ export function drawCastleSprite(
   y: number,
   flagWave: number,
 ): void {
+  if (isOffice()) {
+    const { width, height } = getCastleSize();
+    return drawOfficeElevator(ctx, camX, x, y, width, height, flagWave);
+  }
   const sx = Math.floor(x - camX);
   const sy = Math.floor(y);
 

@@ -1,3 +1,5 @@
+import type { EnemyType } from './creaturesAndObjects/enemyKinds';
+
 // ─── Game State ──────────────────────────────────────────────────────────────
 export const enum GameState {
   TITLE     = 'TITLE',
@@ -5,6 +7,12 @@ export const enum GameState {
   PAUSED    = 'PAUSED',
   GAME_OVER = 'GAME_OVER',
   WIN       = 'WIN',
+  /** A story sequence is on screen; the world is frozen behind it. */
+  STORY     = 'STORY',
+  /** The job application window is open (Floor 6); the world is frozen. */
+  QUIZ      = 'QUIZ',
+  /** The office took over the game for a moment (game/interludes/). */
+  INTERLUDE = 'INTERLUDE',
 }
 
 // ─── Input ───────────────────────────────────────────────────────────────────
@@ -14,6 +22,12 @@ export const enum Action {
   JUMP  = 1 << 2,
   PAUSE = 1 << 3,
   DOWN  = 1 << 4,
+  /** Breathe fire: a little puff, or the full TANTRUM when the meter is full. */
+  FIRE  = 1 << 5,
+  /** Shout "DADA!" (useless, mostly. Also a hint: Dad's things answer.) */
+  CALL  = 1 << 6,
+  /** Throw the resistance's grenade (if Tero has it). */
+  THROW = 1 << 7,
 }
 
 // ─── Tiles ───────────────────────────────────────────────────────────────────
@@ -24,6 +38,14 @@ export const enum TileType {
   HAZARD     = 3,
   CHECKPOINT = 4,
   COIN       = 5,
+  /** A stack of paperwork: solid until Tero's fire burns it away. */
+  PAPER      = 6,
+  /** A projected slide bullet point: a one-way platform the boss's clicker
+   *  moves around. Only placed at runtime, never in level rows. */
+  BULLET     = 7,
+  /** Red tape (Legal): not solid, but sticky — slow feet, weak jumps.
+   *  Any fire burns it. */
+  TAPE       = 8,
 }
 
 // ─── Player state ────────────────────────────────────────────────────────────
@@ -55,12 +77,43 @@ export const enum creaturesAndObjectsType {
 }
 
 // ─── Spawn definitions (in level data) ───────────────────────────────────────
-export interface EnemySpawn { type: 'walker' | 'hopper'; tx: number; ty: number }
+export interface EnemySpawn { type: EnemyType; tx: number; ty: number }
 export interface BlockSpawn  { type: 'question'; tx: number; ty: number }
-export interface GoalSpawn   { tx: number; ty: number }
+export interface GoalSpawn   {
+  tx: number; ty: number;
+  /** 'elevator' (default) · 'broken' = OUT OF ORDER, with a vent pipe to jump
+   *  into beside it · 'vent' = just a duct opening (inside the vents). */
+  kind?: 'elevator' | 'broken' | 'vent';
+  /** Sign over a vent opening (e.g. 'FLOOR 12'). */
+  label?: string;
+}
 export interface PlayerSpawn { tx: number; ty: number }
 export interface CoinSpawn   { tx: number; ty: number }
 export interface CheckpointSpawn { tx: number; ty: number }
+/** R&D prototypes. A fax's `to` is the index of another fax in the same
+ *  list (omit it for an OUT ONLY machine). */
+export type GadgetSpawn =
+  | { type: 'fax'; tx: number; ty: number; to?: number }
+  | { type: 'spring'; tx: number; ty: number }
+  /** A ceiling security camera sweeping between `sweep` angles (radians
+   *  from straight down; negative = left). */
+  | { type: 'camera'; tx: number; ty: number; sweep?: [number, number]
+      /** Just for show: no light cone, never raises the alarm. Points at `aim`. */
+      fake?: boolean; aim?: number;
+      /** Hung from the ceiling (default), the back wall, or a pillar's side. */
+      mount?: 'ceiling' | 'wall' | 'left' | 'right' }
+  /** The golden parachute pickup: hold jump while falling to glide. */
+  | { type: 'chute'; tx: number; ty: number }
+  /** One of Dad's things (ids in Gadgets.DAD_THINGS) — one per floor. */
+  | { type: 'thing'; tx: number; ty: number; id: string }
+  /** Elvis, waiting to be met (the vents). */
+  | { type: 'elvis'; tx: number; ty: number }
+  /** Someone who lives here (the resistance). `lines` = idle chatter. */
+  | { type: 'npc'; tx: number; ty: number; variant: 'clerk' | 'guard' | 'syncer' | 'rat' | 'pig'; lines?: string[]; facingRight?: boolean }
+  /** The resistance's oil-drum fire. */
+  | { type: 'barrel'; tx: number; ty: number };
+/** A boss and the left column of its one-screen arena. */
+export interface BossSpawn { type: 'halvorsen' | 'board' | 'recruiter'; arenaTx: number }
 
 export interface LevelSpawns {
   player:      PlayerSpawn;
@@ -69,6 +122,12 @@ export interface LevelSpawns {
   goal:        GoalSpawn;
   coins?:      CoinSpawn[];
   checkpoints?: CheckpointSpawn[];
+  /** The floor's boss. While it lives the elevator stays shut. */
+  boss?:       BossSpawn;
+  gadgets?:    GadgetSpawn[];
+  /** The escape run: a countdown, Dad following, falling ceiling tiles and
+   *  floor numbers counting down (`floors` sections of `cols` tiles). */
+  escape?:     { seconds: number; floors: number; cols: number };
 }
 
 // ─── Particle ────────────────────────────────────────────────────────────────
@@ -86,30 +145,74 @@ export interface HudData {
   isBig:    boolean;
   coins:    number;
   state:    GameState;
+  /** Tantrum meter, 0..TANTRUM_MAX. During a tantrum: the time left. */
+  rage:     number;
+  /** True while the tantrum is running. */
+  tantrum:  boolean;
+  /** Workers freed this run — the "sent home" counter. */
+  sentHome: number;
+  /** Bring Your Kid to Work Day is on. */
+  assist: boolean;
+  /** Grenades carried. */
+  grenades: number;
+  /** Whole-game run time so far (speedrun timer), ms. */
+  runMs: number;
+  /** Seconds until Monday on the escape run, else null. */
+  countdown: number | null;
+  /** The boss bar, while a boss fight is on. */
+  /** The boss bar, while a boss fight is on (`heat`: 0..1 towards the next fire hit). */
+  boss:     { name: string; hp: number; maxHp: number; slide: string; heat: number } | null;
 }
 
 // ─── End-of-run stats shown on Game Over / Win screens ───────────────────────
 export interface RunStats {
   coins:        number;
   enemiesStomped: number;
+  /** Workers turned back into people and sent home to their kids. */
+  sentHome:     number;
   timeMs:       number;
 }
 
 // ─── Player render data (game → React DOM overlay) ───────────────────────────
 export interface PlayerRenderData {
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-  camX: number;
+  /** Foot-centre in viewport (game) pixels — interpolated, camera- and
+   *  shake-adjusted, NOT rounded. The overlay snaps to device pixels. */
+  screenX: number;
+  screenY: number;
+  /** Extra vertical offset (game px, negative = up) from the walk bob.
+   *  Kept separate so the UI can drop it under prefers-reduced-motion. */
+  bobY: number;
   facingRight: boolean;
-  /** Image path. For sprite sheets this is the strip; UI cycles via background-position. */
-  frameSrc: string;
-  /** Number of horizontal frames in `frameSrc`. 1 = static image. */
+  /** Image path. For sprite sheets this is the horizontal strip. */
+  src: string;
+  /** Number of horizontal frames in `src`. 1 = static image. */
   frames: number;
-  /** Cycle rate when frames > 1. */
-  fps: number;
+  /** Which cell of the strip to show (0 when frames === 1). */
+  frameIdx: number;
+  /** Squash/stretch, already damped by SQUASH_STRENGTH. */
   scaleX: number;
   scaleY: number;
   shouldFlash: boolean;
+  /** Caffeinated — drawn BIG_SPRITE_SCALE larger. */
+  big: boolean;
+  /** Mid-tantrum: the overlay glows red and trembles. */
+  tantrum: boolean;
+  /** Ducking still: drawn as a cardboard box instead of Tero. */
+  hiding: boolean;
+  /** Just came out of a fax machine: a grainy black-and-white copy. */
+  faxed: boolean;
+  /** The photocopy came out upside down: flip the whole view. */
+  upsideDown: boolean;
+}
+
+// ─── Story overlay (game → React) ────────────────────────────────────────────
+export interface StoryView {
+  speaker?: string;
+  /** Portrait image (first frame of a strip is shown). */
+  portraitSrc?: string;
+  portraitFrames?: number;
+  text: string;
+  /** 0-based position in the current sequence. */
+  index: number;
+  total: number;
 }

@@ -1,6 +1,8 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Press_Start_2P } from "next/font/google";
 import "./globals.css";
+import { criticalFrames } from "@/game/render/sprites/PlayerSpriteAssets";
+import { GAME_FULL_TITLE } from "@/game/title";
 
 const pressStart = Press_Start_2P({
   weight: "400",
@@ -10,17 +12,32 @@ const pressStart = Press_Start_2P({
 });
 
 export const metadata: Metadata = {
-  title: "Project TERO",
-  description: "Retro pixel platformer",
+  title: GAME_FULL_TITLE,
+  description: "A retro pixel platformer: a baby in a dragon suit storms his dad's office to bring him home.",
+  // Set SITE_URL at build time (e.g. https://wheresdada.example) so share
+  // cards get absolute URLs.
+  metadataBase: process.env.SITE_URL ? new URL(process.env.SITE_URL) : undefined,
+  applicationName: GAME_FULL_TITLE,
+  keywords: ["pixel art", "platformer", "retro", "satire", "dragon costume", "browser game"],
+  openGraph: {
+    type: "website",
+    title: GAME_FULL_TITLE,
+    description: "A toddler in a dragon suit vs. late capitalism. Tantrum fire, office satire, a dog called Elvis.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: GAME_FULL_TITLE,
+    description: "A toddler in a dragon suit vs. late capitalism.",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#1b1620",
+  colorScheme: "dark",
 };
 
 // Critical player frames — preload so the very first PLAY tap doesn't pop in.
-const PRELOAD = [
-  "/images/tero/Tero_Idle.png",
-  "/images/tero/Tero_Walk.png",
-  "/images/tero/Tero_Jump.png",
-  "/images/tero/Tero_Fall.png",
-];
+const PRELOAD = criticalFrames;
 
 export default function RootLayout({
   children,

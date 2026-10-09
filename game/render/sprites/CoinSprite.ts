@@ -1,6 +1,7 @@
 // file: game/render/sprites/CoinSprite.ts
 
-import { getTheme } from '../Theme';
+import { getTheme, isOffice } from '../Theme';
+import { drawOfficeCoin } from '../office/OfficeSprites';
 
 export interface CoinSpriteProps {
   x: number;
@@ -15,6 +16,7 @@ export function drawCoinSprite(
   ctx: CanvasRenderingContext2D,
   props: CoinSpriteProps,
 ): void {
+  if (isOffice()) return drawOfficeCoin(ctx, props);
   const theme = getTheme();
   const sx = Math.floor(props.x - props.camX);
   const sy = Math.floor(props.y);
