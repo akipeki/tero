@@ -81,3 +81,17 @@ describe('floor and boss songs', () => {
     }
   });
 });
+
+import { AudioManager } from './AudioManager';
+
+describe('interlude jingles', () => {
+  it('a jingle replaces the floor song and the floor song comes back', () => {
+    const am = new AudioManager();
+    const song = () => (am as unknown as { song: string }).song;
+    am.setBaseSong('legal');
+    am.setOverride('jingle_fineprint');
+    expect(song()).toBe('jingle_fineprint');
+    am.setOverride(null);
+    expect(song()).toBe('legal');
+  });
+});

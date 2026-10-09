@@ -67,6 +67,7 @@ const TIPS = [
 
 export class DesktopCrash extends Interlude {
   readonly id = 'desktop' as const;
+  readonly song = 'jingle_win' as const;
   overlay = true;                         // one frame of the level, for the frozen window
   private phase: Phase = 'bsod';
   private phaseT = 0;

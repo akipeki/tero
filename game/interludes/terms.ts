@@ -52,6 +52,7 @@ const CLAUSES: [string, Kind][] = [
 
 export class TermsAndConditions extends Interlude {
   readonly id = 'terms' as const;
+  readonly song = 'jingle_fineprint' as const;
   private rows: Clause[] = [];
   private docH: number;
   private x = PX0 + 40;

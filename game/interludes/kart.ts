@@ -43,6 +43,7 @@ function curveAt(z: number): number {
 
 export class OfficeChairGP extends Interlude {
   readonly id = 'kart' as const;
+  readonly song = 'jingle_race' as const;
   private pos = 0;
   private speed = 0;
   private px = 0;                     // -1..1 across the corridor

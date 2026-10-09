@@ -43,6 +43,7 @@ const GLITCH = 50;
 
 export class AcquisitionIntro extends Interlude {
   readonly id = 'acquisition' as const;
+  readonly song = 'jingle_premium' as const;
   overlay = true;
   private page = 0;
   private pageT = 0;
@@ -395,6 +396,7 @@ const COUNTDOWN = 300;
 
 export class UnskippableAd extends Interlude {
   readonly id = 'unskippable_ad' as const;
+  readonly song = 'jingle_premium' as const;
   private tx = PANEL.x + 70;
   private ty = FLOOR;
   private tvy = 0;

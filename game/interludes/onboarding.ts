@@ -26,6 +26,7 @@ const SLIDES: string[] = [
 
 export class OnboardingVhs extends Interlude {
   readonly id = 'onboarding' as const;
+  readonly song = 'jingle_vhs' as const;
   /** Position on the tape, in ticks of normal-speed playback. */
   private pos = 0;
   private ff = false;

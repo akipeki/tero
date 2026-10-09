@@ -137,6 +137,7 @@ interface Shot { x: number; y: number; dx: number; dy: number; life: number }
 
 export class Cubicle3D extends Interlude {
   readonly id = 'cubicle3d' as const;
+  readonly song = 'jingle_fps' as const;
   private page: 'title' | 'play' | 'done' = 'title';
   private pageT = 0;
   private px = 1.5; private py = 1.5; private ang = 0.4;

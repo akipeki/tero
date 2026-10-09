@@ -89,6 +89,7 @@ const FAIL = [
 
 export class Captcha extends Interlude {
   readonly id = 'captcha' as const;
+  readonly song = 'jingle_hold' as const;
   private stage: 'box' | 'grid' | 'done' = 'box';
   private stageT = 0;
   private round = 0;

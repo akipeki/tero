@@ -229,6 +229,20 @@ export class AudioManager {
   }
   private preMuzak: { arr: Arrangement; song: SongId; mood: number } | null = null;
 
+  /** An interlude's jingle replaces the floor's music (`null` puts it back). */
+  setOverride(id: SongId | null): void {
+    if (id) {
+      if (!this.preOverride) this.preOverride = { song: this.song, mood: this.mood };
+      this.song = id;
+      this.mood = 0;
+    } else if (this.preOverride) {
+      ({ song: this.song, mood: this.mood } = this.preOverride);
+      this.preOverride = null;
+    } else return;
+    if (this.musicGain) this.startMusic();
+  }
+  private preOverride: { song: SongId; mood: number } | null = null;
+
   /** Where the sequencer is right now, in eighth-note steps (fractional),
    *  with the step length in seconds. Null when there's no sequenced music
    *  to follow (muted, not started, or a recording is playing). */

@@ -72,7 +72,9 @@ export function chordTones(token: string): number[] {
 export type SongId =
   | 'main' | 'boss' | 'vents' | 'compliance' | 'cubicles' | 'boardroom'
   | 'legal' | 'lab' | 'security' | 'executive' | 'penthouse' | 'escape'
-  | 'boss_chad' | 'boss_halvorsen';
+  | 'boss_chad' | 'boss_halvorsen'
+  | 'jingle_vhs' | 'jingle_hold' | 'jingle_call' | 'jingle_battle' | 'jingle_fineprint'
+  | 'jingle_fps' | 'jingle_premium' | 'jingle_win' | 'jingle_race';
 
 /** Instruments the sequencer can play. The plain waveforms, plus a few
  *  built from them (see AudioManager.instrument). */
@@ -252,6 +254,108 @@ const HALVORSEN_MELODY: string[][] = [
   ['D6', '-', '-', '-', 'A5', '.', 'D6', '.'],           // D
 ];
 
+// ─── Interlude jingles: short loops while the office takes over ─────────────
+
+/** Mandatory Onboarding: 1987 corporate training-video synth pop. */
+const VHS_MELODY: string[][] = [
+  ['E5', '-', 'G5', '-', 'C6', '-', 'G5', '-'],          // C
+  ['A5', '-', '-', '.', 'F5', '-', 'A5', '-'],           // F
+  ['B5', '-', 'D6', '-', 'G5', '-', 'B5', '-'],          // G
+  ['C6', '-', '-', '.', 'da:G5', '-', 'da:E5', '-'],     // C
+  ['A5', '-', 'C6', '-', 'E6', '-', 'C6', '-'],          // Am
+  ['F5', '-', 'A5', '-', 'C6', '-', 'A5', '-'],          // F
+  ['G5', '-', 'B5', '-', 'D6', '-', 'F6', '-'],          // G
+  ['E6', '-', '-', '-', 'C6', '.', '.', '.'],            // C
+];
+/** The CAPTCHA: "please hold", light bossa on a bell. */
+const HOLD_MELODY: string[][] = [
+  ['B5', '-', 'D6', '-', 'B5', '-', 'G5', '-'],          // G
+  ['G5', '-', '-', '.', 'E5', '-', 'G5', '-'],           // Em
+  ['E5', '-', 'G5', '-', 'C6', '-', 'B5', '-'],          // C
+  ['A5', '-', '-', '.', 'da:A5', '-', 'da:F#5', '-'],    // D
+  ['D6', '-', 'B5', '-', 'G5', '-', 'B5', '-'],          // G
+  ['C6', '-', 'E6', '-', 'D6', '-', 'C6', '-'],          // C
+  ['B5', '-', 'A5', '-', 'F#5', '-', 'A5', '-'],         // D
+  ['G5', '-', '-', '-', '.', '.', 'D5', '.'],            // G
+];
+/** You're on Mute: the conference call's hold loop, thin and endless. */
+const CALL_MELODY: string[][] = [
+  ['C6', '.', 'A5', '.', 'F5', '.', 'A5', '.'],          // F
+  ['C6', '.', 'G5', '.', 'E5', '.', 'G5', '.'],          // C
+  ['D6', '.', 'A5', '.', 'F5', '.', 'A5', '.'],          // Dm
+  ['G5', '-', '-', '.', 'da:G5', '-', 'da:E5', '-'],     // C
+  ['A5', '.', 'C6', '.', 'F6', '.', 'C6', '.'],          // F
+  ['A#5', '.', 'D6', '.', 'F6', '.', 'D6', '.'],         // Bb
+  ['C6', '.', 'E6', '.', 'G6', '.', 'E6', '.'],          // C
+  ['F6', '-', '-', '-', '.', '.', '.', '.'],             // F
+];
+/** The Quarterly Review: a 16-bit RPG battle theme in A minor. */
+const BATTLE_MELODY: string[][] = [
+  ['A5', '.', 'A5', 'B5', 'C6', '.', 'B5', 'A5'],        // Am
+  ['C6', '.', 'C6', 'D6', 'E6', '.', 'D6', 'C6'],        // F
+  ['B5', '.', 'B5', 'C6', 'D6', '.', 'G6', '.'],         // G
+  ['G#5', '-', '-', '.', 'da:B5', '-', 'da:G#5', '-'],   // E
+  ['E6', '.', 'D6', 'C6', 'B5', '.', 'A5', '.'],         // Am
+  ['F6', '.', 'E6', 'D6', 'C6', '.', 'A5', '.'],         // F
+  ['D6', '.', 'B5', 'G5', 'B5', '.', 'E6', '.'],         // G E
+  ['A5', '-', '-', '.', 'E5', 'G#5', 'A5', '.'],         // Am
+];
+/** Terms & Conditions: the fine print, read out very fast (pizzicato). */
+const FINEPRINT_MELODY: string[][] = [
+  ['D5', 'F5', 'A5', 'F5', 'D5', 'F5', 'A5', 'F5'],      // Dm
+  ['D5', 'F5', 'A#5', 'F5', 'D5', 'F5', 'A#5', 'F5'],    // Bb
+  ['D5', 'G5', 'A#5', 'G5', 'D5', 'G5', 'A#5', 'G5'],    // Gm
+  ['E5', '-', '-', '.', 'da:G5', '-', 'da:E5', '-'],     // A
+  ['A5', 'F5', 'D5', 'F5', 'A5', 'D6', 'A5', 'F5'],      // Dm
+  ['A#5', 'G5', 'D5', 'G5', 'A#5', 'D6', 'A#5', 'G5'],   // Gm
+  ['C#6', 'A5', 'E5', 'A5', 'C#6', 'E6', 'C#6', 'A5'],   // A
+  ['D6', '-', '-', '.', 'A5', '.', 'D5', '.'],           // Dm
+];
+/** Cubicle 3D: 1992 shareware-shooter MIDI metal, E minor, chugging. */
+const FPS_MELODY: string[][] = [
+  ['E5', '.', 'E5', 'G5', 'A5', '.', 'G5', 'E5'],        // Em
+  ['D5', '.', 'E5', '.', 'B4', '-', '-', '.'],           // Em
+  ['E5', '.', 'E5', 'G5', 'A5', '.', 'B5', 'C6'],        // C
+  ['B5', '-', '-', '.', 'da:B5', '-', 'da:G5', '-'],     // D
+  ['E6', '.', 'D6', '.', 'B5', '.', 'G5', '.'],          // Em
+  ['C6', '.', 'B5', '.', 'G5', '.', 'E5', '.'],          // C
+  ['F#5', '.', 'A5', '.', 'D6', '.', 'F#6', '.'],        // D
+  ['D#6', '-', '-', '.', 'B5', '.', 'F#5', '.'],         // B
+];
+/** The Acquisition and the unskippable ad: a shiny PREMIUM brand jingle. */
+const PREMIUM_MELODY: string[][] = [
+  ['D6', '-', 'F6', '-', 'A#6', '-', 'F6', '-'],         // Bb
+  ['G6', '-', '-', '.', 'D6', '-', 'A#5', '-'],          // Gm
+  ['G6', '-', 'D#6', '-', 'A#5', '-', 'G5', '-'],        // Eb
+  ['A5', '-', '-', '.', 'da:C6', '-', 'da:A5', '-'],     // F
+  ['A#5', '-', 'D6', '-', 'F6', '-', 'A#6', '-'],        // Bb
+  ['G6', '-', 'A#6', '-', 'G6', '-', 'D#6', '-'],        // Eb
+  ['F6', '-', 'C6', '-', 'A5', '-', 'C6', '-'],          // F
+  ['A#5', '-', '-', '-', '.', '.', 'F5', '.'],           // Bb
+];
+/** Blue Screen: a gentle MIDI piano tune, like a 1995 desktop's. */
+const WIN_MELODY: string[][] = [
+  ['G5', '-', 'C6', '-', 'E6', '-', 'D6', 'C6'],         // C
+  ['C6', '-', '-', '.', 'A5', '-', 'E5', '-'],           // Am
+  ['F5', '-', 'A5', '-', 'C6', '-', 'A5', 'F5'],         // F
+  ['G5', '-', '-', '.', 'da:G5', '-', 'da:E5', '-'],     // G
+  ['E6', '-', 'G6', '-', 'E6', '-', 'C6', '-'],          // C
+  ['F6', '-', 'E6', '-', 'D6', '-', 'C6', '-'],          // F
+  ['B5', '-', 'D6', '-', 'G6', '-', 'F6', '-'],          // G
+  ['E6', '-', '-', '-', '.', '.', '.', '.'],             // C
+];
+/** The Office Chair GP: an arcade racing theme in A major. */
+const RACE_MELODY: string[][] = [
+  ['E5', 'A5', 'C#6', 'E6', '.', 'C#6', 'E6', '.'],      // A
+  ['F#6', '-', 'E6', '-', 'D6', '-', 'C#6', '-'],        // D
+  ['B5', 'G#5', 'B5', 'E6', '.', 'B5', 'E6', '.'],       // E
+  ['C#6', '-', '-', '.', 'da:E6', '-', 'da:C#6', '-'],   // A
+  ['F#5', 'A5', 'C#6', 'F#6', '.', 'C#6', 'A5', '.'],    // F#m
+  ['A5', 'D6', 'F#6', 'A6', '.', 'F#6', 'D6', '.'],      // D
+  ['G#5', 'B5', 'E6', 'G#6', '.', 'E6', 'B5', '.'],      // E
+  ['A5', '-', '-', '.', 'E5', '.', 'A5', '.'],           // A
+];
+
 /** Which floors have their own song (by décor). Everything else plays the
  *  main theme in the floor's arrangement. */
 export const FLOOR_SONGS: Partial<Record<string, SongId>> = {
@@ -337,6 +441,60 @@ export const SONGS: Record<SongId, Song> = {
     chords: [['C3'], ['G2'], ['A2m'], ['E2'], ['F2'], ['G2'], ['A2m', 'E2'], ['A2m']],
     drums: 'kkshkksh', voice: 'brass', leadGain: 0.22,
     bass: 'RORORORO', bassVoice: 'square', arp: 'up',
+  },
+  jingle_vhs: {
+    bpm: 108, melody: VHS_MELODY,
+    chords: [['C3'], ['F2'], ['G2'], ['C3'], ['A2m'], ['F2'], ['G2'], ['C3']],
+    drums: 'k.skk.s.', voice: 'brass', leadGain: 0.2,
+    bass: 'R.R.O.R.', bassVoice: 'square', pad: true, arp: 'off',
+  },
+  jingle_hold: {
+    bpm: 100, melody: HOLD_MELODY,
+    chords: [['G2'], ['E2m'], ['C3'], ['D3'], ['G2'], ['C3'], ['D3'], ['G2']],
+    drums: 'k.h.s.h.', voice: 'bell', leadGain: 0.32,
+    bass: 'R.F.R.FA', bassVoice: 'triangle', arp: 'off', swing: 0.15,
+  },
+  jingle_call: {
+    bpm: 90, melody: CALL_MELODY,
+    chords: [['F2'], ['C3'], ['D3m'], ['C3'], ['F2'], ['A#2'], ['C3'], ['F2']],
+    drums: '........', voice: 'sine', leadGain: 0.36,
+    bass: 'R...F...', bassVoice: 'triangle', arp: 'off',
+  },
+  jingle_battle: {
+    bpm: 152, melody: BATTLE_MELODY,
+    chords: [['A2m'], ['F2'], ['G2'], ['E2'], ['A2m'], ['F2'], ['G2', 'E2'], ['A2m']],
+    drums: 'kkshkksh', voice: 'square', leadGain: 0.26,
+    bass: 'RORORORO', bassVoice: 'square', arp: 'fast',
+  },
+  jingle_fineprint: {
+    bpm: 150, melody: FINEPRINT_MELODY,
+    chords: [['D2m'], ['A#2'], ['G2m'], ['A2'], ['D2m'], ['G2m'], ['A2'], ['D2m']],
+    drums: 'h.h.h.h.', voice: 'pluck', leadGain: 1.4,
+    bass: 'R.R.R.R.', bassVoice: 'pluck', bassGain: 1.6, arp: 'off',
+  },
+  jingle_fps: {
+    bpm: 140, melody: FPS_MELODY,
+    chords: [['E2m'], ['E2m'], ['C3'], ['D3'], ['E2m'], ['C3'], ['D3'], ['B2']],
+    drums: 'kkskkkks', voice: 'sawtooth', leadGain: 0.18,
+    bass: 'RRRRRRRR', bassVoice: 'sawtooth', bassGain: 0.35, arp: 'off',
+  },
+  jingle_premium: {
+    bpm: 124, melody: PREMIUM_MELODY,
+    chords: [['A#2'], ['G2m'], ['D#3'], ['F2'], ['A#2'], ['D#3'], ['F2'], ['A#2']],
+    drums: 'k.hsk.hs', voice: 'bell', leadGain: 0.34,
+    bass: 'R.O.F.O.', bassVoice: 'triangle', pad: true, arp: 'up',
+  },
+  jingle_win: {
+    bpm: 96, melody: WIN_MELODY,
+    chords: [['C3'], ['A2m'], ['F2'], ['G2'], ['C3'], ['F2'], ['G2'], ['C3']],
+    drums: 'k..hs..h', voice: 'bell', leadGain: 0.34,
+    bass: 'R.F.O.F.', bassVoice: 'triangle', pad: true, arp: 'off',
+  },
+  jingle_race: {
+    bpm: 164, melody: RACE_MELODY,
+    chords: [['A2'], ['D3'], ['E2'], ['A2'], ['F#2m'], ['D3'], ['E2'], ['A2']],
+    drums: 'khskkhsh', voice: 'square', leadGain: 0.24,
+    bass: 'RORORORO', bassVoice: 'square', arp: 'fast',
   },
   boss_halvorsen: {
     bpm: 132, melody: HALVORSEN_MELODY,

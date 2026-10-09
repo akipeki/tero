@@ -13,6 +13,7 @@
 import type { InputHandler } from '../InputHandler';
 import type { AudioManager } from '../AudioManager';
 import type { ScreenShake } from '../ScreenShake';
+import type { SongId } from '../music';
 
 export const INTERLUDE_IDS = [
   'acquisition', 'unskippable_ad', 'cubicle3d', 'review', 'muzak', 'terms', 'nap', 'desktop',
@@ -35,6 +36,8 @@ export abstract class Interlude {
   t = 0;
   /** Draw over the frozen level instead of taking over the screen. */
   overlay = false;
+  /** Its own music while it runs (the floor's comes back afterwards). */
+  readonly song: SongId | null = null;
   /** Hide the Tero overlay sprite (the interlude draws its own, if any). */
   get hidesPlayer(): boolean { return !this.overlay; }
   /** Shown in the playtest log. */

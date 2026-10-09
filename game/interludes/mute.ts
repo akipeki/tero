@@ -43,6 +43,7 @@ const MENU: string[][] = [
 
 export class OnMute extends Interlude {
   readonly id = 'mute' as const;
+  readonly song = 'jingle_call' as const;
   private faces = PEOPLE.map(([, make]) => make().toCanvas());
   private talk = PEOPLE.map((_, i) => ({ line: CHATTER[i % CHATTER.length], t: 40 + i * 17 }));
   private sel = 0;

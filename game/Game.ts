@@ -374,6 +374,7 @@ export class Game {
     this.audio.init();
     this.stats.pause();
     this.interlude = makeInterlude(id);
+    if (this.interlude.song) this.audio.setOverride(this.interlude.song);
     this.interludeThen = then ?? null;
     this.state = GameState.INTERLUDE;
     this.note('interlude', id);
@@ -387,6 +388,7 @@ export class Game {
     this.shake.update();
     if (!il.done) return;
     this.interlude = null;
+    if (il.song) this.audio.setOverride(null);
     this.stats.resume();
     this.state = GameState.PLAYING;
     const then = this.interludeThen;

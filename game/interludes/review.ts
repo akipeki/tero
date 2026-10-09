@@ -79,6 +79,7 @@ type Phase = 'shatter' | 'intro' | 'menu' | 'text' | 'win';
 
 export class QuarterlyReview extends Interlude {
   readonly id = 'review' as const;
+  readonly song = 'jingle_battle' as const;
   overlay = true;
   private phase: Phase = 'shatter';
   private phaseT = 0;
