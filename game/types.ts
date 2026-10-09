@@ -156,7 +156,8 @@ export interface HudData {
   /** Seconds until Monday on the escape run, else null. */
   countdown: number | null;
   /** The boss bar, while a boss fight is on. */
-  boss:     { name: string; hp: number; maxHp: number; slide: string } | null;
+  /** The boss bar, while a boss fight is on (`heat`: 0..1 towards the next fire hit). */
+  boss:     { name: string; hp: number; maxHp: number; slide: string; heat: number } | null;
 }
 
 // ─── End-of-run stats shown on Game Over / Win screens ───────────────────────

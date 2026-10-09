@@ -20,6 +20,7 @@ import type { Boss, BossPhase } from './Boss';
 import { drawBubble } from './freed';
 import { drawRecruiter, RECRUITER_W, RECRUITER_H, type RecruiterPose } from '../render/characters/creatures';
 import { riggedFacings } from '../render/office/OfficeSprites';
+import { drawScorch } from '../render/scorch';
 
 const ARENA_COLS = 15;
 const FLOOR_ROW = 8;
@@ -27,6 +28,7 @@ const HP = 3;
 const INVULN = 90;
 const HEAT_PER_HIT = 12;
 
+const HOT_LINES = ['HOT!', 'MY SUIT IS SILK!', 'OW! HR!', 'THAT\'S A WRITE-UP.'];
 const HIT_LINES = ['WOW. TOXIC.', 'I\'M PUTTING THIS IN YOUR FILE.'];
 const PITCH_LINES = ['10-HOUR DAYS!', 'WE\'RE A FAMILY!', 'UNPAID = EXPOSURE!', 'PIZZA FRIDAYS!', 'HUSTLE!'];
 const FREED_LINES = ['...I GREW UP ON A FARM.', 'I MISS THE MUD.', 'BYE, LITTLE BUDDY.'];
@@ -59,6 +61,10 @@ export class Recruiter extends creaturesAndObjects implements Boss {
   private speech: { text: string; t: number } | null = null;
   private speechQueue: string[] = [];
   private alpha = 1;
+  private scorch = 0;
+  private sizzleCd = 0;
+
+  get heatLevel(): number { return this.heat / HEAT_PER_HIT; }
 
   constructor(arenaTx: number) {
     super((arenaTx + 8) * TILE_SIZE, FLOOR_ROW * TILE_SIZE - 44, 24, 44);   // on screen for his pitch
@@ -116,6 +122,8 @@ export class Recruiter extends creaturesAndObjects implements Boss {
     }
     if (this.phase !== 'fight') return;
     if (this.invuln > 0) this.invuln--;
+    if (this.scorch > 0) this.scorch--;
+    if (this.sizzleCd > 0) this.sizzleCd--;
 
     this.move(player, ctx);
     this.updatePapers(ctx, player, flames);
@@ -131,16 +139,20 @@ export class Recruiter extends creaturesAndObjects implements Boss {
       this.takeHit(ctx);
       return;
     }
-    // Tantrum fire
-    if (this.invuln === 0) {
-      for (const f of flames) {
-        if (!f.active || !overlaps(f, this)) continue;
-        f.active = false;
-        // tantrum flames stream in; a little puff counts for more
-        this.heat += f.frees ? 1 : PUFF_HEAT;
-        ctx.particles.burst(f.cx, f.cy, 3, '#ffb347', '#fff6b0');
-        if (this.heat >= HEAT_PER_HIT) { this.heat = 0; this.takeHit(ctx); break; }
-      }
+    // Fire: every flame that touches him shows. Tantrum flames stream in;
+    // a little puff counts for more. While he's blinking it just fizzles.
+    for (const f of flames) {
+      if (!f.active || !overlaps(f, this)) continue;
+      f.active = false;
+      this.scorch = 10;
+      if (this.invuln > 0) { ctx.particles.burst(f.cx, f.cy, 3, '#9aa0a8', '#c9ccd1'); continue; }
+      this.heat += f.frees ? 1 : PUFF_HEAT;
+      ctx.particles.burst(f.cx, f.cy, 5, '#ffb347', '#6b6470');
+      // he flinches away from it
+      this.x = Math.max(this.arenaLeft + 4, Math.min(this.arenaRight - this.w - 4, this.x + Math.sign(this.cx - f.cx) * 2));
+      if (this.sizzleCd === 0) { ctx.audio.play('burn'); this.sizzleCd = 8; }
+      if (!this.speech && Math.random() < 0.35) this.say(HOT_LINES[Math.floor(Math.random() * HOT_LINES.length)]);
+      if (this.heat >= HEAT_PER_HIT) { this.heat = 0; this.takeHit(ctx); break; }
     }
     // Bumping into him hurts (a dash really hurts)
     if (this.invuln < INVULN - 20 && !player.isInvincible && !player.isTantrum &&
@@ -250,10 +262,13 @@ export class Recruiter extends creaturesAndObjects implements Boss {
       : this.windup > 0 ? 'throw'
       : this.walkPose();
     ctx.globalAlpha = this.alpha * (this.phase === 'fight' && this.invuln > 0 && Math.floor(this.invuln / 4) % 2 === 0 ? 0.5 : 1);
-    const x = Math.round(this.cx - camX - RECRUITER_W / 2), y = Math.round(this.bottom - RECRUITER_H + 1);
+    const jit = this.scorch > 0 ? (this.scorch % 2 ? 1 : -1) : 0;
+    const x = Math.round(this.cx - camX - RECRUITER_W / 2) + jit, y = Math.round(this.bottom - RECRUITER_H + 1);
     if (!blitArt(ctx, 'recruiter', pose, x, y, RECRUITER_W, RECRUITER_H, !this.facingRight)) {
       const f = riggedFacings(`recruiter:${pose}`, () => drawRecruiter(pose), this.phase === 'freed');
-      ctx.drawImage(this.facingRight ? f.right : f.left, x, y);
+      const img = this.facingRight ? f.right : f.left;
+      ctx.drawImage(img, x, y);
+      drawScorch(ctx, img, x, y, this.scorch / 10);
     }
     ctx.globalAlpha = 1;
     for (const p of this.papers) drawContract(ctx, p.x - camX, p.y, p.life);

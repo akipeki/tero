@@ -1066,6 +1066,10 @@ function BossBar({ boss }: { boss: NonNullable<HudData['boss']> }) {
       <div style={{ height: '0.9em', border: '2px solid #fff1e8', background: '#1b1620', position: 'relative' }}>
         <div style={{ position: 'absolute', inset: 0, width: `${pct}%`, background: '#d83b3b', transition: 'width 200ms steps(4)' }} />
       </div>
+      {/* fire fills this; when it's full, he takes a hit */}
+      <div style={{ height: '0.35em', marginTop: 2, background: '#1b1620', border: '1px solid #ff9a52', position: 'relative' }} aria-hidden>
+        <div style={{ position: 'absolute', inset: 0, width: `${Math.round(Math.min(1, boss.heat) * 100)}%`, background: '#ff9a52' }} />
+      </div>
     </div>
   );
 }

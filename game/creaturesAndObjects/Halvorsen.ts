@@ -58,6 +58,7 @@ const ARENA_COLS = 15;
 const MARKS = [3, 10];                 // where he stops to present, arena-relative
 const FLOOR_ROW = 8;
 
+const HOT_LINES = ['HOT TAKE.', 'MY SLIDES!', 'THIS IS FINE.', 'SO HOT RIGHT NOW.'];
 const HIT_LINES = ['LET\'S TAKE THIS OFFLINE.', 'CIRCLE BACK!', 'PER MY LAST EMAIL...', 'THIS COULD HAVE BEEN AN EMAIL.'];
 const FREED_LINES = ['...I HAVE KIDS TOO.', 'I MISSED SIX RECITALS.', 'I\'M GOING HOME.'];
 
@@ -106,6 +107,10 @@ export class Halvorsen extends creaturesAndObjects implements Boss {
   private speechQueue: string[] = [];
   private freedTimer = 0;
   private alpha = 1;
+  private scorch = 0;
+  private sizzleCd = 0;
+
+  get heatLevel(): number { return this.heat / HEAT_PER_HIT; }
   private shots: Shot[] = [];
 
   constructor(arenaTx: number) {
@@ -166,6 +171,8 @@ export class Halvorsen extends creaturesAndObjects implements Boss {
     if (this.phase !== 'fight') return;
 
     if (this.invuln > 0) this.invuln--;
+    if (this.scorch > 0) this.scorch--;
+    if (this.sizzleCd > 0) this.sizzleCd--;
     this.move();
     this.attack(ctx, player);
     this.updateShots(ctx, player, flames);
@@ -181,16 +188,18 @@ export class Halvorsen extends creaturesAndObjects implements Boss {
       this.takeHit(ctx);
       return;
     }
-    // Hold him in tantrum fire
-    if (this.invuln === 0) {
-      for (const f of flames) {
-        if (!f.active || !overlaps(f, this)) continue;
-        f.active = false;
-        // tantrum flames stream in; a little puff counts for more
-        this.heat += f.frees ? 1 : PUFF_HEAT;
-        ctx.particles.burst(f.cx, f.cy, 3, '#ffb347', '#fff6b0');
-        if (this.heat >= HEAT_PER_HIT) { this.heat = 0; this.takeHit(ctx); break; }
-      }
+    // Fire: every flame that touches him shows. Tantrum flames stream in;
+    // a little puff counts for more. While he's blinking it just fizzles.
+    for (const f of flames) {
+      if (!f.active || !overlaps(f, this)) continue;
+      f.active = false;
+      this.scorch = 10;
+      if (this.invuln > 0) { ctx.particles.burst(f.cx, f.cy, 3, '#9aa0a8', '#c9ccd1'); continue; }
+      this.heat += f.frees ? 1 : PUFF_HEAT;
+      ctx.particles.burst(f.cx, f.cy, 5, '#ffb347', '#6b6470');
+      if (this.sizzleCd === 0) { ctx.audio.play('burn'); this.sizzleCd = 8; }
+      if (!this.speech && Math.random() < 0.35) this.say(HOT_LINES[Math.floor(Math.random() * HOT_LINES.length)]);
+      if (this.heat >= HEAT_PER_HIT) { this.heat = 0; this.takeHit(ctx); break; }
     }
     // Walk into him and you get a stern talking-to
     if (this.invuln < INVULN - 20 && !player.isInvincible && !player.isTantrum && overlaps(
@@ -403,7 +412,8 @@ export class Halvorsen extends creaturesAndObjects implements Boss {
       : this.walkPose();
     ctx.globalAlpha = this.alpha;
     const flash = this.phase === 'fight' && this.invuln > 0 && Math.floor(this.invuln / 4) % 2 === 0;
-    drawHalvorsenAt(ctx, this.cx - camX, this.bottom, pose, this.facingRight, this.phase === 'freed', flash);
+    const jit = this.scorch > 0 ? (this.scorch % 2 ? 1 : -1) : 0;
+    drawHalvorsenAt(ctx, this.cx - camX + jit, this.bottom, pose, this.facingRight, this.phase === 'freed', flash, this.scorch / 10);
     ctx.globalAlpha = 1;
     for (const s of this.shots) {
       if (s.kind === 'pie') drawPie(ctx, s.x - camX, s.y, Math.floor(s.life / 5) % 4);

@@ -292,6 +292,11 @@ export class Board extends creaturesAndObjects implements Boss {
     drawProjectorScreen(ctx, this.arenaLeft + TILE_SIZE - camX, TILE_SIZE + 4, 'SHAREHOLDER VALUE', title);
   }
 
+  /** The hottest head, for the boss bar. */
+  get heatLevel(): number {
+    return Math.max(0, ...this.heads.filter((h) => h.state !== 'gone').map((h) => h.heat / HEAT_PER_HEAD));
+  }
+
   draw(ctx: CanvasRenderingContext2D, camX: number): void {
     if (this.tableAlpha <= 0) return;
     ctx.globalAlpha = this.tableAlpha;

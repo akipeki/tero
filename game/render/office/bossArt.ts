@@ -4,6 +4,7 @@
 // throws, and the "IN A MEETING" sign that keeps the elevator shut. Gameplay
 // objects are bright; the screen is a big readable sign of what slide we're on.
 
+import { drawScorch } from '../scorch';
 import { t } from '../../i18n';
 import { blitArt } from '../customImages';
 import { Raster } from '../pixel/Raster';
@@ -25,7 +26,7 @@ function cached(key: string, make: () => Raster): HTMLCanvasElement {
 /** Feet at (footX, footY) in screen px. */
 export function drawHalvorsenAt(
   ctx: CanvasRenderingContext2D, footX: number, footY: number,
-  pose: HalvorsenPose, facingRight: boolean, freed: boolean, flash: boolean,
+  pose: HalvorsenPose, facingRight: boolean, freed: boolean, flash: boolean, scorch = 0,
 ): void {
   if (flash) ctx.globalAlpha *= 0.5;
   if (blitArt(ctx, 'halvorsen', pose, footX - HALVORSEN_W / 2, footY - HALVORSEN_H, HALVORSEN_W, HALVORSEN_H, !facingRight)) {
@@ -33,7 +34,9 @@ export function drawHalvorsenAt(
     return;
   }
   const f = riggedFacings(`halvorsen:${pose}`, () => drawHalvorsen(pose), freed);
-  ctx.drawImage(facingRight ? f.right : f.left, Math.round(footX - HALVORSEN_W / 2), Math.round(footY - HALVORSEN_H));
+  const img = facingRight ? f.right : f.left;
+  ctx.drawImage(img, Math.round(footX - HALVORSEN_W / 2), Math.round(footY - HALVORSEN_H));
+  drawScorch(ctx, img, footX - HALVORSEN_W / 2, footY - HALVORSEN_H, scorch);
   if (flash) ctx.globalAlpha *= 2;
 }
 

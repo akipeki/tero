@@ -1754,7 +1754,7 @@ export class Game {
       runMs:    this.run.totalMs + (this.state === GameState.PLAYING || this.state === GameState.PAUSED ? this.stats.elapsedMs() : 0),
       countdown: this.dad ? Math.max(0, Math.ceil(this.escapeFrames / 60)) : null,
       boss:     this.boss?.fighting
-        ? { name: this.boss.name, hp: this.boss.hp, maxHp: this.boss.maxHp, slide: this.boss.subtitle }
+        ? { name: this.boss.name, hp: this.boss.hp, maxHp: this.boss.maxHp, slide: this.boss.subtitle, heat: this.boss.heatLevel ?? 0 }
         : null,
     });
   }

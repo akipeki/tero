@@ -17,6 +17,8 @@ export interface Boss extends creaturesAndObjects {
   readonly subtitle: string;
   readonly hp: number;
   readonly maxHp: number;
+  /** How close the next fire hit is (0..1), for the boss bar. */
+  readonly heatLevel?: number;
   readonly arenaTx: number;
   readonly arenaLeft: number;
   phase: BossPhase;
