@@ -95,6 +95,10 @@ interface EndScreenPayload {
   hasNextLevel: boolean;
 }
 
+/** What a puff of fire gets out of people (pigs have their own). */
+const HOT = ['HOT!', 'OW!', 'MY TIE!', 'HEY!'];
+const PIG_HOT = ['OINK! HOT!', 'MY BONUS!', 'THIS SUIT WAS EXPENSIVE!', 'BACON?!'];
+
 export class Game {
   private renderer: Renderer;
   private input: InputHandler;
@@ -635,8 +639,12 @@ export class Game {
         for (const e of [...this.walkers, ...this.hoppers]) {
           if (!e.hittable || !overlaps(f, e)) continue;
           f.active = false;
+          // the same "that was hot" as a boss: flash, smoke, sizzle, a yelp, a flinch
+          e.scorch = 10;
           e.flee(f.cx, 45);
-          this.particles.burst(f.cx, f.cy, 4, '#c9ccd1', '#ffb347');
+          this.particles.burst(f.cx, f.cy, 5, '#ffb347', '#6b6470');
+          this.audio.play('burn');
+          if (Math.random() < 0.5) e.say(pick(e.variant === 'pig' ? PIG_HOT : HOT));
           this.puffHint();
           break;
         }

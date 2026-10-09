@@ -19,6 +19,8 @@ export interface HopperSpriteProps {
   variant?: HopperVariant;
   /** Floor under an airborne hopper, for a drop shadow. */
   groundY?: number | null;
+  /** Just hit by fire: flashes hot (0..1). */
+  scorch?: number;
 }
 
 export function drawHopperSprite(

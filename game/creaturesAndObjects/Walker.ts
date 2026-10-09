@@ -45,6 +45,8 @@ export class Walker extends creaturesAndObjects {
   jobCooldown = 60;
 
   say(text: string, frames = 70): void { this.quip = { text, t: frames }; }
+  /** Ticks left flashing hot after a puff of fire. */
+  scorch = 0;
 
   /** Run from a point (a raging toddler). */
   flee(fromX: number, frames: number): void {
@@ -101,6 +103,7 @@ export class Walker extends creaturesAndObjects {
   }
 
   update(ctx: UpdateCtx): void {
+    if (this.scorch > 0) this.scorch--;
     if (this.freed) {
       this.freed.update(this, ctx);
       if (this.freed.done) this.active = false;
@@ -247,6 +250,7 @@ export class Walker extends creaturesAndObjects {
     animFrame: this.animFrame,
     dying: this.dying,
     scaleY: this.scaleY,
+    scorch: this.scorch / 10,
     variant: this.variant,
     animTick: this.animTimer,
   });

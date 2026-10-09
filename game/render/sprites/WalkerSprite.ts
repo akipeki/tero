@@ -21,6 +21,8 @@ export interface WalkerSpriteProps {
   variant?: WalkerVariant;
   /** Ticks since spawn — drives animations that don't follow movement. */
   animTick?: number;
+  /** Just hit by fire: flashes hot (0..1). */
+  scorch?: number;
 }
 
 export function drawWalkerSprite(

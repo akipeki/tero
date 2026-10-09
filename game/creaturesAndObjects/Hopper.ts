@@ -33,6 +33,8 @@ export class Hopper extends creaturesAndObjects {
   private fleeX = 0;
 
   say(text: string, frames = 70): void { this.quip = { text, t: frames }; }
+  /** Ticks left flashing hot after a puff of fire. */
+  scorch = 0;
 
   flee(fromX: number, frames: number): void {
     if (!this.hittable) return;
@@ -53,6 +55,7 @@ export class Hopper extends creaturesAndObjects {
   get hittable(): boolean { return this.active && !this.dying && !this.freed; }
 
   update(ctx: UpdateCtx): void {
+    if (this.scorch > 0) this.scorch--;
     if (this.freed) {
       this.freed.update(this, ctx);
       this.groundY = null;
@@ -162,6 +165,7 @@ export class Hopper extends creaturesAndObjects {
       airborne: !this.onGround && !freed,
       dying: this.dying,
       scaleY: this.scaleY,
+      scorch: this.scorch / 10,
       variant: this.variant,
       groundY: this.groundY,
     });

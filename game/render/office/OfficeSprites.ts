@@ -3,6 +3,7 @@
 // Office versions of every entity sprite. Rig-drawn characters are rendered
 // once to canvases (both facings) and blitted at native size.
 
+import { drawScorch } from '../scorch';
 import { TILE_SIZE } from '../../constants';
 import { drawClerk, drawManager, drawSyncer, HUMAN_FRAME } from '../characters/humans';
 import {
@@ -125,14 +126,17 @@ export function riggedFacings(key: string, make: () => Raster, freed = false): F
 
 /** Draws a 32×32 human frame with its feet on the hitbox's bottom-centre. */
 function blitHuman(
-  ctx: CanvasRenderingContext2D, img: Facings, p: { x: number; y: number; w: number; h: number; camX: number; facingRight: boolean; scaleY: number },
+  ctx: CanvasRenderingContext2D, img: Facings, p: { x: number; y: number; w: number; h: number; camX: number; facingRight: boolean; scaleY: number; scorch?: number },
 ): void {
-  const footX = Math.round(p.x - p.camX + p.w / 2);
+  const k = p.scorch ?? 0;
+  const footX = Math.round(p.x - p.camX + p.w / 2) + (k > 0 ? (Math.round(k * 10) % 2 ? 1 : -1) : 0);
   const footY = Math.round(p.y + p.h);
   ctx.save();
   ctx.translate(footX, footY);
   ctx.scale(1, p.scaleY);
-  ctx.drawImage(p.facingRight ? img.right : img.left, -HUMAN_FRAME / 2, -HUMAN_FRAME);
+  const src = p.facingRight ? img.right : img.left;
+  ctx.drawImage(src, -HUMAN_FRAME / 2, -HUMAN_FRAME);
+  drawScorch(ctx, src, -HUMAN_FRAME / 2, -HUMAN_FRAME, k);
   ctx.restore();
 }
 
@@ -140,16 +144,37 @@ function blitHuman(
  *  the built-in 32px art, feet on the hitbox's bottom-centre. */
 function blitCustom(
   ctx: CanvasRenderingContext2D, s: StripImage, f: number,
-  p: { x: number; y: number; w: number; h: number; camX: number; facingRight: boolean; scaleY: number },
+  p: { x: number; y: number; w: number; h: number; camX: number; facingRight: boolean; scaleY: number; scorch?: number },
 ): void {
   const k = HUMAN_FRAME / s.fh;
   const dw = s.fw * k, dh = HUMAN_FRAME;
+  const hot = p.scorch ?? 0;
   ctx.save();
-  ctx.translate(Math.round(p.x - p.camX + p.w / 2), Math.round(p.y + p.h));
+  ctx.translate(Math.round(p.x - p.camX + p.w / 2) + (hot > 0 ? (Math.round(hot * 10) % 2 ? 1 : -1) : 0), Math.round(p.y + p.h));
   ctx.scale(p.facingRight ? 1 : -1, p.scaleY);
   if (k < 1) { ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high'; }
   ctx.drawImage(s.img, (f % s.frames) * s.fw, 0, s.fw, s.fh, -dw / 2, -dh, dw, dh);
+  // your own art flashes hot too: the frame's silhouette, tinted
+  if (hot > 0) {
+    const frame = stripFrame(s, f % s.frames);
+    if (frame) { ctx.save(); ctx.scale(dw / s.fw, dh / s.fh); drawScorch(ctx, frame, -s.fw / 2, -s.fh, hot); ctx.restore(); }
+  }
   ctx.restore();
+}
+
+/** One frame of a custom strip as its own canvas (cached), for tinting. */
+const frameCache = new Map<string, HTMLCanvasElement>();
+function stripFrame(s: StripImage, f: number): HTMLCanvasElement | null {
+  if (typeof document === 'undefined') return null;
+  const key = `${s.img.src}|${f}`;
+  let c = frameCache.get(key);
+  if (!c) {
+    c = document.createElement('canvas');
+    c.width = Math.round(s.fw); c.height = Math.round(s.fh);
+    c.getContext('2d')!.drawImage(s.img, f * s.fw, 0, s.fw, s.fh, 0, 0, s.fw, s.fh);
+    frameCache.set(key, c);
+  }
+  return c;
 }
 
 const WALKER_ART: Record<WalkerVariant, (f: number) => Raster> = {
