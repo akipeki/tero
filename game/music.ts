@@ -242,16 +242,18 @@ const CHAD_MELODY: string[][] = [
   ['A5', '-', '-', '.', 'E5', 'D5', 'C5', 'B4'],         // Am
 ];
 
-/** BOSS, MR. HALVORSEN: the keynote walk-on fanfare, D major, pompous. */
+/** BOSS, MR. HALVORSEN: a threat, not a fanfare. D minor, low growling
+ *  sawtooths, a pounding bass, an eerie organ, chromatic creeps and a flat
+ *  second (the E-flat chord) to make it wrong. The Da-da hook, sinister. */
 const HALVORSEN_MELODY: string[][] = [
-  ['D5', '-', 'F#5', '-', 'A5', '-', 'D6', '-'],         // D
-  ['B5', '-', '-', '.', 'G5', '-', 'B5', '-'],           // G
-  ['C#6', '-', 'E6', '-', 'A5', '-', 'C#6', '-'],        // A
-  ['D6', '-', '-', '.', 'da:F#6', '-', 'da:D6', '-'],    // D    "Da-da!"
-  ['D6', '-', 'B5', '-', 'F#5', '-', 'B5', '-'],         // Bm
-  ['G5', '-', 'B5', '-', 'D6', '-', 'G6', '-'],          // G
-  ['E6', '-', 'C#6', '-', 'A5', '-', 'E6', '-'],         // A
-  ['D6', '-', '-', '-', 'A5', '.', 'D6', '.'],           // D
+  ['D5', '-', '-', 'C#5', 'D5', '-', 'F5', '-'],         // Dm
+  ['F5', '-', 'E5', '-', 'D5', '-', 'A#4', '-'],         // Bb
+  ['G4', '-', 'A#4', '-', 'D5', '-', 'C#5', 'D5'],       // Gm
+  ['E5', '-', '-', '.', 'da:G5', '-', 'da:E5', '-'],     // A    "Da-da..."
+  ['A5', '-', 'G#5', '-', 'A5', '-', 'F5', '-'],         // Dm
+  ['G5', '-', 'D#5', '-', 'A#4', '-', 'G4', '-'],        // Eb (the wrong chord)
+  ['C#5', '-', 'E5', '-', 'G5', '-', 'A#5', '-'],        // A
+  ['A5', '-', '-', '-', 'D5', '-', '-', '.'],            // Dm
 ];
 
 // ─── Interlude jingles: short loops while the office takes over ─────────────
@@ -497,11 +499,12 @@ export const SONGS: Record<SongId, Song> = {
     bass: 'RORORORO', bassVoice: 'square', arp: 'fast',
   },
   boss_halvorsen: {
-    bpm: 132, melody: HALVORSEN_MELODY,
-    chords: [['D3'], ['G2'], ['A2'], ['D3'], ['B2m'], ['G2'], ['A2'], ['D3']],
-    drums: 'k.skk.s.', voice: 'brass', leadGain: 0.22,
-    bass: 'R.R.F.F.', bassVoice: 'triangle', pad: true, arp: 'up',
+    bpm: 126, melody: HALVORSEN_MELODY,
+    chords: [['D2m'], ['A#2'], ['G2m'], ['A2'], ['D2m'], ['D#2'], ['A2'], ['D2m']],
+    drums: 'kk.skk.s', voice: 'sawtooth', leadGain: 0.2,
+    bass: 'RRRRRRRA', bassVoice: 'sawtooth', bassGain: 0.36, pad: true, arp: 'off',
   },
+
 };
 
 // ─── Arrangements: every floor plays the theme its own way ───────────────────
