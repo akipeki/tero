@@ -136,6 +136,7 @@ export default function GameContainer() {
     game.onScore = (s) => setScore(s);
     game.onStory = setStory;
     game.onQuiz = setQuizOpen;
+    game.onMuteChange = setMuted;
     game.onStoryReveal = (n) => storyRevealRef.current?.(n);
     game.onChain = (chainSize, bonus) => {
       if (bonus > 0) pushFloater(`+${bonus} CHAIN×${chainSize}`);

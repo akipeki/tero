@@ -13,7 +13,7 @@ export interface SecretSignals {
   backwards: number;
   /** Paperwork tiles burnt this session. */
   burnt: number;
-  /** Deaths on this floor. */
+  /** Deaths on this floor, retries included. */
   deaths: number;
   /** Ticks spent hiding in the box this session. */
   boxed: number;

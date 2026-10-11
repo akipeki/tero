@@ -201,6 +201,8 @@ export class Game {
   private fallSpeed = 0;
   private secrets = new Secrets();
   private sig = { idle: 0, calls: 0, backwards: 0, burnt: 0, deaths: 0, boxed: 0 };
+  /** The floor `sig.deaths` is counting. */
+  private sigLevelId = '';
   private accumulator = 0;
   private lastTime    = 0;
   private rafId       = 0;
@@ -237,6 +239,8 @@ export class Game {
   onStoryReveal?:  (revealed: number) => void;
   /** The job application window opens (true) or closes (false). */
   onQuiz?:         (open: boolean) => void;
+  /** The M key muted or unmuted the game (so the mute button agrees). */
+  onMuteChange?:   (muted: boolean) => void;
   /** Big centre-screen shout: "TANTRUM READY!", "TANTRUM!!", "...hic." */
   onCallout?:      (text: string) => void;
 
@@ -343,7 +347,10 @@ export class Game {
 
   private update(): void {
     this.input.tick();
-    if (this.input.muteJustPressed) this.audio.toggleMute();
+    if (this.input.muteJustPressed) {
+      this.audio.toggleMute();
+      this.onMuteChange?.(this.audio.isMuted);
+    }
 
     switch (this.state) {
       case GameState.TITLE:     return this.updateTitle();
@@ -642,6 +649,7 @@ export class Game {
     }
 
     // Flames burn paper and (tantrum flames) free whoever they touch.
+    const people: (Walker | Hopper)[] = this.flames.length ? [...this.walkers, ...this.hoppers] : [];
     for (const f of this.flames) {
       f.update(ctx);
       if (f.rageEarned) this.player.addRage(f.rageEarned);
@@ -649,7 +657,7 @@ export class Game {
       if (!f.active) continue;
       if (!f.frees) {
         // a little puff only startles people (a tantrum sends them home)
-        for (const e of [...this.walkers, ...this.hoppers]) {
+        for (const e of people) {
           if (!e.hittable || !overlaps(f, e)) continue;
           f.active = false;
           // the same "that was hot" as a boss: flash, smoke, sizzle, a yelp, a flinch
@@ -674,7 +682,7 @@ export class Game {
         }
         continue;
       }
-      for (const e of [...this.walkers, ...this.hoppers]) {
+      for (const e of people) {
         if (e.hittable && overlaps(f, e)) e.burn(ctx);
       }
     }
@@ -1353,7 +1361,8 @@ export class Game {
   /** Workers freed this tick (by stomp, fire or tantrum body-slam). */
   private countSentHome(): void {
     let n = 0;
-    for (const e of [...this.walkers, ...this.hoppers]) {
+    const lists: (Walker | Hopper)[][] = [this.walkers, this.hoppers];
+    for (const list of lists) for (const e of list) {
       if (!e.sentHome) continue;
       e.sentHome = false;
       // A rat sent home drops what it stole.
@@ -1681,7 +1690,9 @@ export class Game {
     this.faxedFrames = 0;
     this.photocopy = null;
     this.photocopied = false;
-    this.sig.calls = 0; this.sig.deaths = 0; this.sig.backwards = 0; this.sig.idle = 0;
+    this.sig.calls = 0; this.sig.backwards = 0; this.sig.idle = 0;
+    // deaths count across retries of the same floor (3 lives, 5 for the secret)
+    if (this.sigLevelId !== this.currentLevelId) { this.sig.deaths = 0; this.sigLevelId = this.currentLevelId; }
     this.look = 0;
     this.premium = null;
     this.fire.clear();

@@ -15,7 +15,8 @@ export class InputHandler {
 
   /** True for exactly one tick after a mute keybind is pressed. */
   muteJustPressed = false;
-  private muteKeyDown = false;
+  /** M went down since the last tick (holding it doesn't repeat). */
+  private mutePending = false;
 
   private uiListeners = new Set<UiActionListener>();
 
@@ -36,8 +37,9 @@ export class InputHandler {
     this.bits       = this.keyboardBits | this.mobileBits | this.gamepadBits();
     this.justPressed = (this.bits & ~this.prevBits) | this.pressedSinceTick;
     this.pressedSinceTick = 0;
-    // mute one-shot is consumed by Game each frame
-    if (!this.muteKeyDown) this.muteJustPressed = false;
+    // mute is a one-shot: true for the one tick after M goes down
+    this.muteJustPressed = this.mutePending;
+    this.mutePending = false;
   }
 
   /** Any connected gamepad (standard mapping): stick or d-pad moves,
@@ -108,8 +110,7 @@ export class InputHandler {
     if (e.key === 'Enter') { this.fireUi('enter'); return; }
     if (e.key === 'r' || e.key === 'R') { this.fireUi('retry'); return; }
     if (e.key === 'm' || e.key === 'M') {
-      this.muteKeyDown = true;
-      this.muteJustPressed = true;
+      this.mutePending = true;
       return;
     }
     const action = keyToAction(e.key);
@@ -118,7 +119,7 @@ export class InputHandler {
   }
 
   private onKeyUp(e: KeyboardEvent): void {
-    if (e.key === 'm' || e.key === 'M') { this.muteKeyDown = false; return; }
+    if (e.key === 'm' || e.key === 'M') return;
     this.keyboardBits &= ~keyToAction(e.key);
   }
 
@@ -126,7 +127,6 @@ export class InputHandler {
    *  has focus instead — we'd be stuck "holding" keys forever. Flush. */
   private onBlur(): void {
     this.keyboardBits = 0;
-    this.muteKeyDown = false;
   }
 
   private onVisibility(): void {
