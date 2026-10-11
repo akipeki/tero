@@ -15,7 +15,11 @@ const THINGS_KEY = 'tero:dadThings';
 
 export type RunEvent = 'tantrum' | 'death' | 'sync' | 'fax' | 'alarm';
 
-export interface Split { levelId: string; name: string; timeMs: number }
+export interface Split {
+  levelId: string; name: string; timeMs: number;
+  /** What this clear added to the run totals (taken back out on a replay). */
+  sentHome?: number; coins?: number;
+}
 
 export interface RunData {
   splits:   Split[];
@@ -77,12 +81,17 @@ export class Run {
     return true;
   }
 
-  /** Records a cleared floor. Replaces an earlier split for the same floor
-   *  (a replay) so the totals stay honest. */
+  /** Records a cleared floor. A replay replaces the earlier split and its
+   *  workers and coins, so the totals stay honest. */
   floorCleared(levelId: string, name: string, timeMs: number, sentHome: number, coins: number, last: boolean, assist = false): void {
     if (assist) this.data.assist = true;
+    const old = this.data.splits.find((s) => s.levelId === levelId);
+    if (old) {
+      this.data.sentHome -= old.sentHome ?? 0;
+      this.data.coins -= old.coins ?? 0;
+    }
     this.data.splits = this.data.splits.filter((s) => s.levelId !== levelId);
-    this.data.splits.push({ levelId, name, timeMs });
+    this.data.splits.push({ levelId, name, timeMs, sentHome, coins });
     this.data.sentHome += sentHome;
     this.data.coins += coins;
     if (last) {

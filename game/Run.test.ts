@@ -13,7 +13,9 @@ describe('the whole run', () => {
     r.floorCleared('b_level_2', 'Cubicle Farm', 90_000, 4, 5, false);
     r.floorCleared('b_level_2', 'Cubicle Farm', 80_000, 0, 0, false);
     expect(r.totalMs).toBe(140_000);
-    expect(r.data.sentHome).toBe(11);
+    // the replay of floor 2 replaces its workers and coins too (7 + 0, 10 + 0)
+    expect(r.data.sentHome).toBe(7);
+    expect(r.data.coins).toBe(10);
     expect(r.data.finished).toBe(false);
     r.floorCleared('b_level_9', 'The Way Home', 70_000, 3, 1, true);
     expect(r.data.finished).toBe(true);
