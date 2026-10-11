@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { INTERLUDE_IDS } from './Interlude';
 import { STORY } from '../content/story/script';
 import { MAP } from './cubicle3d';
-import { chart } from './muzak';
+import { chart, ElevatorMuzak } from './muzak';
 import { TermsAndConditions } from './terms';
 import { Secrets } from '../Secrets';
 
@@ -44,6 +44,26 @@ describe('interludes', () => {
     const total = lanes.reduce((a, b) => a + b, 0);
     expect(total).toBeGreaterThan(30);
     for (const l of lanes) expect(l / total).toBeGreaterThan(0.12);
+  });
+
+  it('Elevator Muzak: the song ends even if every note is missed (the music loops)', () => {
+    const m = new ElevatorMuzak() as unknown as { phase: string; update: (h: unknown) => void };
+    m.phase = 'song';
+    // The real music's step wraps back to 0 after 128 steps, a little early
+    // (lookahead), like AudioManager.musicClock does.
+    let real = 0;
+    const host = {
+      input: { jumpPressed: false, firePressed: false, justPressedAction: () => false },
+      audio: { musicClock: () => ({ step: real, stepDur: 0.25 }), play: () => {}, setMuzak: () => {} },
+      shake: { trigger: () => {} },
+      callout: () => {},
+    };
+    for (let tick = 0; tick < 4000 && m.phase === 'song'; tick++) {
+      real += 0.12;
+      if (real > 126.4) real -= 128;
+      m.update(host);
+    }
+    expect(m.phase).toBe('result');
   });
 
   it('Terms & Conditions: every clause is within one jump of the last', () => {

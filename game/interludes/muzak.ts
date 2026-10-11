@@ -62,14 +62,16 @@ export class ElevatorMuzak extends Interlude {
   private reply = '';
   private notes = chart();
   private clockStep = 0;
+  /** Times the real music has looped back to bar 1 during the song. */
+  private loops = 0;
   private songLen = SONGS.main.melody.length * 8;
   private flashLane = [0, 0, 0, 0];
   private judge = ''; private judgeT = 0;
   private combo = 0; private best = 0;
   private hits = 0;
   private shake = 0;
-  private coworker = drawClerk(0).toCanvas();
-  private coworker2 = drawClerk(2).toCanvas();
+  /** The coworker's two poses (drawn on first use). */
+  private coworkers: HTMLCanvasElement[] | null = null;
 
   constructor() { super(); preloadTero(); }
 
@@ -98,7 +100,7 @@ export class ElevatorMuzak extends Interlude {
         if (this.phaseT > 20 && ok) {
           this.q++; this.cursor = 0;
           if (this.q < TALK.length) this.go('talk');
-          else { host.audio.setMuzak(true); this.clockStep = 0; this.go('song'); }
+          else { host.audio.setMuzak(true); this.clockStep = 0; this.loops = 0; this.go('song'); }
         }
         return;
       case 'song':
@@ -112,8 +114,14 @@ export class ElevatorMuzak extends Interlude {
 
   private updateSong(host: InterludeHost): void {
     // Follow the real music when there is some; otherwise our own clock.
+    // The music's own step wraps to 0 at the end of the loop; count the
+    // loops so our clock keeps going up (or the last note never ends).
     const clock = host.audio.musicClock();
-    if (clock) this.clockStep = clock.step;
+    if (clock) {
+      let step = clock.step + this.loops * this.songLen;
+      if (step < this.clockStep - this.songLen / 2) { this.loops++; step += this.songLen; }
+      this.clockStep = step;
+    }
     else this.clockStep += ((BPM + (ARRANGEMENTS.executive?.bpm ?? 0)) * 2) / 3600;
 
     const inp = host.input;
@@ -204,7 +212,8 @@ export class ElevatorMuzak extends Interlude {
     }
     // Tero and the coworker, standing awkwardly far apart
     drawTero(ctx, this.phase === 'result' ? 'win' : 'idle', Math.floor(this.t / 10), 80, 212, 64);
-    const cw = Math.floor(this.t / 40) % 2 ? this.coworker2 : this.coworker;
+    this.coworkers ??= [drawClerk(0).toCanvas(), drawClerk(2).toCanvas()];
+    const cw = this.coworkers[Math.floor(this.t / 40) % 2];
     ctx.save();
     ctx.translate(222, 212);
     ctx.scale(-2, 2);
