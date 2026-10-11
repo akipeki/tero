@@ -52,6 +52,13 @@ function writeAll(sessions: PlaytestSession[]): void {
   try { window.localStorage.setItem(KEY, JSON.stringify(sessions.slice(-MAX_SESSIONS))); } catch { /* full or blocked */ }
 }
 
+/** The name typed on /playtest. Storage can be blocked (an embed with
+ *  third-party storage off): then the game still runs, as 'anonymous'. */
+function testerName(): string {
+  if (typeof window === 'undefined') return 'anonymous';
+  try { return window.localStorage.getItem('tero:tester') || 'anonymous'; } catch { return 'anonymous'; }
+}
+
 /** One page load = one session. */
 export class PlaytestLog {
   private session: PlaytestSession;
@@ -60,7 +67,7 @@ export class PlaytestLog {
   constructor() {
     this.session = {
       id: Math.random().toString(36).slice(2, 10),
-      tester: (typeof window !== 'undefined' && window.localStorage?.getItem('tero:tester')) || 'anonymous',
+      tester: testerName(),
       startedAt: Date.now(),
       assist: false,
       events: [],
