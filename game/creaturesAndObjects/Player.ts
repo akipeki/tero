@@ -422,8 +422,10 @@ export class Player extends creaturesAndObjects {
     }
     if (this.onGround && !this.inTape) {
       const below = ctx.map.tileAtWorld(this.cx, this.bottom + 2);
-      const edgeL = ctx.map.solidAt(this.left + 1, this.bottom + 2);
-      const edgeR = ctx.map.solidAt(this.right - 1, this.bottom + 2);
+      // firm ground only: paperwork can burn away under the safe spot
+      const firm = (x: number) => ctx.map.solidAt(x, this.bottom + 2) && ctx.map.tileAtWorld(x, this.bottom + 2) !== TileType.PAPER;
+      const edgeL = firm(this.left + 1);
+      const edgeR = firm(this.right - 1);
       if (below !== TileType.HAZARD && edgeL && edgeR) { this.safeX = this.x; this.safeY = this.y; }
     }
     const footY = this.bottom - 1;
