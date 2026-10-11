@@ -400,7 +400,7 @@ export const STORY = defineStory({
         },        {
           atTile: 58,
           lines: [
-            { text: 'A PINK SLIPPER IN AN EVIDENCE BAG.\n"EXHIBIT A: DRESS CODE VIOLATION."' },
+            { text: 'DAD\'S OTHER SLIPPER, ON THE EVIDENCE TABLE.\n"EXHIBIT A: DRESS CODE VIOLATION."' },
             { who: 'tero', text: 'Dada shoe!' },
           ],
         },

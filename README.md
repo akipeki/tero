@@ -279,7 +279,7 @@ cameras, the parachute) are listed in a level's `gadgets` spawns.
   Share API with the image where supported, otherwise the text is copied).
 - **Speedrun timer**: T toggles it; splits and the best full run are on
   the end screen.
-- **Dad's things**: one per floor, hidden a little out of the way
+- **Dad's things**: one per floor (two on Floor 13: his other slipper), hidden a little out of the way
   (`DAD_THINGS` in `Gadgets.ts`). Each tells you something about Dad.
 - **Casual Friday** (`game/Mode.ts`): unlocked by finishing the game.
   Every suit becomes a loud Hawaiian shirt and the muzak goes ukulele.
@@ -299,7 +299,7 @@ cameras, the parachute) are listed in a level's `gadgets` spawns.
 - **Everyone you've freed waits by each elevator, cheering.**
 - **The pause menu is PAUSED.EXE** (quitting: "Your manager will see this");
   **game over is an HR exit interview** with the cause of death.
-- **A secret ending** if you find all of Dad's things (one per floor).
+- **A secret ending** if you find all of Dad's things.
 
 ### Interludes: the game keeps turning into other games
 

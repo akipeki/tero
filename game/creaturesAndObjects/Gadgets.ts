@@ -211,7 +211,8 @@ export function drawCanopy(ctx: CanvasRenderingContext2D, footX: number, footY: 
 }
 
 // ─── Dad's things ────────────────────────────────────────────────────────────
-// One per floor, tucked somewhere a little out of the way. Each says a bit
+// One per floor (Legal has two: Dad's other slipper is evidence there),
+// tucked somewhere a little out of the way. Each says a bit
 // about who Dad was before the job ate him. The end card counts them.
 
 export const DAD_THINGS: Record<string, { name: string; note: string }> = {
@@ -226,6 +227,7 @@ export const DAD_THINGS: Record<string, { name: string; note: string }> = {
   key:      { name: 'THE HOUSE KEY',            note: 'STILL FITS' },
   sandwich: { name: 'HALF A SANDWICH WRAPPER',  note: 'IN DAD\'S WRITING: "FOR THE DOG"' },
   badge:    { name: 'DAD\'S OLD ID BADGE',       note: 'THE PHOTO IS FROM BEFORE. HE\'S SMILING.' },
+  slipper2: { name: 'EXHIBIT A: ONE SLIPPER',   note: 'THE OTHER IS ON FLOOR 21' },
 };
 
 export class DadThing extends creaturesAndObjects {

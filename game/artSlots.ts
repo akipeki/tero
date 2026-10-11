@@ -52,8 +52,8 @@ export const ART_SLOTS: Record<ArtSlotId, ArtSlot> = {
     notes: 'Faces right, paws on the bottom edge. Tero sits on his back about 26 px above the paws, roughly at his middle.',
   },
   dad_things: {
-    id: 'dad_things', title: 'Dad\'s things (one per floor)', w: 16, h: 16,
-    frames: ['watch', 'drawing', 'photo', 'letter', 'slipper', 'buspass', 'book', 'remote', 'key', 'sandwich', 'badge'],
+    id: 'dad_things', title: 'Dad\'s things (one per floor, two on Floor 13)', w: 16, h: 16,
+    frames: ['watch', 'drawing', 'photo', 'letter', 'slipper', 'buspass', 'book', 'remote', 'key', 'sandwich', 'badge', 'slipper2'],
     notes: 'Little icons. The pink glow behind them is drawn by code.',
   },
   fireball: {

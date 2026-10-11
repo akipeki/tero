@@ -44,15 +44,17 @@ describe('the whole run', () => {
 });
 
 describe('Dad\'s things', () => {
-  it('every floor hides exactly one, in open air, and every id is known', () => {
+  it('every floor hides one (Legal two), in open air, and every id is known', () => {
     const seen = new Set<string>();
     for (const L of LEVELS) {
-      const things = (L.spawns.gadgets ?? []).filter((g) => g.type === 'thing');
-      expect(things, L.name).toHaveLength(1);
-      const t = things[0] as { tx: number; ty: number; id: string };
-      expect(L.tiles[t.ty * L.width + t.tx], `${L.name} thing tile`).toBe(TileType.AIR);
-      expect(DAD_THINGS[t.id], t.id).toBeDefined();
-      seen.add(t.id);
+      const things = (L.spawns.gadgets ?? []).filter((g) => g.type === 'thing') as { tx: number; ty: number; id: string }[];
+      expect(things, L.name).toHaveLength(L.name === 'Legal' ? 2 : 1);
+      for (const t of things) {
+        expect(L.tiles[t.ty * L.width + t.tx], `${L.name} thing tile`).toBe(TileType.AIR);
+        expect(DAD_THINGS[t.id], t.id).toBeDefined();
+        expect(seen.has(t.id), `${t.id} used twice`).toBe(false);
+        seen.add(t.id);
+      }
     }
     expect(seen.size).toBe(Object.keys(DAD_THINGS).length);
   });

@@ -25,7 +25,7 @@ gain the most from hand-drawn pixel art, in this order:
    rigs and **scaled 2×**, so their pixels are twice the size of
    everything else ("mixels"). That's the one real visual flaw left.
    Halvorsen is fine, but would benefit from a proper walk cycle.
-3. **Dad's things (9 icons).** They're all the same pink "D" box right now.
+3. **Dad's things (12 icons).** They're all the same pink "D" box right now.
    Each one should be its own object (watch, drawing, photo…).
 
 The enemies are good enough to ship. Redraw them only if you're restyling
@@ -204,7 +204,7 @@ All bright, 1 px dark outline `#1b1620`.
 
 | Object | Size | Frames | Notes |
 |---|---|---|---|
-| **Dad's things** (10 icons) | 16 × 16 each | 1 | watch (stopped), crayon drawing, wedding photo, letter, slipper, bus pass, paperback "HOW TO SAY NO", TV remote, house key, sandwich wrapper ("FOR THE DOG"). One strip `art/dad_things.png` **160 × 16** in that order. Soft pink glow is drawn by code. |
+| **Dad's things** (12 icons) | 16 × 16 each | 1 | watch (stopped), crayon drawing, wedding photo, letter, slipper, bus pass, paperback "HOW TO SAY NO", TV remote, house key, sandwich wrapper ("FOR THE DOG"), old ID badge, the other slipper (mirrored). One strip `art/dad_things.png` **192 × 16** in that order. Soft pink glow is drawn by code. |
 | Fireball | 24 × 24 | 4 | Spark → full fireball → fading → smoke. `fireball.png` 96 × 24. Should read as **baby** fire: round, cute, a bit wobbly. |
 | Puff (hiccup) | 16 × 16 | 3 | A sad little smoke ring with one ember |
 | Cardboard hide box | 34 × 24 | 2 | Frame 2: the peephole blinks |

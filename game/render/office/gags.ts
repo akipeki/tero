@@ -1841,23 +1841,21 @@ export const GAGS = {
     return r;
   }),
 
-  /** Floor 13: Dad's other slipper, bagged and tagged by Legal. */
+  /** Floor 13: the evidence table. Dad's other slipper (a Dad's thing,
+   *  Gadgets.ts) floats above it; the bag is open and empty. */
   dad_slipper: { ...clueFloor(() => {
     const r = new Raster(48, 40);
     const fl = 39;
     // the evidence table
     box(r, 2, fl - 14, 44, 3, C.woodLight);
     r.rect(4, fl - 11, 3, 11, C.woodDark); r.rect(41, fl - 11, 3, 11, C.woodDark);
-    // a clear plastic evidence bag, red zip on top
-    box(r, 10, fl - 28, 28, 13, '#dfeef6');
-    r.rect(10, fl - 28, 28, 1, C.red);
-    // the slipper inside
-    r.part(C.ink, (t) => { t.ellipse(24, fl - 20, 9, 3.5, C.pink); });
-    r.rect(18, fl - 23, 7, 2, '#ff6f86');
+    // the evidence bag, unzipped and empty (the slipper got out)
+    box(r, 10, fl - 21, 28, 6, '#dfeef6');
+    r.rect(10, fl - 21, 10, 1, C.red); r.rect(28, fl - 21, 10, 1, C.red);
     // the tag
     box(r, 5, 1, 38, 7, C.paper);
     drawTextCentered(r, 'EXHIBIT A', 5, 38, 2, C.red);
-    r.line(24, 9, 24, fl - 29, C.ink);
+    r.line(24, 9, 24, fl - 22, C.ink);
     return r;
   }), bright: true },   // full colour: it's a clue
 
