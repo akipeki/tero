@@ -234,16 +234,19 @@ const PENTHOUSE_MELODY: string[][] = [
   ['G5', '-', '-', '-', '-', '-', '.', '.'],             // Gm
 ];
 
-/** BOSS, CHAD: a sales jingle (C major, cheerful) that turns aggressive. */
+/** BOSS, CHAD: his sales jingle, gone evil. The same bouncy shape, now in
+ *  C minor on a music-box bell (a toy smile over something wrong), a
+ *  pounding sawtooth bass, eerie chip glitter on top, a D-flat chord that
+ *  doesn't belong and chromatic slides down. The Da-da hook, mocking. */
 const CHAD_MELODY: string[][] = [
-  ['C6', '.', 'G5', '.', 'E5', 'G5', 'C6', '.'],         // C
-  ['B5', '.', 'G5', '.', 'D5', 'G5', 'B5', '.'],         // G
-  ['A5', '.', 'E5', '.', 'C5', 'E5', 'A5', '.'],         // Am
-  ['G#5', '-', '-', '.', 'da:B5', '-', 'da:G#5', '-'],   // E    "Da-da!"
-  ['A5', 'A5', '.', 'A5', 'C6', '.', 'A5', '.'],         // F
-  ['B5', 'B5', '.', 'B5', 'D6', '.', 'B5', '.'],         // G
-  ['C6', 'B5', 'A5', 'G#5', 'E5', '.', 'G#5', '.'],      // Am E
-  ['A5', '-', '-', '.', 'E5', 'D5', 'C5', 'B4'],         // Am
+  ['C6', '.', 'G5', '.', 'D#5', 'G5', 'C6', '.'],        // Cm
+  ['C6', '.', 'G#5', '.', 'D#5', 'G#5', 'G5', '.'],      // Ab
+  ['G#5', '.', 'F5', '.', 'C5', 'F5', 'G#5', '.'],       // Fm
+  ['B5', '-', '-', '.', 'da:D6', '-', 'da:B5', '-'],     // G    "Da-da..."
+  ['C#6', 'C#6', '.', 'C#6', 'F6', '.', 'C#6', '.'],     // Db (the wrong chord)
+  ['C6', 'C6', '.', 'C6', 'D#6', '.', 'C6', '.'],        // Ab
+  ['G#5', 'G5', 'F#5', 'G5', 'B5', '.', 'D6', '.'],      // Fm G
+  ['C6', '-', '-', '.', 'G5', 'F#5', 'F5', 'D#5'],       // Cm  (sliding down)
 ];
 
 /** BOSS, THE BOARD: heavy metal on an 8-bit chip. E Phrygian (the F chord
@@ -458,10 +461,10 @@ export const SONGS: Record<SongId, Song> = {
     bass: 'RORORORO', bassVoice: 'square', arp: 'fast',
   },
   boss_chad: {
-    bpm: 150, melody: CHAD_MELODY,
-    chords: [['C3'], ['G2'], ['A2m'], ['E2'], ['F2'], ['G2'], ['A2m', 'E2'], ['A2m']],
-    drums: 'kkshkksh', voice: 'brass', leadGain: 0.22,
-    bass: 'RORORORO', bassVoice: 'square', arp: 'up',
+    bpm: 144, melody: CHAD_MELODY,
+    chords: [['C3m'], ['G#2'], ['F2m'], ['G2'], ['C#3'], ['G#2'], ['F2m', 'G2'], ['C3m']],
+    drums: 'kks.kkss', voice: 'bell', leadGain: 0.4,
+    bass: 'RRRRRRRA', bassVoice: 'sawtooth', bassGain: 0.34, arp: 'fast',
   },
   jingle_vhs: {
     bpm: 108, melody: VHS_MELODY,
