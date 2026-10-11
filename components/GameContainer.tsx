@@ -162,6 +162,11 @@ export default function GameContainer() {
       const div = playerDivRef.current;
       if (!div) return;
 
+      // FAXED: the copy came out upside down (canvas and Tero together).
+      // Set before any early return, so hiding or leaving can't leave it flipped.
+      const vp = viewportRef.current;
+      if (vp) vp.style.transform = data?.upsideDown ? 'scaleY(-1)' : '';
+
       const box = boxDivRef.current;
       if (!data) {
         div.style.display = 'none';
@@ -211,9 +216,6 @@ export default function GameContainer() {
         ? `drop-shadow(0 0 ${still ? 3 : 2 + Math.round(Math.random() * 3)}px #ff3b1f) saturate(1.5) brightness(1.08)`
         : data.faxed ? 'grayscale(1) contrast(1.8) brightness(1.1)'
         : '';
-      // FAXED: the copy came out upside down (canvas and Tero together)
-      const vp = viewportRef.current;
-      if (vp) vp.style.transform = data.upsideDown ? 'scaleY(-1)' : '';
       div.style.display = 'block';
 
       // Single images and strips share one path: a strip is just frames > 1.
