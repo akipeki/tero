@@ -511,6 +511,7 @@ export class AudioManager {
       case 'k': this.kick(t, bus); break;
       case 's': this.noise(t, 0.12, 0.3, bus, 1500); break;
       case 'h': this.noise(t, 0.03, 0.08, bus, 7000); break;
+      case 'c': this.kick(t, bus); this.noise(t, 0.5, 0.16, bus, 5000); break;
     }
   }
 
@@ -541,6 +542,17 @@ export class AudioManager {
       case 'brass':                 // synth brass: a sawtooth whose filter opens
         this.brass(f, t, dur, gain, dest);
         return;
+      case 'chip':                  // 8-bit shred: two squares a few cents apart
+        this.pitched(f, t, dur, 'square', gain, dest, 0.004);
+        this.pitched(f * 1.006, t, dur, 'square', gain * 0.7, dest, 0.004);
+        return;
+      case 'power': {               // 8-bit power chord: root, fifth, octave, palm-muted
+        const mute = dur > 0.3 ? dur : Math.min(dur, 0.16);   // held ones ring
+        this.decayed(f, t, mute, 'square', gain, dest);
+        this.decayed(f * 1.5, t, mute, 'square', gain * 0.7, dest);
+        this.decayed(f * 2, t, mute, 'sawtooth', gain * 0.5, dest);
+        return;
+      }
       default:
         this.pitched(f, t, dur, v, gain, dest, 0.01);
     }

@@ -72,18 +72,22 @@ export function chordTones(token: string): number[] {
 export type SongId =
   | 'main' | 'boss' | 'vents' | 'compliance' | 'cubicles' | 'boardroom'
   | 'legal' | 'lab' | 'security' | 'executive' | 'penthouse' | 'escape'
-  | 'boss_chad' | 'boss_halvorsen'
+  | 'boss_chad' | 'boss_halvorsen' | 'boss_board'
   | 'jingle_vhs' | 'jingle_hold' | 'jingle_call' | 'jingle_battle' | 'jingle_fineprint'
   | 'jingle_fps' | 'jingle_premium' | 'jingle_win' | 'jingle_race';
 
 /** Instruments the sequencer can play. The plain waveforms, plus a few
  *  built from them (see AudioManager.instrument). */
-export type Voice = OscillatorType | 'pluck' | 'organ' | 'brass' | 'bell' | 'harpsi';
+export type Voice = OscillatorType | 'pluck' | 'organ' | 'brass' | 'bell' | 'harpsi'
+  /** 8-bit metal: two detuned squares (the shred lead) · a palm-muted
+   *  root-fifth-octave power chord in pulse waves (the chug). */
+  | 'chip' | 'power';
 
 export interface Song {
   bpm: number;
   melody: string[][];
   chords: string[][];
+  /** k kick · s snare · h hat · c crash (with a kick) · . rest */
   drums: string;
   /** A floor song with its own sound. Without it the floor's arrangement
    *  decides (that's how the main theme works on every floor). */
@@ -242,6 +246,21 @@ const CHAD_MELODY: string[][] = [
   ['A5', '-', '-', '.', 'E5', 'D5', 'C5', 'B4'],         // Am
 ];
 
+/** BOSS, THE BOARD: heavy metal on an 8-bit chip. E Phrygian (the F chord
+ *  is the flat second), a tritone (B-flat) in the riffs, shredded runs on two
+ *  detuned squares, palm-muted power chords, double kick and crashes.
+ *  The Da-da hook, as a scream. */
+const BOARD_MELODY: string[][] = [
+  ['E5', '.', 'E5', 'F5', 'E5', '.', 'B4', '.'],         // Em
+  ['F5', '-', 'E5', '-', 'C5', '-', 'B4', '-'],          // F
+  ['E5', 'G5', 'B5', 'G5', 'E5', 'G5', 'A#5', '-'],      // Em (the tritone)
+  ['B5', '-', '-', '.', 'da:B5', '-', 'da:A#5', '-'],    // B    "DA-DA!"
+  ['E6', 'D6', 'B5', 'G5', 'E6', 'D6', 'B5', 'G5'],      // C    (shred)
+  ['F6', 'E6', 'C6', 'A5', 'F6', 'E6', 'C6', 'A5'],      // F    (shred)
+  ['G5', 'A#5', 'B5', 'D6', 'F6', '-', 'E6', 'D#6'],     // Bb → B
+  ['E6', '-', '-', '-', 'B5', '.', 'E5', '.'],           // Em
+];
+
 /** BOSS, MR. HALVORSEN: a threat, not a fanfare. D minor, low growling
  *  sawtooths, a pounding bass, an eerie organ, chromatic creeps and a flat
  *  second (the E-flat chord) to make it wrong. The Da-da hook, sinister. */
@@ -377,7 +396,7 @@ export const FLOOR_SONGS: Partial<Record<string, SongId>> = {
 export const BOSS_SONGS: Record<string, SongId> = {
   recruiter: 'boss_chad',
   halvorsen: 'boss_halvorsen',
-  board: 'boss',
+  board: 'boss_board',
 };
 
 export const SONGS: Record<SongId, Song> = {
@@ -503,6 +522,12 @@ export const SONGS: Record<SongId, Song> = {
     chords: [['D2m'], ['A#2'], ['G2m'], ['A2'], ['D2m'], ['D#2'], ['A2'], ['D2m']],
     drums: 'kk.skk.s', voice: 'sawtooth', leadGain: 0.2,
     bass: 'RRRRRRRA', bassVoice: 'sawtooth', bassGain: 0.36, pad: true, arp: 'off',
+  },
+  boss_board: {
+    bpm: 176, melody: BOARD_MELODY,
+    chords: [['E2m'], ['F2'], ['E2m'], ['B2'], ['C3'], ['F2'], ['A#2', 'B2'], ['E2m']],
+    drums: 'ckskkksk', voice: 'chip', leadGain: 0.22,
+    bass: 'RRR.RR-A', bassVoice: 'power', bassGain: 0.42, arp: 'off',
   },
 
 };
