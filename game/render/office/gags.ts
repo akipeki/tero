@@ -1832,14 +1832,34 @@ export const GAGS = {
     // sleeping bag + pillow underneath
     r.part(C.ink, (t) => { t.rect(10, fl - 8, 50, 7, C.teal); t.ellipse(14, fl - 7, 5, 3, C.white); });
     r.rect(20, fl - 8, 1, 7, '#246e6a');
-    // slippers
-    r.part(C.ink, (t) => { t.ellipse(62, fl - 2, 3, 1.5, C.pink); t.ellipse(66, fl - 1, 3, 1.5, C.pink); });
+    // one slipper (the other one is evidence on Floor 13)
+    r.part(C.ink, (t) => { t.ellipse(64, fl - 2, 3, 1.5, C.pink); });
     // sign taped to the desk
     box(r, 8, fl - 38, 60, 13, C.paper);
     drawTextCentered(r, 'DO NOT DISTURB', 8, 60, fl - 36, C.red);
     drawTextCentered(r, 'Q3 CLOSE', 8, 60, fl - 30, C.ink);
     return r;
   }),
+
+  /** Floor 13: Dad's other slipper, bagged and tagged by Legal. */
+  dad_slipper: { ...clueFloor(() => {
+    const r = new Raster(48, 40);
+    const fl = 39;
+    // the evidence table
+    box(r, 2, fl - 14, 44, 3, C.woodLight);
+    r.rect(4, fl - 11, 3, 11, C.woodDark); r.rect(41, fl - 11, 3, 11, C.woodDark);
+    // a clear plastic evidence bag, red zip on top
+    box(r, 10, fl - 28, 28, 13, '#dfeef6');
+    r.rect(10, fl - 28, 28, 1, C.red);
+    // the slipper inside
+    r.part(C.ink, (t) => { t.ellipse(24, fl - 20, 9, 3.5, C.pink); });
+    r.rect(18, fl - 23, 7, 2, '#ff6f86');
+    // the tag
+    box(r, 5, 1, 38, 7, C.paper);
+    drawTextCentered(r, 'EXHIBIT A', 5, 38, 2, C.red);
+    r.line(24, 9, 24, fl - 29, C.ink);
+    return r;
+  }), bright: true },   // full colour: it's a clue
 
   /** Floor 33: Dad himself, at his laptop, next to the elevator. */
   dad_desk: clueFloor(() => {

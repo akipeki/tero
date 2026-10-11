@@ -397,6 +397,12 @@ export const STORY = defineStory({
             { text: 'A SOUL TRANSFER AGREEMENT.\nSIGNED: #4471.' },
             { who: 'tero', text: 'Dada soul?!' },
           ],
+        },        {
+          atTile: 58,
+          lines: [
+            { text: 'A PINK SLIPPER IN AN EVIDENCE BAG.\n"EXHIBIT A: DRESS CODE VIOLATION."' },
+            { who: 'tero', text: 'Dada shoe!' },
+          ],
         },
       ],
       scenery: [
@@ -405,6 +411,7 @@ export const STORY = defineStory({
         { atTile: 32, gag: 'orphan_plan' },
         { atTile: 48, gag: 'soul_contract' },
         { atTile: 60, gag: 'banner_family' },
+        { atTile: 60, gag: 'dad_slipper' },
         { atTile: 71, gag: 'vhs_archive' },
       ],
       outro: [
@@ -439,7 +446,7 @@ export const STORY = defineStory({
         {
           atTile: 34,
           lines: [
-            { text: 'A SLEEPING BAG UNDER A DESK.\nDAD\'S SLIPPERS. DAD\'S PILLOW.' },
+            { text: 'A SLEEPING BAG UNDER A DESK.\nONE SLIPPER. DAD\'S PILLOW.' },
             { who: 'tero', text: 'Dada sleep... HERE?' },
           ],
         },

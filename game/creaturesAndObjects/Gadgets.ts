@@ -219,7 +219,7 @@ export const DAD_THINGS: Record<string, { name: string; note: string }> = {
   drawing:  { name: 'TERO\'S DRAWING',          note: 'PINNED IN HIS CUBICLE' },
   photo:    { name: 'THE WEDDING PHOTO',        note: 'FACE DOWN IN A DRAWER' },
   letter:   { name: 'A RESIGNATION LETTER',     note: 'WRITTEN. NEVER SENT.' },
-  slipper:  { name: 'ONE SLIPPER',              note: 'THE OTHER IS ON FLOOR 21' },
+  slipper:  { name: 'ONE SLIPPER',              note: 'THE OTHER IS ON FLOOR 13' },
   buspass:  { name: 'HIS BUS PASS',             note: 'EXPIRED 1991' },
   book:     { name: '"HOW TO SAY NO"',          note: 'BOOKMARK ON PAGE 2' },
   remote:   { name: 'THE TV REMOTE',            note: 'SATURDAY CARTOONS' },
