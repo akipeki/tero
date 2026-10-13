@@ -1,6 +1,6 @@
 # WHERE IS DADA? — sprite prompts (text only)
 
-35 sprite jobs for an image AI. Every job is one PNG file.
+36 sprite jobs for an image AI. Every job is one PNG file.
 
 ## Instructions for the image AI (read this first)
 
@@ -31,7 +31,7 @@ If you can't make the exact pixel size, make it at an exact whole multiple (2×,
 
 Priority 1. Tero is a two-year-old HUMAN BABY in a green dragon costume, not a real dragon. Every frame is 64×64. He is about 44 px tall; his feet are on y = 61–62 and his body is centred near x = 32. Once you have an approved idle frame (T1), give it and the walk strip to the image AI as references for every other animation.
 
-### Job 1 of 35: Idle
+### Job 1 of 36: Idle
 
 - **Save as:** `public/sprites/player/idle.png`
 - **Size:** 8 frames of 64×64, as one strip **512×64**
@@ -48,7 +48,7 @@ When this image is done, start **Job 2**.
 
 ---
 
-### Job 2 of 35: Walk
+### Job 2 of 36: Walk
 
 - **Save as:** `public/sprites/player/walk.png`
 - **Size:** 8 frames of 64×64, as one strip **512×64**
@@ -65,7 +65,7 @@ When this image is done, start **Job 3**.
 
 ---
 
-### Job 3 of 35: Jump
+### Job 3 of 36: Jump
 
 - **Save as:** `public/sprites/player/jump.png`
 - **Size:** 2 frames of 64×64, as one strip **128×64**
@@ -82,7 +82,7 @@ When this image is done, start **Job 4**.
 
 ---
 
-### Job 4 of 35: Fall
+### Job 4 of 36: Fall
 
 - **Save as:** `public/sprites/player/fall.png`
 - **Size:** 2 frames of 64×64, as one strip **128×64**
@@ -99,7 +99,7 @@ When this image is done, start **Job 5**.
 
 ---
 
-### Job 5 of 35: Duck
+### Job 5 of 36: Duck
 
 - **Save as:** `public/sprites/player/duck.png`
 - **Size:** 1 frame of 64×64, as one strip **64×64**
@@ -116,7 +116,7 @@ When this image is done, start **Job 6**.
 
 ---
 
-### Job 6 of 35: Hurt
+### Job 6 of 36: Hurt
 
 - **Save as:** `public/sprites/player/hurt.png`
 - **Size:** 2 frames of 64×64, as one strip **128×64**
@@ -133,7 +133,7 @@ When this image is done, start **Job 7**.
 
 ---
 
-### Job 7 of 35: Lose
+### Job 7 of 36: Lose
 
 - **Save as:** `public/sprites/player/lose.png`
 - **Size:** 1 frame of 64×64, as one strip **64×64**
@@ -150,7 +150,7 @@ When this image is done, start **Job 8**.
 
 ---
 
-### Job 8 of 35: Win
+### Job 8 of 36: Win
 
 - **Save as:** `public/sprites/player/win.png`
 - **Size:** 4 frames of 64×64, as one strip **256×64**
@@ -167,7 +167,7 @@ When this image is done, start **Job 9**.
 
 ---
 
-### Job 9 of 35: Fire breath
+### Job 9 of 36: Fire breath
 
 - **Save as:** `public/sprites/player/breathe.png`
 - **Size:** 2 frames of 64×64, as one strip **128×64**
@@ -184,7 +184,7 @@ When this image is done, start **Job 10**.
 
 ---
 
-### Job 10 of 35: Glide
+### Job 10 of 36: Glide
 
 - **Save as:** `public/sprites/player/glide.png`
 - **Size:** 2 frames of 64×64, as one strip **128×64**
@@ -201,7 +201,24 @@ When this image is done, start **Job 11**.
 
 ---
 
-### Job 11 of 35: Dada
+### Job 11 of 36: Riding Elvis
+
+- **Save as:** `public/sprites/player/ride.png`
+- **Size:** 2 frames of 64×64, as one strip **128×64**
+- **Frame order:** ride0, ride1
+- **What it is:** Riding Elvis the office dog (The Vents). Tero only: the game draws him on top of Elvis, whose own run, jump and yelp frames keep playing underneath. Sitting astride, legs bent forward around the dog's back, both hands gripping the neck fur, a huge grin. Frame 1 sits down, frame 2 bounces up on the gallop (also used in the air). Keep his feet on the usual baseline: the game puts that line on the dog's back.
+
+**Prompt:**
+
+```text
+Use case: identity-preserve. Create TWO frames of a RIDING sprite animation of EXACTLY the approved Tero [T1] in the supplied reference sprite sheets (appearance only). The references show appearance and style, not poses to reproduce. Keep the exact character and the low-resolution chunky pixel density. Tero is a cute two-year-old HUMAN BABY dressed in a green dinosaur/dragon costume, not an actual dragon: exposed peach face in a round oversized dragon hood, rounded head, a big eye and a smaller far eye in the right-facing side view, a short costume snout, two cream horn nubs, an orange crest, tiny orange wing nubs, a cream ROUND BELLY PANEL with a dark ZIPPER and pull exactly as T1, a white cloth diaper with a gold safety pin, short legs with big floppy three-toed footie feet, a short padded green tail with an orange arrow tip, and a light-blue pacifier. Mandatory base colors: green costume #84cc64, orange costume parts #f88004, human face #fcd4ac, cream belly #f6e7b2, outline #1e2a2b. Match the reference highlight and shadow colors. Poses only: two adjacent frames facing RIGHT of Tero sitting astride an invisible big dog: knees bent and legs forward around its back, the near floppy footie foot hanging down, both hands reaching forward gripping neck fur, leaning forward with a huge open-mouth grin (pacifier out). Frame 1 seated low; frame 2 bounced up about 2 px with the hood horns, crest and padded tail flying back. Do NOT draw the dog or a saddle: the game draws Tero on top of the dog. The lowest pixels (the dangling foot) sit on the same baseline as every other Tero frame. Preserve the T1 human face, the round hood silhouette and the recognizable costume, no redesign. Intended export: exact 128x64 transparent PNG: TWO touching 64x64 cells horizontally, centered at a matching horizontal anchor, no clipping anywhere. Very chunky native 64px SNES sprite pixel art, crisp obvious square pixel clusters, strong ONE native pixel #1e2a2b outline, three-tone solid shading clusters. NO antialiasing, gradients, blur, painterly texture, tiny details, text or cell borders. TRUE TRANSPARENT RGBA background, NO checkerboard pattern or other background, no ground. Output only the sprites, not the reference strips.
+```
+
+When this image is done, start **Job 12**.
+
+---
+
+### Job 12 of 36: Dada
 
 - **Save as:** `public/sprites/player/dad.png`
 - **Size:** 1 frame of 64×64, as one strip **64×64**
@@ -214,7 +231,7 @@ When this image is done, start **Job 11**.
 Use case: identity-preserve (style). Create ONE frame of DADA, the father of the approved Tero [T1] in the supplied reference sprite sheets. The Tero references show the art style, pixel density and costume design only; Dada is a different, adult character. Dada is a tired adult HUMAN MAN dressed in a FADED dragon costume that matches his toddler son's: exposed tired human face #fcd4ac in a round dragon hood, two cream horn nubs, a short costume snout, a faded orange crest, a padded tail with a faded orange arrow tip, a cream ROUND BELLY PANEL with a dark ZIPPER and pull exactly like Tero's, big floppy three-toed footie feet. The costume is washed out and greyed by six months of office work: base green desaturated toward grey-green #8fa88a, orange parts dulled toward #c07a3a, belly #e6dcb8. Office details worn over the costume: an ID lanyard with a badge, a loosened dark necktie, a coffee stain on the belly panel. Heavy bags under his eyes, light stubble, a small tired smile. Pose: standing slumped, shoulders down, arms hanging, facing RIGHT in side view, feet on the bottom edge. About 56 px tall, so he is clearly a grown-up next to the 44 px tall Tero. Intended export exact 64x64 transparent PNG: ONE 64x64 cell, centered, no clipping anywhere. Very chunky native 64px SNES sprite pixel art, crisp obvious square pixel clusters, strong ONE native pixel #1e2a2b outline, three-tone solid shading clusters. NO antialiasing, gradients, blur, painterly texture, tiny details, text or cell borders. TRUE TRANSPARENT RGBA background, NO checkerboard pattern or other background, no ground. Output only the one sprite, not the reference strips.
 ```
 
-When this image is done, start **Job 12**.
+When this image is done, start **Job 13**.
 
 ---
 
@@ -223,7 +240,7 @@ When this image is done, start **Job 12**.
 
 Priority 2. These are art slots, so draw exactly the frames listed, in this order, at exactly this size.
 
-### Job 12 of 35: Chad from Talent Acquisition
+### Job 13 of 36: Chad from Talent Acquisition
 
 - **Save as:** `public/sprites/art/recruiter.png`
 - **Size:** 5 frames of 40×48, as one strip **200×48**
@@ -236,11 +253,11 @@ Priority 2. These are art slots, so draw exactly the frames listed, in this orde
 Pixel art game sprite, SNES-era style, transparent background, 1-pixel dark outline, soft 3-tone shading, no anti-aliasing against the background, clean readable silhouette, side view. A smug corporate recruiter who is a pink pig, in a tight slim-fit navy suit, a TALENT lanyard, sunglasses pushed up on his head, holding a clipboard, facing right, feet on the bottom edge. 5 frames as a horizontal strip 200×48 (each 40×48): walk 1, walk 2, throwing a business card, dashing forward, hurt wince. Outline #1b1620.
 ```
 
-When this image is done, start **Job 13**.
+When this image is done, start **Job 14**.
 
 ---
 
-### Job 13 of 35: Mr. Halvorsen
+### Job 14 of 36: Mr. Halvorsen
 
 - **Save as:** `public/sprites/art/halvorsen.png`
 - **Size:** 5 frames of 40×60, as one strip **200×60**
@@ -253,11 +270,11 @@ When this image is done, start **Job 13**.
 Pixel art game sprite, SNES-era style, transparent background, 1-pixel dark outline, soft 3-tone shading, no anti-aliasing against the background, clean readable silhouette, side view. A tall gaunt zombie-grey corporate presenter (skin exactly #a8b394, #c9d1b4, #76826a), slicked combover, square glasses with glowing red pupils (#ff4848), a TED-talk headset microphone, navy pinstripe suit (#26305a, #34407a, #181e3c), a red tie (#b8343a) hanging to his knees, a presentation clicker in hand, facing right, feet on the bottom edge. 5 frames as a horizontal strip 200×60 (each 40×60): walk 1, walk 2, presenting with the clicker arm out, throwing a pie chart, hurt with glasses askew. Outline #1b1620.
 ```
 
-When this image is done, start **Job 14**.
+When this image is done, start **Job 15**.
 
 ---
 
-### Job 14 of 35: THE BOARD (five heads)
+### Job 15 of 36: THE BOARD (five heads)
 
 - **Save as:** `public/sprites/art/board_heads.png`
 - **Size:** 5 frames of 40×32, as one strip **200×32**
@@ -270,11 +287,11 @@ When this image is done, start **Job 14**.
 Pixel art game sprite, SNES-era style, transparent background, 1-pixel dark outline, soft 3-tone shading, no anti-aliasing against the background, clean readable silhouette, side view. Five smug boss heads for a corporate hydra, heads only (no necks), facing LEFT, each 40×32, as one horizontal strip 200×32 in this order: a bald zombie-grey chairman with glasses and liver spots; a pink pig with a cigar; a pale white vampire with a widow's peak and fangs; a grey gorilla with a heavy brow ridge and red eyes; a steel box-headed robot with a red visor slit and an antenna. Outline #1b1620.
 ```
 
-When this image is done, start **Job 15**.
+When this image is done, start **Job 16**.
 
 ---
 
-### Job 15 of 35: Elvis the office dog
+### Job 16 of 36: Elvis the office dog
 
 - **Save as:** `public/sprites/art/elvis.png`
 - **Size:** 7 frames of 84×56, as one strip **588×56**
@@ -287,7 +304,7 @@ When this image is done, start **Job 15**.
 Pixel art game sprite, SNES-era style, transparent background, 1-pixel dark outline, soft 3-tone shading, no anti-aliasing against the background, clean readable silhouette, side view. A big friendly golden office dog with floppy ears and a red collar carrying an old CHIEF HAPPINESS OFFICER badge, slightly scruffy from living in air vents but happy, facing right, paws on the bottom edge, with a flat back where a small rider sits. 7 frames as a horizontal strip 588×56 (each 84×56): 4-frame gallop, sitting and wagging, jumping, yelping when bumped. Outline #1b1620.
 ```
 
-When this image is done, start **Job 16**.
+When this image is done, start **Job 17**.
 
 ---
 
@@ -296,7 +313,7 @@ When this image is done, start **Job 16**.
 
 Optional, but they are all over the screen. All 32×32, facing right, feet on the bottom edge. Walkers have 4 walk frames; the plant and the hoppers have 2. They are office workers the job has turned into zombies or animals, all bipedal and in suits.
 
-### Job 16 of 35: Clerk
+### Job 17 of 36: Clerk
 
 - **Save as:** `public/sprites/enemies/clerk.png`
 - **Size:** 4 frames of 32×32, as one strip **128×32**
@@ -309,11 +326,11 @@ Optional, but they are all over the screen. All 32×32, facing right, feet on th
 Pixel art game sprite, SNES-era style, transparent background, 1-pixel dark outline, soft 3-tone shading, no anti-aliasing against the background, clean readable silhouette, side view. A small zombie office clerk, grey-green skin, tired red eyes, dark suit and tie, shambling with one arm reaching forward, facing right. 4-frame walk as a horizontal strip 128×32 (each 32×32). Outline #1b1620.
 ```
 
-When this image is done, start **Job 17**.
+When this image is done, start **Job 18**.
 
 ---
 
-### Job 17 of 35: Quick-sync guy
+### Job 18 of 36: Quick-sync guy
 
 - **Save as:** `public/sprites/enemies/syncer.png`
 - **Size:** 4 frames of 32×32, as one strip **128×32**
@@ -326,11 +343,11 @@ When this image is done, start **Job 17**.
 Pixel art game sprite, SNES-era style, transparent background, 1-pixel dark outline, soft 3-tone shading, no anti-aliasing against the background, clean readable silhouette, side view. A small zombie office worker in rolled-up shirt sleeves with a lanyard, holding a coffee mug out in front of him, wearing an eager meeting-invite grin, facing right. 4-frame walk as a horizontal strip 128×32 (each 32×32). Outline #1b1620.
 ```
 
-When this image is done, start **Job 18**.
+When this image is done, start **Job 19**.
 
 ---
 
-### Job 18 of 35: Guard
+### Job 19 of 36: Guard
 
 - **Save as:** `public/sprites/enemies/guard.png`
 - **Size:** 4 frames of 32×32, as one strip **128×32**
@@ -343,11 +360,11 @@ When this image is done, start **Job 18**.
 Pixel art game sprite, SNES-era style, transparent background, 1-pixel dark outline, soft 3-tone shading, no anti-aliasing against the background, clean readable silhouette, side view. A small zombie security guard in a navy uniform and peaked cap, holding a radio, facing right. 4-frame determined walk as a horizontal strip 128×32 (each 32×32). Outline #1b1620.
 ```
 
-When this image is done, start **Job 19**.
+When this image is done, start **Job 20**.
 
 ---
 
-### Job 19 of 35: Corporate rat
+### Job 20 of 36: Corporate rat
 
 - **Save as:** `public/sprites/enemies/rat.png`
 - **Size:** 4 frames of 32×32, as one strip **128×32**
@@ -360,11 +377,11 @@ When this image is done, start **Job 19**.
 Pixel art game sprite, SNES-era style, transparent background, 1-pixel dark outline, soft 3-tone shading, no anti-aliasing against the background, clean readable silhouette, side view. A small grey rat walking upright in a brown suit with a bright red tie and a little briefcase, long pink tail, sneaky expression, facing right. 4-frame walk as a horizontal strip 128×32 (each 32×32). Outline #1b1620.
 ```
 
-When this image is done, start **Job 20**.
+When this image is done, start **Job 21**.
 
 ---
 
-### Job 20 of 35: Corporate pig
+### Job 21 of 36: Corporate pig
 
 - **Save as:** `public/sprites/enemies/pig.png`
 - **Size:** 4 frames of 32×32, as one strip **128×32**
@@ -377,11 +394,11 @@ When this image is done, start **Job 20**.
 Pixel art game sprite, SNES-era style, transparent background, 1-pixel dark outline, soft 3-tone shading, no anti-aliasing against the background, clean readable silhouette, side view. A small pink pig executive walking upright in a black pinstripe suit with gold buttons, smoking a cigar, facing right. 4-frame walk as a horizontal strip 128×32 (each 32×32). Outline #1b1620.
 ```
 
-When this image is done, start **Job 21**.
+When this image is done, start **Job 22**.
 
 ---
 
-### Job 21 of 35: Robot
+### Job 22 of 36: Robot
 
 - **Save as:** `public/sprites/enemies/robot.png`
 - **Size:** 4 frames of 32×32, as one strip **128×32**
@@ -394,11 +411,11 @@ When this image is done, start **Job 21**.
 Pixel art game sprite, SNES-era style, transparent background, 1-pixel dark outline, soft 3-tone shading, no anti-aliasing against the background, clean readable silhouette, side view. A small boxy steel office robot with a red visor slit, a red tie painted on its chest plate, stiff legs, one arm out, facing right. 4-frame walk as a horizontal strip 128×32 (each 32×32). Outline #1b1620.
 ```
 
-When this image is done, start **Job 22**.
+When this image is done, start **Job 23**.
 
 ---
 
-### Job 22 of 35: Office plant
+### Job 23 of 36: Office plant
 
 - **Save as:** `public/sprites/enemies/plant.png`
 - **Size:** 2 frames of 32×32, as one strip **64×32**
@@ -411,11 +428,11 @@ When this image is done, start **Job 22**.
 Pixel art game sprite, SNES-era style, transparent background, 1-pixel dark outline, soft 3-tone shading, no anti-aliasing against the background, clean readable silhouette, side view. A small flesh-eating office plant in a terracotta pot with a little label, red venus-flytrap head with white teeth, green leaves. 2 frames as a horizontal strip 64×32 (each 32×32): mouth closed, mouth wide open. Outline #1b1620.
 ```
 
-When this image is done, start **Job 23**.
+When this image is done, start **Job 24**.
 
 ---
 
-### Job 23 of 35: Manager (hopper)
+### Job 24 of 36: Manager (hopper)
 
 - **Save as:** `public/sprites/enemies/manager.png`
 - **Size:** 2 frames of 32×32, as one strip **64×32**
@@ -428,11 +445,11 @@ When this image is done, start **Job 23**.
 Pixel art game sprite, SNES-era style, transparent background, 1-pixel dark outline, soft 3-tone shading, no anti-aliasing against the background, clean readable silhouette, side view. A small bald zombie middle manager in a brown suit carrying a briefcase, facing right. 2 frames as a horizontal strip 64×32 (each 32×32): crouched ready to hop, then mid-air with the briefcase raised. Outline #1b1620.
 ```
 
-When this image is done, start **Job 24**.
+When this image is done, start **Job 25**.
 
 ---
 
-### Job 24 of 35: Gorilla (hopper)
+### Job 25 of 36: Gorilla (hopper)
 
 - **Save as:** `public/sprites/enemies/gorilla.png`
 - **Size:** 2 frames of 32×32, as one strip **64×32**
@@ -445,11 +462,11 @@ When this image is done, start **Job 24**.
 Pixel art game sprite, SNES-era style, transparent background, 1-pixel dark outline, soft 3-tone shading, no anti-aliasing against the background, clean readable silhouette, side view. A small silverback gorilla in a dark business suit, grey fur, frowning, facing right. 2 frames as a horizontal strip 64×32 (each 32×32): hunched on the ground, then leaping with one fist raised. Outline #1b1620.
 ```
 
-When this image is done, start **Job 25**.
+When this image is done, start **Job 26**.
 
 ---
 
-### Job 25 of 35: Vampire (hopper)
+### Job 26 of 36: Vampire (hopper)
 
 - **Save as:** `public/sprites/enemies/vampire.png`
 - **Size:** 2 frames of 32×32, as one strip **64×32**
@@ -462,7 +479,7 @@ When this image is done, start **Job 25**.
 Pixel art game sprite, SNES-era style, transparent background, 1-pixel dark outline, soft 3-tone shading, no anti-aliasing against the background, clean readable silhouette, side view. A small pale vampire executive with a widow's peak and fangs, in a black suit and a cape with a bright red lining, facing right. 2 frames as a horizontal strip 64×32 (each 32×32): standing, then leaping with the cape spread. Outline #1b1620.
 ```
 
-When this image is done, start **Job 26**.
+When this image is done, start **Job 27**.
 
 ---
 
@@ -471,7 +488,7 @@ When this image is done, start **Job 26**.
 
 Priority 3. All bright (they are gameplay), outline #1b1620. Exact sizes and frame order.
 
-### Job 26 of 35: Dad's things (12 icons)
+### Job 27 of 36: Dad's things (12 icons)
 
 - **Save as:** `public/sprites/art/dad_things.png`
 - **Size:** 12 frames of 16×16, as one strip **192×16**
@@ -484,11 +501,11 @@ Priority 3. All bright (they are gameplay), outline #1b1620. Exact sizes and fra
 Pixel art game sprite, SNES-era style, transparent background, 1-pixel dark outline, soft 3-tone shading, no anti-aliasing against the background, clean readable silhouette, side view. Twelve tiny 16×16 pixel-art item icons in one horizontal strip 192×16, in this order: a stopped wristwatch, a child's crayon drawing, a framed wedding photo, a folded letter, one fluffy slipper, a bus pass card, a small paperback book, a TV remote, a house key, a crumpled sandwich wrapper, an office ID badge on a lanyard with a tiny smiling photo, and the matching other slipper (a mirror image of the fifth icon). Bright, readable, outline #1b1620.
 ```
 
-When this image is done, start **Job 27**.
+When this image is done, start **Job 28**.
 
 ---
 
-### Job 27 of 35: Baby dragon fire
+### Job 28 of 36: Baby dragon fire
 
 - **Save as:** `public/sprites/art/fireball.png`
 - **Size:** 4 frames of 24×24, as one strip **96×24**
@@ -501,11 +518,11 @@ When this image is done, start **Job 27**.
 Pixel art game sprite, SNES-era style, transparent background, 1-pixel dark outline, soft 3-tone shading, no anti-aliasing against the background, clean readable silhouette, side view. A cute round wobbly baby-dragon fireball, life cycle in 4 frames as a horizontal strip 96×24 (each 24×24): a small spark, a full round fireball (red #e8452c, orange #ffb347, yellow core #fff6b0), a fading smaller flame, a little grey smoke puff. Outline #1b1620.
 ```
 
-When this image is done, start **Job 28**.
+When this image is done, start **Job 29**.
 
 ---
 
-### Job 28 of 35: Hiding box
+### Job 29 of 36: Hiding box
 
 - **Save as:** `public/sprites/art/hide_box.png`
 - **Size:** 1 frame of 34×24, as one strip **34×24**
@@ -518,11 +535,11 @@ When this image is done, start **Job 28**.
 Pixel art game sprite, SNES-era style, transparent background, 1-pixel dark outline, soft 3-tone shading, no anti-aliasing against the background, clean readable silhouette, side view. A cardboard box upside down (open side down), brown tape strip, a shipping label, a little peephole on the front. Single frame 34×24. Outline #1b1620.
 ```
 
-When this image is done, start **Job 29**.
+When this image is done, start **Job 30**.
 
 ---
 
-### Job 29 of 35: Fax machine
+### Job 30 of 36: Fax machine
 
 - **Save as:** `public/sprites/art/fax.png`
 - **Size:** 2 frames of 28×26, as one strip **56×26**
@@ -535,11 +552,11 @@ When this image is done, start **Job 29**.
 Pixel art game sprite, SNES-era style, transparent background, 1-pixel dark outline, soft 3-tone shading, no anti-aliasing against the background, clean readable silhouette, side view. A chunky 1990s office fax machine, front-side view, light beige with a green status light. 2 frames as a horizontal strip 56×26 (each 28×26): idle, then printing with a sheet of paper sticking out of the top. Outline #1b1620.
 ```
 
-When this image is done, start **Job 30**.
+When this image is done, start **Job 31**.
 
 ---
 
-### Job 30 of 35: Synergy Spring
+### Job 31 of 36: Synergy Spring
 
 - **Save as:** `public/sprites/art/spring.png`
 - **Size:** 2 frames of 26×14, as one strip **52×14**
@@ -552,11 +569,11 @@ When this image is done, start **Job 30**.
 Pixel art game sprite, SNES-era style, transparent background, 1-pixel dark outline, soft 3-tone shading, no anti-aliasing against the background, clean readable silhouette, side view. A small office trampoline spring pad, red coil under a flat top with yellow-and-black hazard tape. 2 frames as a horizontal strip 52×14 (each 26×14): ready, squashed flat. Outline #1b1620.
 ```
 
-When this image is done, start **Job 31**.
+When this image is done, start **Job 32**.
 
 ---
 
-### Job 31 of 35: Golden parachute pickup
+### Job 32 of 36: Golden parachute pickup
 
 - **Save as:** `public/sprites/art/chute.png`
 - **Size:** 1 frame of 20×22, as one strip **20×22**
@@ -569,11 +586,11 @@ When this image is done, start **Job 31**.
 Pixel art game sprite, SNES-era style, transparent background, 1-pixel dark outline, soft 3-tone shading, no anti-aliasing against the background, clean readable silhouette, side view. A shiny golden money sack with a dollar sign and a small "CEO EXIT" tag, tied at the top. Single frame 20×22. Outline #1b1620.
 ```
 
-When this image is done, start **Job 32**.
+When this image is done, start **Job 33**.
 
 ---
 
-### Job 32 of 35: Golden parachute canopy
+### Job 33 of 36: Golden parachute canopy
 
 - **Save as:** `public/sprites/art/canopy.png`
 - **Size:** 1 frame of 50×40, as one strip **50×40**
@@ -586,11 +603,11 @@ When this image is done, start **Job 32**.
 Pixel art game sprite, SNES-era style, transparent background, 1-pixel dark outline, soft 3-tone shading, no anti-aliasing against the background, clean readable silhouette, side view. An open golden parachute canopy seen from the side, gold and darker gold gores, strings converging to one point at the bottom centre. Single frame 50×40, transparent background. Outline #1b1620.
 ```
 
-When this image is done, start **Job 33**.
+When this image is done, start **Job 34**.
 
 ---
 
-### Job 33 of 35: Security camera (1990s)
+### Job 34 of 36: Security camera (1990s)
 
 - **Save as:** `public/sprites/art/cctv.png`
 - **Size:** 1 frame of 32×16, as one strip **32×16**
@@ -603,7 +620,7 @@ When this image is done, start **Job 33**.
 Pixel art game sprite, SNES-era style, transparent background, 1-pixel dark outline, soft 3-tone shading, no anti-aliasing against the background, clean readable silhouette, side view. A chunky 1990s CCTV security camera seen from the side, pointing right: a long light-grey rectangular housing with a darker sun hood on top that sticks out over the lens, a few ribs on the side, a black lens bezel with a dark blue glass at the right end, a small red recording light at the back. Single frame 32×16, no mount or pole. Outline #1b1620.
 ```
 
-When this image is done, start **Job 34**.
+When this image is done, start **Job 35**.
 
 ---
 
@@ -612,7 +629,7 @@ When this image is done, start **Job 34**.
 
 The two characters who only appear in the genre-break interludes. They are art slots too: exact size, exact frame order. Optional, but they are in the best clips.
 
-### Job 34 of 35: Clippo, the paperclip assistant
+### Job 35 of 36: Clippo, the paperclip assistant
 
 - **Save as:** `public/sprites/art/clippo.png`
 - **Size:** 4 frames of 32×44, as one strip **128×44**
@@ -625,11 +642,11 @@ The two characters who only appear in the genre-break interludes. They are art s
 Pixel art game sprite, SNES-era style, transparent background, 1-pixel dark outline, soft 3-tone shading, no anti-aliasing against the background, clean readable silhouette, side view. A cheerful-but-sinister office paperclip assistant character: a bent silver paperclip with two big googly eyes, floating upright, centred, about 20 px wide in a 32×44 frame. 4 frames as a horizontal strip 128×44 (each 32×44): idle (smug, eyes looking sideways), talking (small open mouth), hurt (X eyes, the wire wobbling), broken (the wire bent straight and twisted, X eyes). Silver #c9ccd1 wire with an outline #1b1620, white eyes. Do not copy any real brand mascot: an original paperclip character.
 ```
 
-When this image is done, start **Job 35**.
+When this image is done, start **Job 36**.
 
 ---
 
-### Job 35 of 35: THE PERFORMANCE REVIEW
+### Job 36 of 36: THE PERFORMANCE REVIEW
 
 - **Save as:** `public/sprites/art/review_form.png`
 - **Size:** 4 frames of 132×116, as one strip **528×116**
