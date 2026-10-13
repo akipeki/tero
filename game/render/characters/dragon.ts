@@ -588,6 +588,17 @@ export const DRAGON_ANIMS = {
         backFoot: { dx: -1, lift: 2 }, frontFoot: { dx: 2, lift: 3 }, tail: 0 },
     ],
   },
+  // Riding Elvis: sitting astride (half crouch), legs forward, both hands
+  // holding his neck fur, grinning; the second frame bounces on the gallop
+  ride: {
+    fps: 8,
+    poses: [
+      { crouch: 0.5, eyes: 'happy', mouth: 'open', backArm: 0.3, frontArm: 0.1, wing: 0.6, tieUp: 0.4,
+        backFoot: { dx: 2, lift: 1 }, frontFoot: { dx: 5, lift: 2 }, tail: -1 },
+      { crouch: 0.5, eyes: 'happy', mouth: 'open', backArm: 0.1, frontArm: -0.1, wing: 0.2, tieUp: 0.8, bob: -1,
+        backFoot: { dx: 2, lift: 2 }, frontFoot: { dx: 5, lift: 3 }, tail: 1 },
+    ],
+  },
   lose: {
     fps: 1,
     poses: [{ eyes: 'x', mouth: 'tongue', bob: 2, headY: 2, backArm: 1.3, frontArm: 1.3, tail: 1 }],

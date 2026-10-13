@@ -7,7 +7,7 @@
 // a time (start with the player's idle animation).
 //
 //   player   public/sprites/player/<animation>.png
-//            idle, walk, jump, fall, duck, hurt, lose, win, breathe, glide
+//            idle, walk, jump, fall, duck, hurt, lose, win, breathe, glide, ride
 //   enemies  public/sprites/enemies/<enemy>.png
 //            clerk, manager, syncer, guard, rat, pig, robot, plant, gorilla, vampire
 //   props    public/sprites/props/<prop id>.png

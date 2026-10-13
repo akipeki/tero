@@ -1503,11 +1503,18 @@ export class Game {
     const breathing = p.isTantrum || p.puffCooldown > PUFF_COOLDOWN - 10;
     if (!p.isDead && breathing && !p.ducking) frame = framePaths.breathe;
     else if (p.gliding) frame = framePaths.glide;
-    else if (p.riding && !p.isDead) frame = p.onGround && Math.abs(p.vx) > 0.4 ? framePaths.win : p.onGround ? framePaths.idle : framePaths.jump;
+    const riding = p.riding && !p.isDead && frame !== framePaths.breathe;
+    if (riding) frame = framePaths.ride;
     let frameIdx = 0;
     let bobY = 0;
     const walking = p.state === PlayerState.WALK || p.state === PlayerState.BIG_WALK;
-    if (walking) {
+    if (riding) {
+      // sitting on Elvis: bounce with his gallop (his run frames change every
+      // 12 px, see drawRide), hold on still, the bounce frame in the air
+      const n = Math.max(1, frame.frames);
+      frameIdx = !p.onGround ? Math.min(1, n - 1)
+        : Math.abs(p.vx) > 0.4 ? Math.floor(p.walkDistance / 12) % n : 0;
+    } else if (walking) {
       const stride = frame.stride ?? WALK_STRIDE_PX;
       const step = Math.floor(p.walkDistance / stride);
       if (frame.frames > 1) {
