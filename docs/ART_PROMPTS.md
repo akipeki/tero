@@ -5,6 +5,7 @@
 ## Instructions for the image AI (read this first)
 
 You are making the sprites for a 1993-style pixel-art platformer.
+If I also attached **ART_MOOD.md**, read it first: it describes how the game should feel. If it ever disagrees with a job's prompt, the prompt wins.
 Work through the jobs below **one at a time, in order, starting with Job 1**.
 
 For each job:
