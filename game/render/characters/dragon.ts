@@ -5,10 +5,9 @@
 // stand on the bottom row of a 64×64 frame.
 //
 //   drawBaby — TERO, age 2, the hero. Huge head, round tummy, diaper,
-//              pacifier, mismatched googly eyes — and Dad's tie, far too
-//              long, dragging along the floor behind him.
+//              pacifier, mismatched googly eyes. No tie.
 //   drawDad  — Dad, six months into "giving a little more". The grown-up
-//              rig in a suit, greyed out and exhausted. Same tie.
+//              rig in a suit and tie, greyed out and exhausted.
 //
 // `npm run sprites` renders these poses to public/images/dragon/*.png.
 
@@ -268,13 +267,6 @@ export function drawBaby(pose: DragonPose = {}): Raster {
     t.tri(10, 55 + tail * 2, 5, 59 + tail * 2, 10, 62 + tail * 2, C.spike);
   });
 
-  // Dad's tie, much too long: hangs off the tummy and drags along the floor
-  // behind the feet (or flies back when airborne — drawn later, in front).
-  const up = pose.tieUp ?? 0;
-  const flying = up > 0.3;
-  const drag = Math.round(tail * 2);
-  if (!flying) drawLongTie(r, [[42, 54 + bob], [42, 60], [33, 62], [17 + drag, 62]], false);
-
   drawLeg(r, 28, pose.backFoot, bob, crouch, true, leg);
 
   // ── Wing nubs ────────────────────────────────────────────────────────────
@@ -320,11 +312,6 @@ export function drawBaby(pose: DragonPose = {}): Raster {
   r.rect(36 + hx, 40 + hy, 3, 1, C.blush);                       // blush
   r.px(37 + hx, 41 + hy, C.blush);
 
-  // ── Tie knot + front drape (the floor trail was drawn behind the legs) ───
-  drawLongTie(r, flying
-    ? [[41, 47 + bob], [36, 45 + bob], [27, 42 + bob - up * 2], [17, 41 + bob - up * 4], [9, 43 + bob - up * 3]]
-    : [[41, 47 + bob], [42, 55 + bob]], true, flying);
-
   drawArm(r, 37, 50 + bob, pose.frontArm ?? 0.7, false, 5);
 
   // ── Face ─────────────────────────────────────────────────────────────────
@@ -344,33 +331,6 @@ export function drawBaby(pose: DragonPose = {}): Raster {
 
   return r;
 }
-
-/** A tie drawn along a path, optionally starting with the knot and ending
- *  with the wide tip. */
-function drawLongTie(r: Raster, pts: [number, number][], knot = true, tip = true): void {
-  r.part(C.ink, (t) => {
-    if (knot) t.rect(pts[0][0] - 2, pts[0][1] - 1, 4, 3, C.tie);
-    for (let i = 1; i < pts.length; i++) {
-      const [x0, y0] = pts[i - 1], [x1, y1] = pts[i];
-      t.capsule(x0, y0, x1, y1, i === pts.length - 1 && tip ? 2 : 1.6, C.tie);
-    }
-    if (tip) {
-      const [ex, ey] = pts[pts.length - 1];
-      t.ellipse(ex, ey, 2.6, 2, C.tie);
-    }
-  });
-  // loud 90s stripes along the way
-  for (let i = 1; i < pts.length; i++) {
-    const [x0, y0] = pts[i - 1], [x1, y1] = pts[i];
-    for (const f of [0.3, 0.75]) {
-      const x = x0 + (x1 - x0) * f, y = y0 + (y1 - y0) * f;
-      r.px(x, y, C.tieStripe);
-      r.px(x + 1, y - 1, C.tieStripe);
-    }
-  }
-}
-
-// ─── Parts ───────────────────────────────────────────────────────────────────
 
 function drawLeg(
   r: Raster, hipX: number, foot: DragonPose['backFoot'], bob: number, crouch: number, back: boolean,
@@ -542,18 +502,18 @@ export const DRAGON_ANIMS = {
   jump: {
     fps: 12,
     poses: [
-      { eyes: 'wide', mouth: 'open', backArm: -0.9, frontArm: -1.1, wing: 1, tieUp: 1,
+      { eyes: 'wide', mouth: 'open', backArm: -0.9, frontArm: -1.1, wing: 1,
         backFoot: { dx: -2, lift: 4 }, frontFoot: { dx: 2, lift: 5 }, tail: -1 },
-      { eyes: 'wide', mouth: 'open', backArm: -1.1, frontArm: -0.9, wing: 0.3, tieUp: 1,
+      { eyes: 'wide', mouth: 'open', backArm: -1.1, frontArm: -0.9, wing: 0.3,
         backFoot: { dx: -2, lift: 4 }, frontFoot: { dx: 2, lift: 5 }, tail: -1 },
     ],
   },
   fall: {
     fps: 12,
     poses: [
-      { eyes: 'wide', mouth: 'o', backArm: -1.4, frontArm: -0.4, wing: 1, tieUp: 0.6,
+      { eyes: 'wide', mouth: 'o', backArm: -1.4, frontArm: -0.4, wing: 1,
         backFoot: { dx: -3, lift: 1 }, frontFoot: { dx: 4, lift: 2 }, tail: 1 },
-      { eyes: 'wide', mouth: 'o', backArm: -0.4, frontArm: -1.4, wing: 0.2, tieUp: 0.8,
+      { eyes: 'wide', mouth: 'o', backArm: -0.4, frontArm: -1.4, wing: 0.2,
         backFoot: { dx: -3, lift: 2 }, frontFoot: { dx: 4, lift: 1 }, tail: 1 },
     ],
   },
@@ -582,9 +542,9 @@ export const DRAGON_ANIMS = {
   glide: {
     fps: 6,
     poses: [
-      { eyes: 'happy', mouth: 'o', backArm: -1.5, frontArm: -1.7, wing: 0.4, tieUp: 0.5,
+      { eyes: 'happy', mouth: 'o', backArm: -1.5, frontArm: -1.7, wing: 0.4,
         backFoot: { dx: -1, lift: 3 }, frontFoot: { dx: 2, lift: 2 }, tail: 1 },
-      { eyes: 'happy', mouth: 'o', backArm: -1.7, frontArm: -1.5, wing: 0.7, tieUp: 0.7,
+      { eyes: 'happy', mouth: 'o', backArm: -1.7, frontArm: -1.5, wing: 0.7,
         backFoot: { dx: -1, lift: 2 }, frontFoot: { dx: 2, lift: 3 }, tail: 0 },
     ],
   },
@@ -593,9 +553,9 @@ export const DRAGON_ANIMS = {
   ride: {
     fps: 8,
     poses: [
-      { crouch: 0.5, eyes: 'happy', mouth: 'open', backArm: 0.3, frontArm: 0.1, wing: 0.6, tieUp: 0.4,
+      { crouch: 0.5, eyes: 'happy', mouth: 'open', backArm: 0.3, frontArm: 0.1, wing: 0.6,
         backFoot: { dx: 2, lift: 1 }, frontFoot: { dx: 5, lift: 2 }, tail: -1 },
-      { crouch: 0.5, eyes: 'happy', mouth: 'open', backArm: 0.1, frontArm: -0.1, wing: 0.2, tieUp: 0.8, bob: -1,
+      { crouch: 0.5, eyes: 'happy', mouth: 'open', backArm: 0.1, frontArm: -0.1, wing: 0.2, bob: -1,
         backFoot: { dx: 2, lift: 2 }, frontFoot: { dx: 5, lift: 3 }, tail: 1 },
     ],
   },
