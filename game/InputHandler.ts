@@ -9,10 +9,14 @@ export class InputHandler {
   private keyboardBits = 0;
   private mobileBits = 0;
   private justPressed = 0;     // set only for one frame
+  /** Keys pressed since the last tick — so a tap released before the tick
+   *  still registers as a press. */
+  private pressedSinceTick = 0;
 
   /** True for exactly one tick after a mute keybind is pressed. */
   muteJustPressed = false;
-  private muteKeyDown = false;
+  /** M went down since the last tick (holding it doesn't repeat). */
+  private mutePending = false;
 
   private uiListeners = new Set<UiActionListener>();
 
@@ -30,10 +34,34 @@ export class InputHandler {
   /** Call once per game tick, after reading bits */
   tick(): void {
     this.prevBits   = this.bits;
-    this.bits       = this.keyboardBits | this.mobileBits;
-    this.justPressed = this.bits & ~this.prevBits;
-    // mute one-shot is consumed by Game each frame
-    if (!this.muteKeyDown) this.muteJustPressed = false;
+    this.bits       = this.keyboardBits | this.mobileBits | this.gamepadBits();
+    this.justPressed = (this.bits & ~this.prevBits) | this.pressedSinceTick;
+    this.pressedSinceTick = 0;
+    // mute is a one-shot: true for the one tick after M goes down
+    this.muteJustPressed = this.mutePending;
+    this.mutePending = false;
+  }
+
+  /** Any connected gamepad (standard mapping): stick or d-pad moves,
+   *  A jumps, B/X breathe fire, Y shouts DADA, shoulders throw the grenade,
+   *  Start pauses. */
+  private gamepadBits(): number {
+    if (typeof navigator === 'undefined' || !navigator.getGamepads) return 0;
+    let b = 0;
+    for (const pad of navigator.getGamepads()) {
+      if (!pad) continue;
+      const btn = (i: number) => !!pad.buttons[i]?.pressed;
+      const ax = pad.axes[0] ?? 0, ay = pad.axes[1] ?? 0;
+      if (ax < -0.4 || btn(14)) b |= Action.LEFT;
+      if (ax > 0.4 || btn(15))  b |= Action.RIGHT;
+      if (ay > 0.55 || btn(13)) b |= Action.DOWN;
+      if (btn(0))               b |= Action.JUMP;
+      if (btn(1) || btn(2))     b |= Action.FIRE;
+      if (btn(3))               b |= Action.CALL;
+      if (btn(4) || btn(5))     b |= Action.THROW;
+      if (btn(9))               b |= Action.PAUSE;
+    }
+    return b;
   }
 
   held(action: Action):         boolean { return (this.bits        & action) !== 0; }
@@ -46,10 +74,13 @@ export class InputHandler {
   get jump():        boolean { return this.held(Action.JUMP); }
   get jumpPressed(): boolean { return this.justPressedAction(Action.JUMP); }
   get pause():       boolean { return this.justPressedAction(Action.PAUSE); }
+  get firePressed(): boolean { return this.justPressedAction(Action.FIRE); }
+  get callPressed(): boolean { return this.justPressedAction(Action.CALL); }
+  get throwPressed(): boolean { return this.justPressedAction(Action.THROW); }
 
   /** Mobile: called by React overlay buttons */
   setMobile(action: Action, down: boolean): void {
-    if (down) this.mobileBits |=  action;
+    if (down) { this.mobileBits |= action; this.pressedSinceTick |= action; }
     else      this.mobileBits &= ~action;
   }
 
@@ -79,15 +110,16 @@ export class InputHandler {
     if (e.key === 'Enter') { this.fireUi('enter'); return; }
     if (e.key === 'r' || e.key === 'R') { this.fireUi('retry'); return; }
     if (e.key === 'm' || e.key === 'M') {
-      this.muteKeyDown = true;
-      this.muteJustPressed = true;
+      this.mutePending = true;
       return;
     }
-    this.keyboardBits |= keyToAction(e.key);
+    const action = keyToAction(e.key);
+    this.keyboardBits     |= action;
+    this.pressedSinceTick |= action;
   }
 
   private onKeyUp(e: KeyboardEvent): void {
-    if (e.key === 'm' || e.key === 'M') { this.muteKeyDown = false; return; }
+    if (e.key === 'm' || e.key === 'M') return;
     this.keyboardBits &= ~keyToAction(e.key);
   }
 
@@ -95,7 +127,6 @@ export class InputHandler {
    *  has focus instead — we'd be stuck "holding" keys forever. Flush. */
   private onBlur(): void {
     this.keyboardBits = 0;
-    this.muteKeyDown = false;
   }
 
   private onVisibility(): void {
@@ -111,6 +142,10 @@ function keyToAction(key: string): Action {
     case 'ArrowUp':    case 'w': case 'W':
     case ' ':                              return Action.JUMP;
     case 'Escape':     case 'p': case 'P': return Action.PAUSE;
+    case 'x': case 'X': case 'f': case 'F':
+    case 'Shift':                          return Action.FIRE;
+    case 'c': case 'C':                    return Action.CALL;
+    case 'g': case 'G':                    return Action.THROW;
     default: return 0 as Action;
   }
 }

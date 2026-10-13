@@ -78,6 +78,17 @@ describe('stepBody', () => {
     expect(body.onGround).toBe(true);
     expect(body.y + body.h).toBe(floorTop);
   });
+
+  it('stays grounded on every step while standing or walking', () => {
+    const map = makeMap();
+    const floorTop = 5 * TILE_SIZE;
+    const body = makeBody({ y: floorTop - 16, vx: 3.5, onGround: true });
+    for (let i = 0; i < 20; i++) {
+      stepBody(body, map);
+      expect(body.onGround).toBe(true);
+      expect(body.y + body.h).toBe(floorTop);
+    }
+  });
 });
 
 // Make GRAVITY referenced so the import isn't dead.

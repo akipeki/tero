@@ -3,6 +3,17 @@
 import { TILE_SIZE, VIEWPORT_W } from '../constants';
 import { TileType } from '../types';
 import { drawHazardTile, drawPlatformTile, drawSolidTile } from '../render/sprites/TileSprites';
+import { drawPaperTile, drawBulletTile, drawTapeTile } from '../render/office/OfficeTiles';
+
+/** One-way tiles: land on them from above, jump up through them. */
+export function isPlatformTile(t: TileType): boolean {
+  return t === TileType.PLATFORM || t === TileType.BULLET;
+}
+
+/** Tiles that block movement from every side. Paperwork is solid until burnt. */
+export function isSolidTile(t: TileType): boolean {
+  return t === TileType.SOLID || t === TileType.PAPER;
+}
 
 export class Tilemap {
   readonly width: number;
@@ -33,7 +44,7 @@ export class Tilemap {
 
   solidAt(wx: number, wy: number): boolean {
     const t = this.tileAtWorld(wx, wy);
-    return t === TileType.SOLID || t === TileType.PLATFORM;
+    return isSolidTile(t) || isPlatformTile(t);
   }
 
   hazardAt(wx: number, wy: number): boolean {
@@ -59,15 +70,31 @@ export class Tilemap {
 
         switch (tile) {
           case TileType.SOLID:
-            drawSolidTile(ctx, sx, sy);
+            drawSolidTile(ctx, sx, sy, {
+              tx, ty,
+              openAbove: this.tileAt(tx, ty - 1) !== TileType.SOLID,
+              openBelow: this.tileAt(tx, ty + 1) !== TileType.SOLID,
+            });
             break;
 
           case TileType.PLATFORM:
-            drawPlatformTile(ctx, sx, sy);
+            drawPlatformTile(ctx, sx, sy, tx);
             break;
 
           case TileType.HAZARD:
-            drawHazardTile(ctx, sx, sy);
+            drawHazardTile(ctx, sx, sy, tx);
+            break;
+
+          case TileType.PAPER:
+            drawPaperTile(ctx, sx, sy, tx, ty);
+            break;
+
+          case TileType.TAPE:
+            drawTapeTile(ctx, sx, sy, tx, ty);
+            break;
+
+          case TileType.BULLET:
+            drawBulletTile(ctx, sx, sy, tx, this.tileAt(tx - 1, ty) !== TileType.BULLET, this.tileAt(tx + 1, ty) !== TileType.BULLET);
             break;
         }
       }

@@ -1,6 +1,8 @@
 // file: game/render/Renderer.ts
 
 import { drawBackground, updateBackground } from './Background';
+import { drawScenery } from './office/Scenery';
+import { VIEWPORT_W } from '../constants';
 import type { Tilemap } from '../level/Tilemap';
 import type { creaturesAndObjects } from '../creaturesAndObjects/creaturesAndObjects';
 import type { ParticleSystem } from '../ParticleSystem';
@@ -20,6 +22,8 @@ export class Renderer {
     entities: creaturesAndObjects[],
     particles: ParticleSystem,
     shake: ScreenShake,
+    /** Drawn after the scenery, before the tiles (e.g. a boss's projector screen). */
+    backdrop?: (ctx: CanvasRenderingContext2D, camX: number) => void,
   ): void {
     const ctx = this.ctx;
 
@@ -28,6 +32,8 @@ export class Renderer {
 
     updateBackground(camX);
     drawBackground(ctx);
+    drawScenery(ctx, camX, VIEWPORT_W);
+    backdrop?.(ctx, camX);
     map.draw(ctx, camX);
 
     for (const e of entities) {

@@ -1,6 +1,5 @@
 import { GRAVITY, MAX_FALL_SPD, TILE_SIZE } from '../constants';
-import { TileType } from '../types';
-import type { Tilemap } from '../level/Tilemap';
+import { isSolidTile, isPlatformTile, type Tilemap } from '../level/Tilemap';
 
 export interface PhysicsBody {
   x: number;
@@ -58,7 +57,7 @@ function sweepHorizontal(body: PhysicsBody, map: Tilemap): boolean {
   for (let ty = top; ty <= bottom; ty++) {
     for (const tx of [left, right]) {
       const tile = map.tileAt(tx, ty);
-      if (tile !== TileType.SOLID) continue;
+      if (!isSolidTile(tile)) continue;
 
       const tileLeft  = tx * TILE_SIZE;
       const tileRight = tileLeft + TILE_SIZE;
@@ -84,7 +83,9 @@ function sweepVertical(
   const left  = Math.floor(body.x / TILE_SIZE);
   const right = Math.floor((body.x + body.w - 1) / TILE_SIZE);
   const top   = Math.floor(body.y / TILE_SIZE);
-  const bot   = Math.floor((body.y + body.h - 1) / TILE_SIZE);
+  // Positions are sub-pixel: a whole-pixel margin here missed the floor when
+  // gravity sank a grounded body < 1px, so onGround flickered every frame.
+  const bot   = Math.floor((body.y + body.h - 0.001) / TILE_SIZE);
 
   let ground  = false;
   let ceiling = false;
@@ -94,7 +95,7 @@ function sweepVertical(
     for (const ty of [top, bot]) {
       const tile = map.tileAt(tx, ty);
 
-      if (tile === TileType.SOLID) {
+      if (isSolidTile(tile)) {
         const tileTop = ty * TILE_SIZE;
         const tileBotEdge = tileTop + TILE_SIZE;
 
@@ -107,7 +108,7 @@ function sweepVertical(
         }
       }
 
-      if (tile === TileType.PLATFORM && body.vy >= 0) {
+      if (isPlatformTile(tile) && body.vy >= 0) {
         const tileTop = ty * TILE_SIZE;
         if (body.y + body.h > tileTop && prevY + body.h <= tileTop + 1) {
           body.y = tileTop - body.h;

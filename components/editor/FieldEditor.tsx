@@ -6,15 +6,17 @@ import type { LevelDef } from '@/game/content/types';
 import type { ThemeName } from '@/game/render/Theme';
 
 // ─── DSL paintable chars ─────────────────────────────────────────────────────
-type Brush = '.' | '#' | '=' | '^';
+type Brush = '.' | '#' | '=' | '^' | '%' | '~';
 const BRUSHES: { ch: Brush; label: string; swatch: string }[] = [
   { ch: '.', label: 'AIR',      swatch: '#0e0e16' },
   { ch: '#', label: 'SOLID',    swatch: '#c2c3c7' },
   { ch: '=', label: 'PLATFORM', swatch: '#ab5236' },
   { ch: '^', label: 'HAZARD',   swatch: '#ff004d' },
+  { ch: '%', label: 'PAPER',    swatch: '#fbf8ee' },
+  { ch: '~', label: 'RED TAPE', swatch: '#d83b3b' },
 ];
 
-const THEMES: ThemeName[] = ['ember', 'mint', 'dusk'];
+const THEMES: ThemeName[] = ['office', 'ember', 'mint', 'dusk'];
 
 // Render colour for each tile on the editor canvas.
 const TILE_COLORS: Record<Brush, string> = {
@@ -22,6 +24,8 @@ const TILE_COLORS: Record<Brush, string> = {
   '#': '#5f574f',
   '=': '#ab5236',
   '^': '#ff004d',
+  '%': '#fbf8ee',
+  '~': '#d83b3b',
 };
 
 const MIN_W = 12;
@@ -447,7 +451,7 @@ function makeBlankLevel(id: string, w: number, h: number): LevelDef {
   return {
     id,
     name: 'Untitled',
-    theme: 'ember',
+    theme: 'office',
     width: w,
     height: h,
     rows,

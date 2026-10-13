@@ -76,6 +76,46 @@ export function validatePack(raw: unknown): ContentPack {
       throw new PackValidationError((err as Error).message, `levels.${k}.rows`);
     }
     ensureObject(L.spawns, `levels.${k}.spawns`);
+    if (L.intro !== undefined) ensureStringArray(L.intro, `levels.${k}.intro`);
+    if (L.outro !== undefined) ensureStringArray(L.outro, `levels.${k}.outro`);
+    if (L.triggers !== undefined) {
+      if (!Array.isArray(L.triggers)) {
+        throw new PackValidationError('triggers must be StoryTrigger[]', `levels.${k}.triggers`);
+      }
+      L.triggers.forEach((t: unknown, i: number) => {
+        const T = ensureObject(t, `levels.${k}.triggers.${i}`);
+        ensureNumber(T.tx, `levels.${k}.triggers.${i}.tx`);
+        ensureStringArray(T.cards, `levels.${k}.triggers.${i}.cards`);
+      });
+    }
+    if (L.scenery !== undefined) {
+      if (!Array.isArray(L.scenery)) {
+        throw new PackValidationError('scenery must be SceneryPlacement[]', `levels.${k}.scenery`);
+      }
+      L.scenery.forEach((g: unknown, i: number) => {
+        const G = ensureObject(g, `levels.${k}.scenery.${i}`);
+        ensureNumber(G.tx, `levels.${k}.scenery.${i}.tx`);
+        ensureString(G.gag, `levels.${k}.scenery.${i}.gag`);
+      });
+    }
+    if (L.goalWriting !== undefined) ensureString(L.goalWriting, `levels.${k}.goalWriting`);
+    if (L.decor !== undefined) ensureString(L.decor, `levels.${k}.decor`);
+    if (L.quietZones !== undefined) {
+      if (!Array.isArray(L.quietZones)) {
+        throw new PackValidationError('quietZones must be [from, to][]', `levels.${k}.quietZones`);
+      }
+      L.quietZones.forEach((z: unknown, i: number) => {
+        if (!Array.isArray(z) || z.length !== 2 || z.some((n) => typeof n !== 'number')) {
+          throw new PackValidationError('expected [from, to]', `levels.${k}.quietZones.${i}`);
+        }
+      });
+    }
+    if (L.gagDensity !== undefined && L.gagDensity !== 'sparse' && L.gagDensity !== 'normal') {
+      throw new PackValidationError("gagDensity must be 'sparse' or 'normal'", `levels.${k}.gagDensity`);
+    }
+    if (L.gagMood !== undefined && L.gagMood !== 'tame' && L.gagMood !== 'unhinged') {
+      throw new PackValidationError("gagMood must be 'tame' or 'unhinged'", `levels.${k}.gagMood`);
+    }
   }
 
   // story
@@ -83,7 +123,21 @@ export function validatePack(raw: unknown): ContentPack {
   if (!Array.isArray(story.chapters)) {
     throw new PackValidationError('chapters must be Chapter[]', 'story.chapters');
   }
-  ensureObject(story.cards, 'story.cards');
+  story.chapters.forEach((c: unknown, i: number) => {
+    const C = ensureObject(c, `story.chapters.${i}`);
+    ensureString(C.id,   `story.chapters.${i}.id`);
+    ensureString(C.name, `story.chapters.${i}.name`);
+    ensureStringArray(C.levelIds, `story.chapters.${i}.levelIds`);
+    if (C.intro !== undefined) ensureStringArray(C.intro, `story.chapters.${i}.intro`);
+  });
+  const cards = ensureObject(story.cards, 'story.cards');
+  for (const [k, v] of Object.entries(cards)) {
+    const c = ensureObject(v, `story.cards.${k}`);
+    ensureString(c.id,   `story.cards.${k}.id`);
+    ensureString(c.text, `story.cards.${k}.text`);
+    if (c.speaker  !== undefined) ensureString(c.speaker,  `story.cards.${k}.speaker`);
+    if (c.portrait !== undefined) ensureString(c.portrait, `story.cards.${k}.portrait`);
+  }
 
   return p as unknown as ContentPack;
 }
@@ -122,6 +176,12 @@ function ensureString(v: unknown, path: string): string {
     throw new PackValidationError(`expected string, got ${describe(v)}`, path);
   }
   return v;
+}
+function ensureStringArray(v: unknown, path: string): string[] {
+  if (!Array.isArray(v) || v.some((x) => typeof x !== 'string')) {
+    throw new PackValidationError(`expected string[], got ${describe(v)}`, path);
+  }
+  return v as string[];
 }
 function ensureNumber(v: unknown, path: string): number {
   if (typeof v !== 'number' || !Number.isFinite(v)) {

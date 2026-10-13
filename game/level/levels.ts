@@ -9,6 +9,14 @@ import type { ThemeName } from '../render/Theme';
 import { level1Tiles, level1Spawns, LEVEL_WIDTH as L1W, LEVEL_HEIGHT as L1H } from './level1';
 import { level2Tiles, level2Spawns, LEVEL2_WIDTH, LEVEL2_HEIGHT } from './level2';
 import { level3Tiles, level3Spawns, LEVEL3_WIDTH, LEVEL3_HEIGHT } from './level3';
+import { level4Tiles, level4Spawns, LEVEL4_WIDTH, LEVEL4_HEIGHT } from './level4';
+import { level5Tiles, level5Spawns, LEVEL5_WIDTH, LEVEL5_HEIGHT } from './level5';
+import { level6Tiles, level6Spawns, LEVEL6_WIDTH, LEVEL6_HEIGHT } from './level6';
+import { level7Tiles, level7Spawns, LEVEL7_WIDTH, LEVEL7_HEIGHT } from './level7';
+import { level8Tiles, level8Spawns, LEVEL8_WIDTH, LEVEL8_HEIGHT } from './level8';
+import { level9Tiles, level9Spawns, LEVEL9_WIDTH, LEVEL9_HEIGHT } from './level9';
+import { level10Tiles, level10Spawns, LEVEL10_WIDTH, LEVEL10_HEIGHT } from './level10';
+import { level11Tiles, level11Spawns, LEVEL11_WIDTH, LEVEL11_HEIGHT } from './level11';
 
 export interface LevelDef {
   id:     string;
@@ -21,9 +29,19 @@ export interface LevelDef {
 }
 
 export const LEVELS: readonly LevelDef[] = [
-  { id: '1', name: 'Ember Hills',  theme: 'ember', tiles: level1Tiles, spawns: level1Spawns, width: L1W,         height: L1H },
-  { id: '2', name: 'Mint Meadow',  theme: 'mint',  tiles: level2Tiles, spawns: level2Spawns, width: LEVEL2_WIDTH, height: LEVEL2_HEIGHT },
-  { id: '3', name: 'Dusk Citadel', theme: 'dusk',  tiles: level3Tiles, spawns: level3Spawns, width: LEVEL3_WIDTH, height: LEVEL3_HEIGHT },
+  { id: '1', name: 'The Mailroom',  theme: 'office', tiles: level1Tiles, spawns: level1Spawns, width: L1W,         height: L1H },
+  // Floor 3 sits between the Mailroom and the Cubicle Farm; ids stay stable, order is play order.
+  { id: '11', name: 'Compliance',   theme: 'office', tiles: level11Tiles, spawns: level11Spawns, width: LEVEL11_WIDTH, height: LEVEL11_HEIGHT },
+  { id: '2', name: 'Cubicle Farm',  theme: 'office', tiles: level2Tiles, spawns: level2Spawns, width: LEVEL2_WIDTH, height: LEVEL2_HEIGHT },
+  { id: '10', name: 'The Vents',   theme: 'office', tiles: level10Tiles, spawns: level10Spawns, width: LEVEL10_WIDTH, height: LEVEL10_HEIGHT },
+  { id: '3', name: 'The Boardroom', theme: 'office', tiles: level3Tiles, spawns: level3Spawns, width: LEVEL3_WIDTH, height: LEVEL3_HEIGHT },
+  { id: '4', name: 'Legal',         theme: 'office', tiles: level4Tiles, spawns: level4Spawns, width: LEVEL4_WIDTH, height: LEVEL4_HEIGHT },
+  { id: '5', name: 'R&D',           theme: 'office', tiles: level5Tiles, spawns: level5Spawns, width: LEVEL5_WIDTH, height: LEVEL5_HEIGHT },
+  // Floors 27 and 30 sit between R&D and the finale; ids stay stable, order is play order.
+  { id: '7', name: 'Security',      theme: 'office', tiles: level7Tiles, spawns: level7Spawns, width: LEVEL7_WIDTH, height: LEVEL7_HEIGHT },
+  { id: '8', name: 'Executive Wing', theme: 'office', tiles: level8Tiles, spawns: level8Spawns, width: LEVEL8_WIDTH, height: LEVEL8_HEIGHT },
+  { id: '6', name: 'The Sanctum',   theme: 'office', tiles: level6Tiles, spawns: level6Spawns, width: LEVEL6_WIDTH, height: LEVEL6_HEIGHT },
+  { id: '9', name: 'The Way Home',  theme: 'office', tiles: level9Tiles, spawns: level9Spawns, width: LEVEL9_WIDTH, height: LEVEL9_HEIGHT },
 ] as const;
 
 /** Validate level data on load. Pads missing cells with AIR and warns;
@@ -49,7 +67,7 @@ export function validateLevel(level: LevelDef): void {
   }
   for (let i = 0; i < level.tiles.length; i++) {
     const t = level.tiles[i];
-    if (t < 0 || t > 5 || !Number.isInteger(t)) {
+    if (t < 0 || t > 8 || t === 7 || !Number.isInteger(t)) {   // 7 = runtime-only bullet
       const tx = i % level.width;
       const ty = Math.floor(i / level.width);
       throw new Error(`Level "${level.name}" invalid tile ${t} at (${tx}, ${ty})`);

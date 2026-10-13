@@ -1,6 +1,7 @@
 // file: game/render/sprites/MushroomSprite.ts
 
-import { getTheme } from '../Theme';
+import { getTheme, isOffice } from '../Theme';
+import { drawOfficeMug } from '../office/OfficeSprites';
 
 export interface MushroomSpriteProps {
   x: number;
@@ -15,6 +16,7 @@ export function drawMushroomSprite(
   ctx: CanvasRenderingContext2D,
   props: MushroomSpriteProps,
 ): void {
+  if (isOffice()) return drawOfficeMug(ctx, props);
   const theme = getTheme();
 
   const sx = Math.floor(props.x - props.camX);

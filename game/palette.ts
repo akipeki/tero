@@ -19,6 +19,8 @@ export const P = {
   HUD_WHITE:   '#fff1e8',
   HAZARD:      '#ff004d',
   PLATFORM:    '#ab5236',
+  DRAGON:      '#6cc24a',
+  DRAGON_DARK: '#3e8a3c',
 } as const;
 
 export type PaletteKey = keyof typeof P;

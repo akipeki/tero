@@ -2,7 +2,7 @@
 
 import { P } from '../palette';
 
-export type ThemeName = 'dusk' | 'mint' | 'ember';
+export type ThemeName = 'dusk' | 'mint' | 'ember' | 'office';
 
 export interface GameTheme {
   name: ThemeName;
@@ -85,6 +85,31 @@ export interface GameTheme {
 }
 
 const THEMES: Record<ThemeName, GameTheme> = {
+  // 1990s office. Most office visuals live in render/office/; these values
+  // cover the shared bits (particles, HUD, editor previews).
+  office: {
+    name: 'office',
+    sky:       { top: '#d8ccb0', mid: '#cdbf9f', bottom: '#5f8a86', stars: '#fff8dc' },
+    hills:     { back: '#8592a6', front: '#6fbf73' },
+    buildings: { body: '#1d2440', window: '#ffd27a' },
+    ground:    { base: '#8d8a80', top: '#5b6f8f', shadow: '#6a675e', pattern: '#7a776d' },
+    platform:  { base: '#a8743f', highlight: '#c99560', shadow: '#6e4a26' },
+    block: {
+      base: '#d8cfb8', border: '#8f8670', symbol: '#46e07a', symbolBlink: '#1f6b3a',
+      usedBase: '#1d3fa8', usedTop: '#8f8670',
+    },
+    player:    { body: '#6cc24a', shade: '#3e8a3c', eye: '#ffffff', arm: '#6cc24a' },
+    enemy:     { body: '#3c4558', shade: '#272d3b', eye: '#ff4848' },
+    mushroom:  { cap: '#f4f1e6', stem: '#6b3f22', spot: '#d83b3b' },
+    castle: {
+      body: '#a9b3bd', shade: '#6b7480', window: '#ffb347', gate: '#2b3038',
+      pole: '#c9c2a8', flag: '#ffb347',
+    },
+    hazard:    { spike: '#d83b3b', base: '#5b6f8f' },
+    hud:       { text: '#fff1e8' },
+  },
+
+
   dusk: {
     name: 'dusk',
 
@@ -326,7 +351,7 @@ const THEMES: Record<ThemeName, GameTheme> = {
   },
 };
 
-let currentTheme: GameTheme = THEMES.dusk;
+let currentTheme: GameTheme = THEMES.office;
 
 export function getTheme(): GameTheme {
   return currentTheme;
@@ -334,6 +359,11 @@ export function getTheme(): GameTheme {
 
 export function setTheme(name: ThemeName): void {
   currentTheme = THEMES[name];
+}
+
+/** True while the 1990s office art set is active. */
+export function isOffice(): boolean {
+  return currentTheme.name === 'office';
 }
 
 export function getThemeByName(name: ThemeName): GameTheme {
